@@ -23,7 +23,10 @@
 #### 大模型能力
 
 ## 运行部署
-
+```shell
+    cd deploy
+    docker compose up -d
+```
 ## TODO
 
 ## 社区沟通

@@ -16,12 +16,16 @@ type TaskRecord struct {
 	orm.CrudModel
 }
 
+func (TaskRecord) TableName() string {
+	return "task_record"
+}
+
 type TaskRecordDao struct {
 	flow.Dao
 }
 
 func (entity *TaskRecordDao) OnCreate() {
-	entity.SetTable("task_record")
+	entity.SetTable(TaskRecord{}.TableName())
 }
 
 func (entity *TaskRecordDao) Insert(add *TaskRecord) error {
