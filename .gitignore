@@ -189,5 +189,5 @@ gen
 log/*
 *.swp
 *.swo
-
+log
 go.sock
