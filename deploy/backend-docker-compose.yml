@@ -23,7 +23,7 @@ services:
         hard: -1
     volumes:
       - ./data/mysql:/var/lib/mysql
-      - ./conf/mysql:/etc/mysql
+      - ./conf/mysql:/etc/mysql/conf.d/
     ports:
       - 3306:3306
   redis:

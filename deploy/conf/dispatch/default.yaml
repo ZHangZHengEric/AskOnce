@@ -9,7 +9,7 @@ log:
 redis:
   default:
     service: default
-    addr: "127.0.0.1:6379"
+    addr: "redis:6379"
     maxIdle: 100
     maxActive: 500
     idleTimeout: 5m
@@ -22,7 +22,7 @@ mysql:
   default:
     service: dispatch
     database: dispatch
-    addr: "127.0.0.1:3306"
+    addr: "mysql:3306"
     user: "root"
     password: "123456"
     maxidleconns: 10

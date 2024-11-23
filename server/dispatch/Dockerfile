@@ -36,6 +36,6 @@ COPY --from=build /etc/timezone /etc/timezone
 COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /usr/share/ca-certificates /usr/share/ca-certificates
 COPY --from=build /etc/ssl/certs /etc/ssl/certs
-COPY --from=build /build/rdispatch .
+COPY --from=build /build/dispatch .
 EXPOSE 8080
 ENTRYPOINT ["./dispatch"]

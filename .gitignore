@@ -191,3 +191,4 @@ log/*
 *.swo
 log
 go.sock
+deploy/data/**
