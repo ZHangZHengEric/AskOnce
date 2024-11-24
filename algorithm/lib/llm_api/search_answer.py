@@ -26,7 +26,7 @@ class SearchAnswer (LLMBaseAPI):
             'prompt' :prompt_ok,
             'temperature':0.1,
             'presence_penalty':1.2,
-            'max_new_tokens':2048
+            'max_tokens':2048
         }
         return return_result
     
@@ -55,7 +55,7 @@ class SearchAnswer (LLMBaseAPI):
             'prompt' :prompt_ok,
             'temperature':0.1,
             'presence_penalty':1.2,
-            'max_new_tokens':2048
+            'max_tokens':2048
         }
         return return_result
     
@@ -85,7 +85,7 @@ class SearchAnswer (LLMBaseAPI):
             'prompt' :prompt_ok,
             'temperature':0.1,
             'presence_penalty':1.2,
-            'max_new_tokens':2048
+            'max_tokens':2048
         }
         return return_result
     

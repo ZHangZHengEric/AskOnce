@@ -13,14 +13,14 @@ import traceback
 
 class QAnswerInput:
     def __init__(self,json_data,task_id) -> None:
-        self.id = json_data['id']
         self.question = json_data['question']
         self.answer_style = json_data['answer_style'] if 'answer_style' in json_data.keys() else 'simplify'
         self.search_result = json_data['search_result']
+        self.is_stream = json_data['is_stream'] if 'is_stream' in json_data.keys() else False
         self.task_id = task_id
 
 # 将输入字符串解析到输入结构体中
-def unmarshal_task_input(GetTaskResp : dict) :
+def unmarshal_task_input(GetTaskResp : dict):
     # log_f = open(log_txt, 'a')
     task_type = GetTaskResp['task_type']
     # try:
@@ -36,17 +36,36 @@ def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
         result_all = {} 
-        result_all['id']= task_input.id
-        if task_input.answer_style=='simplify':
-            result_all['result'] = model.simplify_answer(task_input.question,task_input.search_result)
-        elif task_input.answer_style=='detailed':
-            result_all['result'] = model.simplify_answer(task_input.question,task_input.search_result)
-        elif task_input.answer_style=='detailed_no_chapter':
-            result_all['result'] = model.detailed_no_chapter_answer(task_input.question,task_input.search_result)
+        print(task_input.answer_style)
+        if task_input.answer_style =='simplify':
+            prompt_info  = model.simplify_answer(task_input.question,task_input.search_result)
+        elif task_input.answer_style == 'detailed':
+            prompt_info = model.detailed_answer(task_input.question,task_input.search_result)
+        elif task_input.answer_style == 'detailed_no_chapter':
+            prompt_info = model.detailed_no_chapter_answer(task_input.question,task_input.search_result)
         else:
-            result_all['result'] = model.simplify_answer(task_input.question,task_input.search_result)
+            prompt_info = model.simplify_answer(task_input.question,task_input.search_result)
+        
+        if task_input.is_stream:
+            is_update = 0
+            for content_part in model.ask_llm_stream(**prompt_info):
+                result_all['answer'] = content_part
+                try:
+                    # print(result_all)
+                    if is_update % 4==0: 
+                        # up_start_time = time.time()
+                        tm.update_info(task_info={"task_id": task_input.task_id,"output": json.dumps(result_all,ensure_ascii=False),"status" : TaskManager.STATUS_RUNNING},is_multi_resps=True)
+                        # end_start_time = time.time()
+                        # update_time += (end_start_time-up_start_time)
+                        is_update=0
+                    is_update+=1
+                except:
+                    print(traceback.format_exc())
+                    print('流式返回出现错误')
+        else:
+            result_all['answer']= model.ask_llm(**prompt_info)
         end_time = time.time()
-        print('组装问题','用时'+str(end_time-start_time))
+        print('回答','用时'+str(end_time-start_time))
         return result_all
     
 if __name__ == '__main__':

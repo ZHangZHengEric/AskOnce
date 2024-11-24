@@ -48,6 +48,41 @@ class LLMBaseAPI:
         print('使用模型', self.model_name, '推理耗时', f'{time.time() - start_time:.4f} 秒')
         return return_content
     
+    def ask_llm_stream(
+            self, 
+            prompt: str | list, 
+            temperature: float = 0.01, 
+            presence_penalty: float = 1.2, 
+            frequency_penalty: float = 1.2,
+            max_tokens: int = 1024, 
+        ):
+        if isinstance(prompt, str):
+            messages = [
+                {"role": "user", "content": prompt}
+            ]
+        else:
+            messages = prompt 
+        start_time = time.time()
+        completion = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            temperature=temperature,
+            presence_penalty=presence_penalty,
+            frequency_penalty=frequency_penalty,
+            max_tokens=max_tokens,
+            stream=True
+        )
+        content = ''
+        for chunk in completion:
+	# 在这里，每个 chunk 的结构都与之前的 completion 相似，但 message 字段被替换成了 delta 字段
+            delta = chunk.choices[0].delta
+            if delta.content:
+                content= delta.content
+                yield content
+        print('使用模型', self.model_name, '推理耗时', f'{time.time() - start_time:.4f} 秒')
+        return content
+
+    
     def select_search_result(self,search_result_origin,min_chars=50,max_chars=7000,max_search_content_length = 10000):
         all_search_result = []
         search_result=[]
