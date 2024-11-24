@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  dispatch:
+    extends:
+      file: backend-docker-compose.yml
+      service: dispatch
+  mysql:
+    extends:
+      file: backend-docker-compose.yml
+      service: mysql
+  redis:
+    extends:
+      file: backend-docker-compose.yml
+      service: redis
