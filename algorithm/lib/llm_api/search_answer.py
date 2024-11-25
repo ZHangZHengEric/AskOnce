@@ -2,7 +2,7 @@ from AskOnce.algorithm.lib.llm_api.llm_base_api import LLMBaseAPI
 
 class SearchAnswer (LLMBaseAPI):
     
-    def simplify_answer(self,question,search_result):
+    def simplify_answer(self,question,search_result,stream=False):
         print('对问题进行简答:',question)
         print('搜索结果长度',len(search_result))
         all_search_result = self.select_search_result(search_result)
@@ -28,9 +28,12 @@ class SearchAnswer (LLMBaseAPI):
             'presence_penalty':1.2,
             'max_tokens':2048
         }
-        return return_result
+        if stream:
+            return self.ask_llm_stream(**return_result)
+        else:
+            return self.ask_llm(**return_result)
     
-    def detailed_answer(self,question,search_result):
+    def detailed_answer(self,question,search_result,stream=False):
         print('对问题进行段落划分的复杂回答:',question)
         print('搜索结果长度',len(search_result))
         all_search_result = self.select_search_result(search_result)
@@ -57,9 +60,12 @@ class SearchAnswer (LLMBaseAPI):
             'presence_penalty':1.2,
             'max_tokens':2048
         }
-        return return_result
+        if stream:
+            return self.ask_llm_stream(**return_result)
+        else:
+            return self.ask_llm(**return_result)
     
-    def detailed_no_chapter_answer(self,question,search_result):
+    def detailed_no_chapter_answer(self,question,search_result,stream=False):
         print('对问题进行无段落划分的复杂回答:',question)
         print('搜索结果长度',len(search_result))
         all_search_result = self.select_search_result(search_result)
@@ -87,5 +93,8 @@ class SearchAnswer (LLMBaseAPI):
             'presence_penalty':1.2,
             'max_tokens':2048
         }
-        return return_result
+        if stream:
+            return self.ask_llm_stream(**return_result)
+        else:
+            return self.ask_llm(**return_result)
     
