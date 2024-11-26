@@ -32,5 +32,5 @@ RUN pip install matplotlib -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install lxml lxml_html_clean trafilatura   -i https://mirrors.aliyun.com/pypi/simple/
 ENV PYTHONPATH /home/workspace:$PYTHONPATH
 WORKDIR /home/workspace
-ADD AtomAPP /home/workspace/AtomAPP
-WORKDIR /home/workspace/AtomAPP/server
+ADD AskOnce /home/workspace/AskOnce
+WORKDIR /home/workspace/AskOnce/algorithm/services

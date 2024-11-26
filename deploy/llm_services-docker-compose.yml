@@ -4,16 +4,14 @@ services:
   atom_app_askonce_simple_qa_construct_0:
     container_name: atom_app_askonce_simple_qa_construct_0
     build:
-      context: ../../
-      dockerfile: AtomAPP/server/docker_files/Dockerfile
+      context: ../
+      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
-    image: atom_app_image
+    image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python askonce/main.py --jobdurl http://172.16.0.73:20033 --tasktype atom_app_askonce_simple_qa_construct --log_file_path /mnt/data_online/online_log/atom_app_askonce_simple_qa_construct_0.log --api_key sk-d1d572cf799f7c7487b098bf79f67a35  --worker_name  fenghuang_atom_app_askonce_simple_qa_construct_0"
+    command: /bin/bash -c "python askonce/main.py "
     tty: true
-    volumes:
-      - /mnt/nvme3n1:/mnt/data_online/online_log
     environment:
       - LANG=C.UTF-8
     restart: "no"
