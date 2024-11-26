@@ -11,23 +11,17 @@ import time
 from datetime import datetime
 import traceback
 
-class QAnswerInput:
+class DataInput:
     def __init__(self,json_data,task_id) -> None:
         self.question = json_data['question']
         self.task_id = task_id
 
 # 将输入字符串解析到输入结构体中
 def unmarshal_task_input(GetTaskResp : dict):
-    # log_f = open(log_txt, 'a')
     task_type = GetTaskResp['task_type']
-    # try:
-    #     log_f.write(task_type+'\t'+str(time.strftime('%Y-%m-%d %H:%M:%S' ,time.localtime(time.time()))  )+'\t'+GetTaskResp["input"]+'\n')
-    # except:
-    #     pass
-    # log_f.close()
     input_json = json.loads(GetTaskResp["input"])
     if task_type ==args.tasktype[0]:
-        return  task_type,QAnswerInput(json_data=input_json, task_id=GetTaskResp["task_id"]) 
+        return  task_type,DataInput(json_data=input_json, task_id=GetTaskResp["task_id"]) 
 # 执行任务
 def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:

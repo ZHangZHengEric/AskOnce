@@ -6,14 +6,16 @@ import argparse
 import os,sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))))
 from AskOnce.algorithm.services.task_manager.task_manager import TaskManager,http_post_json
-from AskOnce.algorithm.lib.llm_api.generate_outlines import GenerateOutlines
+from AskOnce.algorithm.lib.result_reference.result_add_reference import AddReference
 import time
 from datetime import datetime
 import traceback
 
 class DataInput:
     def __init__(self,json_data,task_id) -> None:
-        self.answer = json_data['answer']
+        self.result = json_data['result']
+        self.reference_list  = json_data['reference_list']
+        self.threshold = json_data['threshold'] if 'threshold' in json_data.keys() else -1
         self.task_id = task_id
 
 # 将输入字符串解析到输入结构体中
@@ -27,7 +29,9 @@ def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
         result_all = {} 
-        result_all['answer_outline']= model.generate_outlines_by_answer(task_input.answer)
+        reference_map,reference_list_accept_index_range = model.get_answer_with_reference_map(task_input.result,task_input.reference_list,task_input.threshold)
+        result_all['reference_map'] = reference_map
+        result_all['reference_list_select_index'] = reference_list_accept_index_range
         end_time = time.time()
         print('回答','用时'+str(end_time-start_time))
         return result_all
@@ -37,16 +41,11 @@ if __name__ == '__main__':
     parser.add_argument("--jobdurl", type=str, default='', help="jobd use url not use ip & port")
     parser.add_argument("--tasktype", type=str, nargs='+', default=[], help="task_type")
     parser.add_argument("--worker_name", type=str, default='', help="worker_name")
-    parser.add_argument("--api_key", type=str, help="api_key")
-    parser.add_argument("--model_name", type=str, help="model_name")
-    parser.add_argument("--platform_api_url", type=str, help="platform_api_url")
-    # parser.add_argument("--log_file_path", type=str, default="/data1/zhangzheng/online_log/entity_normalization.log")
+    parser.add_argument("--stop_word_file", type=str, help="stop_word_file")
     args = parser.parse_args()
-    # log_txt = args.log_file_path[:-3]+'input_log' 
     tm = TaskManager(jobdurl=args.jobdurl)
-    model = GenerateOutlines(api_key=args.api_key,platform_api_url=args.platform_api_url,model_name= args.model_name)    
+    model = AddReference(stop_word_file = args.stop_word_file)    
     for one_task_type in args.tasktype:
-        # 
         tm.add_task_type_info(one_task_type,10000,args.worker_name)
 
     while (True):
