@@ -1,0 +1,221 @@
+@import "./reset.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+@font-face {
+    font-family: "pingfang";
+    /*src: url("../font/pingfang.ttf");*/
+    src: url("../font/PingFang-SC-Regular.ttf");
+}
+
+@font-face {
+    font-family: "AlfaSlabOne";
+    src: url("../font/AlfaSlabOne-Regular.ttf");
+}
+
+
+.el-dialog__header {
+    @apply p-0;
+}
+
+.llama-md p {
+    font-size: 0.875rem !important;
+}
+
+.llama-md .scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.llama-md table {
+    width: max-content !important;
+    border-left: 1px solid #f5f5f5;
+    border-top: 1px solid #f5f5f5;
+}
+
+.llama-md thead tr th {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    background: #fcf5f4 !important;
+    font-size: 0.75rem !important;
+}
+
+.llama-md td {
+    padding: 0.5rem 0.25rem 0.5rem;
+    font-size: 0.75rem !important;
+    vertical-align: middle !important;
+    border-right: 1px solid #f5f5f5 !important;
+    border-bottom: 1px solid #f5f5f5 !important;
+}
+
+.llama-md .hljs,
+.line-num-box {
+    font-size: 0.75rem !important;
+    line-height: 20px !important;
+}
+
+@media (min-width: 1024px) {
+    .llama-md p {
+        font-size: 1.125rem !important;
+    }
+
+    .llama-md thead tr th {
+        font-size: 1.125rem !important;
+    }
+
+    .llama-md td {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        font-size: 1.125rem !important;
+    }
+
+    .llama-md .hljs {
+        font-size: 1.125rem !important;
+        line-height: 1.25 !important;
+    }
+}
+
+.v-note-wrapper {
+    z-index: 45 !important;
+}
+
+pre {
+    opacity: 1 !important;
+    background-color: #fcf5f4 !important;
+    border-radius: 15px !important;
+}
+
+.code-box {
+    display: inline-block !important;
+    vertical-align: top !important;
+    width: calc(100% - 50px) !important;
+    border-left-style: none !important;
+}
+
+code {
+    line-height: 20px !important;
+    font-size: 16px !important;
+    vertical-align: top;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 10px !important;
+}
+
+code::-webkit-scrollbar {
+    height: 10px !important;
+    border-radius: 5px !important;
+}
+
+code::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 5px !important;
+}
+
+code::-webkit-scrollbar-button {
+    /*滚动条的轨道的两端按钮，允许通过点击微调小方块的位置*/
+    border-radius: 5px !important;
+}
+
+.mac-icon {
+    height: 30px !important;
+    border-bottom: 1px solid silver !important;
+    margin-bottom: 5px !important;
+}
+
+.mac-icon > span {
+    display: inline-block !important;
+    letter-spacing: 5px !important;
+    word-spacing: 5px !important;
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 8px !important;
+}
+
+.mac-icon-lang {
+    width: 50px !important;
+    padding-left: 10px !important;
+    font-size: 16px !important;
+    vertical-align: top !important;
+}
+
+.copy-button {
+    padding: 2px 8px !important;
+    color: #ffffff !important;
+    background-color: #c24d3f !important;
+    margin-bottom: 5px !important;
+    border-radius: 5px !important;
+    outline: none !important;
+    border: none !important;
+}
+
+.copy-button {
+    float: right !important;
+}
+
+.copy-button:hover {
+    cursor: pointer !important;
+}
+
+.markdown-body .hljs {
+    display: block;
+    overflow: auto;
+    background: #fcf5f4 !important;
+    color: #333 !important;
+}
+
+.hljs-strong {
+    font-weight: bold;
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-name,
+.hljs-attr {
+    color: #c24d3f !important;
+}
+
+.hljs-params,
+.hljs-class .hljs-title {
+    color: #c24d3f !important;
+}
+
+
+.v-note-wrapper {
+    border: none !important;
+    min-height: 0 !important;
+    min-width: 30px !important;
+    background: transparent !important;
+}
+
+.v-note-show {
+    position: relative !important;
+}
+
+.v-note-wrapper .v-note-panel .v-note-show .v-show-content, .v-note-wrapper .v-note-panel .v-note-show .v-show-content-html {
+    padding: 0 !important;
+    line-height: 1.8 !important;
+    overflow: hidden;
+}
+
+
+.markdown-body blockquote, .markdown-body dl, .markdown-body ol, .markdown-body p, .markdown-body pre, .markdown-body table, .markdown-body ul {
+    margin-bottom: 0 !important;
+}
+
+ol, ul, menu {
+    list-style: auto !important;
+}
+
+.el-input__wrapper {
+    border-radius: 8px;
+}

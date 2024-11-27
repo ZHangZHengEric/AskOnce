@@ -1,0 +1,82 @@
+{
+	"name": "agent",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"serve": "vue-cli-service serve",
+		"build": "vue-cli-service build",
+		"sit": "vue-cli-service build --mode sit",
+		"lint": "vue-cli-service lint"
+	},
+	"dependencies": {
+		"@antv/g6": "^4.8.24",
+		"@element-plus/icons-vue": "^2.3.1",
+		"@pansy/watermark": "^2.3.0",
+		"axios": "^1.6.7",
+		"core-js": "^3.35.1",
+		"dayjs": "^1.11.10",
+		"docx-preview": "^0.3.2",
+		"echarts": "^5.5.0",
+		"element-plus": "^2.5.5",
+		"eventemitter3": "^5.0.1",
+		"html2canvas": "^1.4.1",
+		"js-cookie": "^3.0.5",
+		"jspdf": "^2.5.1",
+		"lodash": "^4.17.21",
+		"mavon-editor": "file:./mavon-editor",
+		"npm": "^10.5.0",
+		"nprogress": "^0.2.0",
+		"pinia": "^2.1.7",
+		"recorder-core": "^1.3.23122400",
+		"text-loader": "^0.0.1",
+		"uglifyjs-webpack-plugin": "^2.2.0",
+		"uuid": "^9.0.1",
+		"vue": "^3.4.15",
+		"vue-cropper": "^1.1.1",
+		"vue-i18n": "^9.13.1",
+		"vue-pdf-embed": "^2.0.3",
+		"vue-router": "^4.2.5",
+		"vue-waterfall-plugin-next": "^2.3.1",
+		"vue3-lazy": "1.0.0-alpha.1",
+		"vue3-text-clamp": "^0.1.2"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.23.9",
+		"@babel/eslint-parser": "^7.23.10",
+		"@babel/plugin-transform-private-methods": "^7.24.6",
+		"@vue/cli-plugin-babel": "~5.0.8",
+		"@vue/cli-plugin-eslint": "~5.0.8",
+		"@vue/cli-service": "~5.0.8",
+		"autoprefixer": "^10.4.17",
+		"compression-webpack-plugin": "^10.0.0",
+		"eslint": "^7.32.0",
+		"eslint-plugin-vue": "^8.7.1",
+		"less": "^3.13.1",
+		"less-loader": "^4.1.0",
+		"postcss": "^8.4.33",
+		"stylelint": "^16.2.1",
+		"stylelint-config-standard": "^35.0.0",
+		"svg-sprite-loader": "^6.0.11",
+		"tailwindcss": "^3.4.1"
+	},
+	"eslintConfig": {
+		"root": true,
+		"env": {
+			"node": true
+		},
+		"extends": [
+			"plugin:vue/vue3-essential",
+			"eslint:recommended"
+		],
+		"parserOptions": {
+			"parser": "@babel/eslint-parser"
+		},
+		"rules": {}
+	},
+	"browserslist": [
+		"> 1%",
+		"last 2 versions",
+		"not dead",
+		"not ie 11"
+	]
+}

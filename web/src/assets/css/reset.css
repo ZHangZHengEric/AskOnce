@@ -1,0 +1,106 @@
+/**
+ * Eric Meyer's Reset CSS v2.0 (http://meyerweb.com/eric/tools/css/reset/)
+ * http://cssreset.com
+ */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+    /* table, caption, tbody, tfoot, thead, tr, th, td, */
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, input, option {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font-weight: normal;
+	vertical-align: baseline;
+	box-sizing: border-box;
+	overscroll-behavior: none;
+
+	/*//SimHei,*/
+	font-family: "pingfang","AlfaSlabOne";
+}
+
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td {
+	margin: 0;
+	padding: 0;
+	font-size: 100%;
+	font-weight: normal;
+	vertical-align: baseline;
+	box-sizing: border-box;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+menu,
+nav,
+section {
+	display: block;
+}
+
+body {
+	line-height: 1;
+	background: white;
+}
+
+/* 整个滚动条 */
+::-webkit-scrollbar {
+	/* 对应纵向滚动条的宽度 */
+	width: 5px;
+	/* 对应横向滚动条的宽度 */
+	height: 5px;
+}
+
+/* 滚动条上的滚动滑块 */
+::-webkit-scrollbar-thumb {
+	background-color: #eee;
+	border-radius: 32px;
+}
+
+/* 滚动条轨道 */
+::-webkit-scrollbar-track {
+	border-radius: 32px;
+}
+
+.el-tooltip__popper.is-light {
+	border: 1px solid transparent !important;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2), 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.el-tooltip__popper.is-light[x-placement^="top"] .popper__arrow,
+.el-tooltip__popper.is-light[x-placement^="bottom"] .popper__arrow,
+.el-tooltip__popper.is-light[x-placement^="left"] .popper__arrow {
+	border-top-color: transparent !important;
+	border-bottom-color: transparent !important;
+	border-left-color: transparent !important;
+}
+
+.markdown-body blockquote,
+.markdown-body dl,
+.markdown-body ol,
+.markdown-body p,
+.markdown-body pre,
+.markdown-body table,
+.markdown-body ul {
+	margin-bottom: 0 !important;
+}
