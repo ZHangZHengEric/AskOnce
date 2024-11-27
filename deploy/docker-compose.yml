@@ -1,9 +1,9 @@
 version: "3.9"
 services:
-  dispatch:
+  jobd:
     extends:
       file: backend-docker-compose.yml
-      service: dispatch
+      service: jobd
     depends_on:
       - mysql
       - redis

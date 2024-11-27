@@ -1,9 +1,9 @@
 package worker
 
 import (
-	"dispatch/components/dto"
-	"dispatch/service"
 	"github.com/xiangtao94/golib/flow"
+	"jobd/components/dto"
+	"jobd/service"
 )
 
 type GetTaskCtl struct {

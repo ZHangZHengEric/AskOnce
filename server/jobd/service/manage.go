@@ -1,11 +1,11 @@
 package service
 
 import (
-	"dispatch/components/dto"
-	"dispatch/data"
-	"dispatch/models"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"jobd/components/dto"
+	"jobd/data"
+	"jobd/models"
 	"time"
 )
 

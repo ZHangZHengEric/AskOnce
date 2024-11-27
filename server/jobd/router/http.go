@@ -1,13 +1,13 @@
 package router
 
 import (
-	"dispatch/components/dto"
-	"dispatch/controllers"
-	"dispatch/controllers/committer"
-	"dispatch/controllers/worker"
-	"dispatch/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/flow"
+	"jobd/components/dto"
+	"jobd/controllers"
+	"jobd/controllers/committer"
+	"jobd/controllers/worker"
+	"jobd/middleware"
 	"net/http"
 	_ "net/http/pprof"
 	"time"

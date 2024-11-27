@@ -1,10 +1,10 @@
 services:
-  dispatch:
+  jobd:
     build:
-      context: ../server/dispatch
+      context: ../server/jobd
       dockerfile: Dockerfile
     ports:
       - "20033:8080"
     volumes:
-      - ./conf/dispatch:/app/conf/mount
+      - ./conf/jobd:/app/conf/mount
     restart: unless-stopped

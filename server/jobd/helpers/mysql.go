@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"dispatch/conf"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/gorm"
+	"jobd/conf"
 )
 
 var (

@@ -1,13 +1,13 @@
 package data
 
 import (
-	"dispatch/components"
-	"dispatch/components/defines"
-	"dispatch/components/dto"
-	"dispatch/helpers"
 	"encoding/json"
 	"errors"
 	"github.com/xiangtao94/golib/flow"
+	"jobd/components"
+	"jobd/components/defines"
+	"jobd/components/dto"
+	"jobd/helpers"
 	"strings"
 	"time"
 )

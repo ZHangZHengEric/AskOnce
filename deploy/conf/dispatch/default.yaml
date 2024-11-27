@@ -1,6 +1,6 @@
 #app端口
 port: 8080
-appName: dispatch
+appName: jobd
 log:
   level: DEBUG
   stdout: true
@@ -20,8 +20,8 @@ redis:
 
 mysql:
   default:
-    service: dispatch
-    database: dispatch
+    service: jobd
+    database: jobd
     addr: "mysql:3306"
     user: "root"
     password: "123456"

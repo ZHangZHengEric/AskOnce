@@ -31,4 +31,4 @@
 GOOS=linux GOARCH=amd64 go build
 
 # docker编译镜像
-docker build -f Dockerfile -t dispatch-images:latest .
+docker build -f Dockerfile -t jobd-images:latest .

@@ -1,14 +1,14 @@
 package service
 
 import (
-	"dispatch/components"
-	"dispatch/components/defines"
-	"dispatch/components/dto"
-	"dispatch/data"
-	"dispatch/models"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"jobd/components"
+	"jobd/components/defines"
+	"jobd/components/dto"
+	"jobd/data"
+	"jobd/models"
 	"time"
 )
 

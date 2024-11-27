@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"dispatch/components"
 	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
+	"jobd/components"
 	"net/http"
 	"time"
 )

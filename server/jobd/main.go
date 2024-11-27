@@ -1,13 +1,13 @@
 package main
 
 import (
-	"dispatch/conf"
-	"dispatch/helpers"
-	"dispatch/models"
-	"dispatch/router"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib"
 	"github.com/xiangtao94/golib/flow"
+	"jobd/conf"
+	"jobd/helpers"
+	"jobd/models"
+	"jobd/router"
 )
 
 func main() {

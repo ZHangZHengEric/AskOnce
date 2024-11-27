@@ -1,4 +1,4 @@
-module dispatch
+module jobd
 
 go 1.22.4
 

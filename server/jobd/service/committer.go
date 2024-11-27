@@ -1,15 +1,15 @@
 package service
 
 import (
-	"dispatch/components"
-	"dispatch/components/defines"
-	"dispatch/components/dto"
-	"dispatch/data"
-	"dispatch/helpers"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
+	"jobd/components"
+	"jobd/components/defines"
+	"jobd/components/dto"
+	"jobd/data"
+	"jobd/helpers"
 	"time"
 )
 

@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"dispatch/conf"
 	"github.com/xiangtao94/golib/pkg/redis"
+	"jobd/conf"
 )
 
 // 推荐，直接使用

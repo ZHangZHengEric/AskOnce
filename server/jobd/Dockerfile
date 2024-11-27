@@ -24,7 +24,7 @@ COPY . .
 ENV GOOS=linux
 ENV GOARCH=amd64
 # 编译成二进制可执行文件app
-RUN go build --tags=kqueue,operator -ldflags "-w -s" -o dispatch
+RUN go build --tags=kqueue,operator -ldflags "-w -s" -o jobd
 
 
 FROM ubuntu:22.04
@@ -36,6 +36,6 @@ COPY --from=build /etc/timezone /etc/timezone
 COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /usr/share/ca-certificates /usr/share/ca-certificates
 COPY --from=build /etc/ssl/certs /etc/ssl/certs
-COPY --from=build /build/dispatch .
+COPY --from=build /build/jobd .
 EXPOSE 8080
-ENTRYPOINT ["./dispatch"]
+ENTRYPOINT ["./jobd"]

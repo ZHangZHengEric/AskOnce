@@ -1,8 +1,8 @@
 package test
 
 import (
-	"dispatch/helpers"
 	"github.com/xiangtao94/golib/pkg/env"
+	"jobd/helpers"
 	"net/http/httptest"
 	"path"
 	"runtime"
