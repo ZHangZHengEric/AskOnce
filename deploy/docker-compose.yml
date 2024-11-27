@@ -4,6 +4,9 @@ services:
     extends:
       file: backend-docker-compose.yml
       service: dispatch
+    depends_on:
+      - mysql
+      - redis
   mysql:
     extends:
       file: backend-docker-compose.yml
@@ -12,3 +15,19 @@ services:
     extends:
       file: backend-docker-compose.yml
       service: redis
+  askonce-es1:
+    extends:
+      file: elastic-docker-compose.yml
+      service: askonce-es1
+  askonce-es2:
+    extends:
+      file: elastic-docker-compose.yml
+      service: askonce-es2
+  askonce-es3:
+    extends:
+      file: elastic-docker-compose.yml
+      service: askonce-es3
+  askonce-es-dashboard:
+    extends:
+      file: elastic-docker-compose.yml
+      service: askonce-es-dashboard
