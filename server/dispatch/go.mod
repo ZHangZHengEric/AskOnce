@@ -1,17 +1,13 @@
 module dispatch
 
-go 1.22.0
-
-toolchain go1.22.4
+go 1.22.4
 
 require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gin-contrib/timeout v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.4.0
-	github.com/pkg/errors v0.9.1
 	github.com/xiangtao94/golib v1.0.2
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 	gorm.io/gorm v1.25.12
 )
 
@@ -46,6 +42,7 @@ require (
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
