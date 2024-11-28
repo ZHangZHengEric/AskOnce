@@ -2,6 +2,7 @@ package history
 
 import (
 	"askonce/components/dto/dto_history"
+	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
 )
 

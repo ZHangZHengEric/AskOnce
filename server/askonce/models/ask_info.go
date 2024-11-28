@@ -78,7 +78,7 @@ func (entity *AskInfoDao) UpdateEntity(update *AskInfo) error {
 }
 
 type AskInfoQueryParam struct {
-	UserId      int64
+	UserId      string
 	QueryStatus int
 	QueryType   string
 	Query       string

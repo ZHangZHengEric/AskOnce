@@ -3,6 +3,7 @@ package search
 import (
 	"askonce/components/dto"
 	"askonce/components/dto/dto_search"
+	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
 	"time"
 )

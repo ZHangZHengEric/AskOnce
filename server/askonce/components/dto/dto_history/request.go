@@ -1,6 +1,6 @@
 package dto_history
 
-import "askOnce/components/dto"
+import "askonce/components/dto"
 
 type AskReq struct {
 	dto.PageParam
