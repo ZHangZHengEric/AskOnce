@@ -7,6 +7,11 @@ var ErrorNotLogin = errors.Error{
 	Message: "用户未登录，请登录！",
 }
 
+var ErrorLoginError = errors.Error{
+	Code:    100000,
+	Message: "登录失败，账户名或密码不正确!",
+}
+
 // 数据库问题
 var ErrorMysqlError = errors.Error{
 	Code:    100001,

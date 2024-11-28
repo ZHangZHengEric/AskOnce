@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	KdbDocSuccess = 9
+	KdbDocWaiting = 0
 	KdbDocRunning = 1
 	KdbDocFail    = 2
+	KdbDocSuccess = 9
 )
 
 // KdbDoc  知识库文档

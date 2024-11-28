@@ -22,7 +22,7 @@ type SessionCache struct {
 var USER_SESSION_SET = "user_session_set:"
 
 type LoginInfoSession struct {
-	UserId     int64  `json:"UserId" redis:"UserId"`
+	UserId     string `json:"UserId" redis:"UserId"`
 	Account    string `json:"Account" redis:"Account"`
 	Phone      string `json:"Phone" redis:"Phone"`
 	LoginTime  int64  `json:"LoginTime" redis:"LoginTime"`
@@ -148,8 +148,8 @@ func normalizeExpire(expire int64) int64 {
 
 // 添加到uid_zjxuss有序集合，expire为有效期（秒）
 // score设置为失效时间
-func (entity *SessionCache) AddUserSessionSet(uid int64, sessionKey string, expire int64) {
-	cacheKey := entity.FormatCacheKey("%s:%d", USER_SESSION_SET, uid)
+func (entity *SessionCache) AddUserSessionSet(uid string, sessionKey string, expire int64) {
+	cacheKey := entity.FormatCacheKey("%s:%s", USER_SESSION_SET, uid)
 	setMap := make(map[string]float64)
 	setTime := time.Now().Unix() + expire
 	setMap[sessionKey] = float64(setTime)
@@ -161,8 +161,8 @@ func (entity *SessionCache) AddUserSessionSet(uid int64, sessionKey string, expi
 }
 
 // 根据sessionKey删除UserSessionKey中特定值
-func (entity *SessionCache) DelUserSessionSet(uid int64, sessionKey string) error {
-	cacheKey := entity.FormatCacheKey("%s:%d", USER_SESSION_SET, uid)
+func (entity *SessionCache) DelUserSessionSet(uid string, sessionKey string) error {
+	cacheKey := entity.FormatCacheKey("%s:%s", USER_SESSION_SET, uid)
 	_, err := helpers.RedisClient.ZRem(cacheKey, sessionKey)
 	if err != nil {
 		entity.LogErrorf("DelUserSessionSet redis error,err%s", err)
@@ -172,8 +172,8 @@ func (entity *SessionCache) DelUserSessionSet(uid int64, sessionKey string) erro
 
 // 添加到uid_zjxuss有序集合，expire为有效期（秒）
 // score设置为失效时间
-func (entity *SessionCache) GetUserSessionSet(uid int64) ([]string, error) {
-	cacheKey := entity.FormatCacheKey("%s:%d", USER_SESSION_SET, uid)
+func (entity *SessionCache) GetUserSessionSet(uid string) ([]string, error) {
+	cacheKey := entity.FormatCacheKey("%s:%s", USER_SESSION_SET, uid)
 	expireTime := time.Now().Unix()
 	expireTimeStr := strconv.FormatInt(expireTime, 10)
 	// 获取7天内生成的zjxuss

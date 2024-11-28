@@ -46,7 +46,7 @@ func (k *KdbDocData) AddDocFormFile(kdbId int64, userId string, file *models.Fil
 		DataSource: "file",
 		SourceId:   file.Id,
 		NeedSplit:  split,
-		Status:     0,
+		Status:     models.KdbDocWaiting,
 		UserId:     userId,
 		CrudModel: orm.CrudModel{
 			CreatedAt: time.Now(),
@@ -54,6 +54,7 @@ func (k *KdbDocData) AddDocFormFile(kdbId int64, userId string, file *models.Fil
 		},
 	}
 	err = k.kdbDocDao.Insert(add)
+
 	return
 }
 
@@ -104,6 +105,14 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 func (k *KdbDocData) DocBuild(docIds []int64) (err error) {
 	//1. 文件导入加锁
 
-	//
+	//2. 文件解析文本
+
+	//3. 文本切分
+
+	//4. 文本转向量
+
+	//5. 存向量数据库
+
+	// 6.更新db
 	return
 }
