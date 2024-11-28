@@ -28,6 +28,7 @@ func (User) TableName() string {
 }
 
 type UserSetting struct {
+	Language  string `json:"language"`
 	ModelType string ` json:"modelType"`
 }
 

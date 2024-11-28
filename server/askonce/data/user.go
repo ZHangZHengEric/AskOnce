@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"gorm.io/datatypes"
 	"time"
 )
 
@@ -56,9 +57,13 @@ func (u *UserData) RegisterUserAccount(account string, password string) (newUser
 	tx := db.Begin()
 	u.userDao.SetDB(tx)
 	insertUser := &models.User{
-		UserId:        userId,
-		Password:      base64.StdEncoding.EncodeToString([]byte(password)),
-		UserName:      account,
+		UserId:   userId,
+		Password: base64.StdEncoding.EncodeToString([]byte(password)),
+		UserName: account,
+		Setting: datatypes.NewJSONType(models.UserSetting{
+			Language:  "zh-cn",
+			ModelType: "chatgpt-4-minio",
+		}),
 		LastLoginTime: now,
 		CrudModel: orm.CrudModel{
 			CreatedAt: now,

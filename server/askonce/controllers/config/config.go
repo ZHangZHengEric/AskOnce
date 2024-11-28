@@ -3,6 +3,7 @@ package config
 import (
 	"askonce/components/dto"
 	"askonce/components/dto/dto_config"
+	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
 )
 
