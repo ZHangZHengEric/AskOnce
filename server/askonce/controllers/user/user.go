@@ -3,6 +3,7 @@ package user
 import (
 	"askonce/components/dto"
 	"askonce/components/dto/dto_user"
+	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
 )
 
@@ -31,22 +32,4 @@ type LoginInfoController struct {
 func (entity *LoginInfoController) Action(req *dto.EmptyReq) (interface{}, error) {
 	s := entity.Create(new(service.UserService)).(*service.UserService)
 	return s.LoginInfo(req)
-}
-
-type LoginPhoneController struct {
-	flow.Controller
-}
-
-func (entity *LoginPhoneController) Action(req *dto_user.LoginPhoneReq) (interface{}, error) {
-	s := entity.Create(new(service.UserService)).(*service.UserService)
-	return s.LoginPhone(req)
-}
-
-type LoginSendSmsController struct {
-	flow.Controller
-}
-
-func (entity *LoginSendSmsController) Action(req *dto_user.LoginSendSmsReq) (interface{}, error) {
-	s := entity.Create(new(service.UserService)).(*service.UserService)
-	return s.LoginSendSms(req)
 }
