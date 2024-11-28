@@ -1,6 +1,8 @@
 package dto_kdb
 
-import "askonce/components/defines"
+import (
+	"askonce/components/dto"
+)
 
 type AddRes struct {
 	KdbId int64 `json:"kdbId"`
@@ -45,20 +47,7 @@ type InfoRes struct {
 	DataSourceType DataSourceType `json:"dataSourceType"`
 	WordCount      int64          `json:"wordCount"`
 	DocumentCount  int64          `json:"documentCount"`
-
-	KdbSetting
-}
-
-type ProcessRuleRes struct {
-	ProcessRule ProcessRule `json:"processRule"`
-}
-
-type ProcessReviewRes struct {
-	IsStructured     bool     `json:"isStructured,omitempty"`     // 是否结构化
-	StructuredFields []string `json:"structuredFields,omitempty"` // 结构化的字段
-
-	Segments []map[defines.StructuredKey]any `json:"segments"` // 分段分片
-	Total    int                             `json:"total"`    // 分段总数
+	dto.KdbSetting
 }
 
 type DocAddRes struct {

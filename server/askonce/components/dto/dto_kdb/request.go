@@ -48,17 +48,6 @@ type InfoReq struct {
 	KdbId int64 `form:"kdbId" binding:"required"`
 }
 
-type ProcessReviewReq struct {
-	InfoList    InfoList    `json:"infoList" binding:"required"`
-	ProcessRule ProcessRule `json:"processRule"`
-}
-
-type DocAddReq struct {
-	KdbId       int64       `json:"kdbId" form:"kdbId" binding:"required"`
-	InfoList    InfoList    `json:"infoList" binding:"required"`
-	ProcessRule ProcessRule `json:"processRule"`
-}
-
 type DocInfoReq struct {
 	KdbId    int64 `json:"kdbId" form:"kdbId" binding:"required"`
 	KdbDocId int64 `json:"kdbDocId" form:"kdbDocId" binding:"required"`

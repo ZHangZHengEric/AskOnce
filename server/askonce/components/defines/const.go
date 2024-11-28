@@ -27,6 +27,7 @@ const (
 type StructuredKey string
 
 const (
+	StructuredId         StructuredKey = "id"          // 文档id
 	StructuredTitle      StructuredKey = "title"       // 标题
 	StructuredContent    StructuredKey = "content"     // 内容
 	StructuredStartIndex StructuredKey = "start_index" // 起始下标
