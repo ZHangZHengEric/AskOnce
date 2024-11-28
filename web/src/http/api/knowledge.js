@@ -79,7 +79,7 @@ export const knowledgeDataDel = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeSearch = (data) => {
-    return Http.post("/askonce/kdb/recall", data);
+    return Http.post("/askonce/kdb/doc/recall", data);
 }
 /**
  * 知识库封面

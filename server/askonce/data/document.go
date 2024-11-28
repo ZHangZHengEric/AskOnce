@@ -2,9 +2,7 @@ package data
 
 import (
 	"askonce/api/jobd"
-	"askonce/components"
 	"askonce/components/defines"
-	"askonce/models"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"golang.org/x/sync/errgroup"
@@ -17,30 +15,11 @@ import (
 */
 type DocumentData struct {
 	flow.Layer
-	fileDao *models.FileDao
 	jobdApi *jobd.JobdApi
 }
 
 func (d *DocumentData) OnCreate() {
-	d.fileDao = flow.Create(d.GetCtx(), new(models.FileDao))
 	d.jobdApi = flow.Create(d.GetCtx(), new(jobd.JobdApi))
-}
-
-// 文件转文本
-func (d *DocumentData) ConvertFileToText(fileId string) (fileName string, output string, err error) {
-	// 获取文件
-	file, err := d.fileDao.GetById(fileId)
-	if err != nil {
-		return
-	}
-	if file == nil { // 文件不存在
-		return "", "", components.ErrorFileNoExist
-	}
-	fileToText, err := d.jobdApi.FileToText(file.Path)
-	if err != nil {
-		return
-	}
-	return file.Name, fileToText.Text, nil
 }
 
 // 文本切分

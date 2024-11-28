@@ -13,7 +13,7 @@ type File struct {
 	Id        string `gorm:"id;primaryKey;comment:文件名称"`
 	Name      string `gorm:"type:varchar(512);default:'';comment:文件名称"`
 	Extension string `gorm:"ype:varchar(52);default:'';comment:文件格式"`
-	Path      string `gorm:"type:varchar(2048);default:'';comment:文件原始路径"`
+	Path      string `gorm:"type:varchar(4096);default:'';comment:文件原始路径"`
 	Source    string `gorm:"type:varchar(52);default:'';comment:文件来源 "`
 	UserId    string `gorm:"type:varchar(128);default:'';comment:用户id"`
 	orm.CrudModel

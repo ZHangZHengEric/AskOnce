@@ -5,14 +5,15 @@ import (
 	"askonce/components/dto/dto_config"
 	"askonce/components/dto/dto_history"
 	"askonce/components/dto/dto_kdb"
-	"askonce/components/dto/dto_knowledge"
+	"askonce/components/dto/dto_kdb_doc"
 	"askonce/components/dto/dto_search"
 	"askonce/components/dto/dto_user"
-	"askonce/controllers/web/config"
-	"askonce/controllers/web/history"
-	"askonce/controllers/web/kdb"
-	"askonce/controllers/web/search"
-	"askonce/controllers/web/user"
+	"askonce/controllers/config"
+	"askonce/controllers/files"
+	"askonce/controllers/history"
+	kdb2 "askonce/controllers/kdb"
+	"askonce/controllers/search"
+	"askonce/controllers/user"
 	"askonce/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/flow"
@@ -24,6 +25,10 @@ import (
 func Http(engine *gin.Engine) {
 	engine.GET("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
 	router := engine.Group("/askonce")
+	fileGroup := router.Group("files") // 文件接口
+	{
+		fileGroup.POST("upload", middleware.LoginCheck, flow.Use[dto.FileUploadReq](new(files.FileUploadController))) // 上传
+	}
 	userGroup := router.Group("user")
 	{
 		userGroup.POST("/registerByAccount", flow.Use[dto_user.RegisterAccountReq](new(user.RegisterAccountController))) // 账户注册
@@ -33,49 +38,52 @@ func Http(engine *gin.Engine) {
 	knowledgeGroup := router.Group("kdb") // 知识库
 	{
 		// 封面
-		knowledgeGroup.GET("covers", middleware.LoginCheck, flow.Use[dto.EmptyReq](new(kdb.CoversController)))
+		knowledgeGroup.GET("covers", middleware.LoginCheck, flow.Use[dto.EmptyReq](new(kdb2.CoversController)))
 
 		// 列表
-		knowledgeGroup.POST("list", middleware.LoginCheck, flow.Use[dto_kdb.ListReq](new(kdb.ListController)))
+		knowledgeGroup.POST("list", middleware.LoginCheck, flow.Use[dto_kdb.ListReq](new(kdb2.ListController)))
 		// 新增
-		knowledgeGroup.POST("add", middleware.LoginCheck, flow.Use[dto_kdb.AddReq](new(kdb.AddController)))
+		knowledgeGroup.POST("add", middleware.LoginCheck, flow.Use[dto_kdb.AddReq](new(kdb2.AddController)))
 		// 修改
-		knowledgeGroup.POST("update", middleware.LoginCheck, flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController)))
+		knowledgeGroup.POST("update", middleware.LoginCheck, flow.Use[dto_kdb.UpdateReq](new(kdb2.UpdateController)))
 		// 删除
-		knowledgeGroup.POST("delete", middleware.LoginCheck, flow.Use[dto_kdb.DeleteReq](new(kdb.DeleteController)))
+		knowledgeGroup.POST("delete", middleware.LoginCheck, flow.Use[dto_kdb.DeleteReq](new(kdb2.DeleteController)))
 		// 详情
-		knowledgeGroup.GET("detail", middleware.LoginCheck, flow.Use[dto_kdb.InfoReq](new(kdb.InfoController)))
+		knowledgeGroup.GET("detail", middleware.LoginCheck, flow.Use[dto_kdb.InfoReq](new(kdb2.InfoController)))
 		// 删除自己与知识库关系
-		knowledgeGroup.POST("deleteSelf", middleware.LoginCheck, flow.Use[dto_kdb.DeleteSelfReq](new(kdb.DeleteSelfController)))
+		knowledgeGroup.POST("deleteSelf", middleware.LoginCheck, flow.Use[dto_kdb.DeleteSelfReq](new(kdb2.DeleteSelfController)))
 		// 判断是否有权限
-		knowledgeGroup.POST("auth", middleware.LoginCheck, flow.Use[dto_kdb.AuthReq](new(kdb.AuthController)))
+		knowledgeGroup.POST("auth", middleware.LoginCheck, flow.Use[dto_kdb.AuthReq](new(kdb2.AuthController)))
 
 		// 知识库用户列表
-		knowledgeGroup.POST("userList", middleware.LoginCheck, flow.Use[dto_kdb.UserListReq](new(kdb.UserListController)))
+		knowledgeGroup.POST("userList", middleware.LoginCheck, flow.Use[dto_kdb.UserListReq](new(kdb2.UserListController)))
 		// 用户查询
-		knowledgeGroup.POST("userQuery", middleware.LoginCheck, flow.Use[dto_kdb.UserQueryReq](new(kdb.UserQueryController)))
+		knowledgeGroup.POST("userQuery", middleware.LoginCheck, flow.Use[dto_kdb.UserQueryReq](new(kdb2.UserQueryController)))
 		// 知识库用户新增
-		knowledgeGroup.POST("userAdd", middleware.LoginCheck, flow.Use[dto_kdb.UserAddReq](new(kdb.UserAddController)))
+		knowledgeGroup.POST("userAdd", middleware.LoginCheck, flow.Use[dto_kdb.UserAddReq](new(kdb2.UserAddController)))
 		// 知识库用户删除
-		knowledgeGroup.POST("userDelete", middleware.LoginCheck, flow.Use[dto_kdb.UserDeleteReq](new(kdb.UserDeleteController)))
+		knowledgeGroup.POST("userDelete", middleware.LoginCheck, flow.Use[dto_kdb.UserDeleteReq](new(kdb2.UserDeleteController)))
 		// 知识库分享码生成
-		knowledgeGroup.POST("shareCodeGen", middleware.LoginCheck, flow.Use[dto_kdb.GenShareCodeReq](new(kdb.GenShareCodeController))) // 知识库用户删除
+		knowledgeGroup.POST("shareCodeGen", middleware.LoginCheck, flow.Use[dto_kdb.GenShareCodeReq](new(kdb2.GenShareCodeController))) // 知识库用户删除
 		// 知识库分享码验证
-		knowledgeGroup.POST("shareCodeVerify", middleware.LoginCheck, flow.Use[dto_kdb.VerifyShareCodeReq](new(kdb.VerifyShareCodeController))) // 知识库用户删除
+		knowledgeGroup.POST("shareCodeVerify", middleware.LoginCheck, flow.Use[dto_kdb.VerifyShareCodeReq](new(kdb2.VerifyShareCodeController))) // 知识库用户删除
 		// 知识库分享码信息
-		knowledgeGroup.GET("shareCodeInfo", middleware.LoginCheck, flow.Use[dto_kdb.InfoShareCodeReq](new(kdb.ShareCodeInfoController))) // 知识库用户删除
-
-		// 召回测试
-		knowledgeGroup.POST("recall", middleware.LoginCheck, flow.Use[dto_kdb.RecallReq](new(kdb.RecallController)))
+		knowledgeGroup.GET("shareCodeInfo", middleware.LoginCheck, flow.Use[dto_kdb.InfoShareCodeReq](new(kdb2.ShareCodeInfoController))) // 知识库用户删除
 
 		docGroup := knowledgeGroup.Group("doc")
 		{
-			docGroup.POST("list", middleware.LoginCheck, flow.Use[dto_knowledge.DataListReq](new(kdb.DataListController)))             // 列表
-			docGroup.POST("add", middleware.LoginCheck, flow.Use[dto_knowledge.DataAddReq](new(kdb.DataAddController)))                // 新增
-			docGroup.POST("batchAdd", middleware.LoginCheck, flow.Use[dto_knowledge.DataBatchAddReq](new(kdb.DataBatchAddController))) // 新增
-			docGroup.POST("delete", middleware.LoginCheck, flow.Use[dto_knowledge.DataDeleteReq](new(kdb.DataDeleteController)))       // 删除
-			docGroup.POST("redo", middleware.LoginCheck, flow.Use[dto_knowledge.DataRedoReq](new(kdb.DataRedoController)))             // 删除
+			// 列表
+			docGroup.POST("list", middleware.LoginCheck, flow.Use[dto_kdb_doc.ListReq](new(kdb2.DocListController)))
+			// 新增
+			docGroup.POST("add", middleware.LoginCheck, flow.Use[dto_kdb_doc.AddReq](new(kdb2.DocAddController)))
+			// 删除
+			docGroup.POST("delete", middleware.LoginCheck, flow.Use[dto_kdb_doc.DeleteReq](new(kdb2.DocDeleteController)))
+			// 重做
+			docGroup.POST("redo", middleware.LoginCheck, flow.Use[dto_kdb_doc.RedoReq](new(kdb2.DocRedoController)))
+			// 召回测试
+			knowledgeGroup.POST("recall", middleware.LoginCheck, flow.Use[dto_kdb_doc.RecallReq](new(kdb2.RecallController)))
 		}
+
 	}
 	configGroup := router.Group("config")
 	{

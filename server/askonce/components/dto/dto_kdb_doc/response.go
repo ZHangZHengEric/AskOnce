@@ -1,11 +1,11 @@
-package dto_knowledge
+package dto_kdb_doc
 
-type DataListResp struct {
-	List  []DataListItem `json:"list"`
-	Total int64          `json:"total"`
+type ListResp struct {
+	List  []ListItem `json:"list"`
+	Total int64      `json:"total"`
 }
 
-type DataListItem struct {
+type ListItem struct {
 	Id         int64  `json:"id"`
 	Type       string `json:"type"`
 	DataSuffix string `json:"dataSuffix"`

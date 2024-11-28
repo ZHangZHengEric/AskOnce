@@ -1,11 +1,11 @@
-package dto_knowledge
+package dto_kdb_doc
 
 import (
-	"askOnce/components/dto"
+	"askonce/components/dto"
 	"mime/multipart"
 )
 
-type DataAddReq struct {
+type AddReq struct {
 	KdbId int64                 `json:"kdbId" form:"kdbId" binding:"required"`
 	Type  string                `json:"type" form:"type" binding:"required"`
 	File  *multipart.FileHeader `json:"file" form:"file"`
@@ -13,23 +13,23 @@ type DataAddReq struct {
 	Title string                `json:"title" form:"title"`
 }
 
-type DataBatchAddReq struct {
-	KdbId int64                 `json:"kdbId" form:"kdbId" binding:"required"`
-	File  *multipart.FileHeader `json:"file" form:"file" binding:"required"`
-}
-
-type DataListReq struct {
+type ListReq struct {
 	KdbId     int64  `json:"kdbId" binding:"required"`
 	QueryName string `query:"queryName"`
 	dto.PageParam
 }
 
-type DataDeleteReq struct {
+type DeleteReq struct {
 	KdbId  int64 `json:"kdbId" binding:"required"`
 	DataId int64 `json:"dataId" binding:"required"`
 }
 
-type DataRedoReq struct {
+type RedoReq struct {
 	KdbId  int64 `json:"kdbId" binding:"required"`
 	DataId int64 `json:"dataId" binding:"required"`
+}
+
+type RecallReq struct {
+	KdbId int64  `json:"kdbId" binding:"required"`
+	Query string `query:"query" binding:"required"`
 }

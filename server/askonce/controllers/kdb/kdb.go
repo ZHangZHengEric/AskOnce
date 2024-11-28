@@ -3,7 +3,6 @@ package kdb
 import (
 	"askonce/components/dto"
 	"askonce/components/dto/dto_kdb"
-	"askonce/components/dto/dto_knowledge"
 	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
 )
@@ -141,67 +140,4 @@ type ShareCodeInfoController struct {
 func (entity *ShareCodeInfoController) Action(req *dto_kdb.InfoShareCodeReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbService)).(*service.KdbService)
 	return s.ShareCodeInfo(req)
-}
-
-type DataListController struct {
-	flow.Controller
-}
-
-func (entity *DataListController) Action(req *dto_kdb.DataListReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.DataList(req)
-}
-
-type DataAddController struct {
-	flow.Controller
-}
-
-func (entity *DataAddController) Action(req *dto_knowledge.DataAddReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.DataAdd(req)
-}
-
-type DataBatchAddController struct {
-	flow.Controller
-}
-
-func (entity *DataBatchAddController) Action(req *dto_knowledge.DataBatchAddReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.DataBatchAdd(req)
-}
-
-type DataDeleteController struct {
-	flow.Controller
-}
-
-func (entity *DataDeleteController) Action(req *dto_knowledge.DataDeleteReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.DataDelete(req)
-}
-
-type RecallController struct {
-	flow.Controller
-}
-
-func (entity *RecallController) Action(req *dto_kdb.RecallReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.Search(req)
-}
-
-type DataRedoController struct {
-	flow.Controller
-}
-
-func (entity *DataRedoController) Action(req *dto_knowledge.DataRedoReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.DataRedo(req)
-}
-
-type SearchAdminController struct {
-	flow.Controller
-}
-
-func (entity *SearchAdminController) Action(req *dto_knowledge.SearchAdminReq) (interface{}, error) {
-	s := entity.Create(new(service.KnowledgeService)).(*service.KnowledgeService)
-	return s.SearchAdmin(req)
 }

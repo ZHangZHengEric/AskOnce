@@ -15,6 +15,10 @@ import (
 	"time"
 )
 
+/*
+*
+知识库管理
+*/
 type KdbData struct {
 	flow.Service
 	kdbDao      *models.KdbDao

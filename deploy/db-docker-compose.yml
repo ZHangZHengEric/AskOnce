@@ -13,6 +13,7 @@ services:
     volumes:
       - ./data/mysql:/var/lib/mysql
       - ./conf/mysql:/etc/mysql/conf.d
+      ## 初始化脚本
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 3306:3306

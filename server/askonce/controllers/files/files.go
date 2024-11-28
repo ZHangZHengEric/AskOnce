@@ -2,6 +2,7 @@ package files
 
 import (
 	"askonce/components/dto"
+	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
 )
 
