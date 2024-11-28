@@ -21,7 +21,7 @@ type DocAddController struct {
 
 func (entity *DocAddController) Action(req *dto_kdb_doc.AddReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
-	return s.DataAdd(req)
+	return s.DocAdd(req)
 }
 
 type DocDeleteController struct {
@@ -30,7 +30,7 @@ type DocDeleteController struct {
 
 func (entity *DocDeleteController) Action(req *dto_kdb_doc.DeleteReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
-	return s.DataDelete(req)
+	return s.DocDelete(req)
 }
 
 type DocRedoController struct {

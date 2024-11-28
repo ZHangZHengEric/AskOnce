@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	IndexingStatusWaiting   = "waiting"
-	IndexingStatusRunning   = "running"
-	IndexingStatusCompleted = "completed"
+	KdbDocSuccess = 9
+	KdbDocRunning = 1
+	KdbDocFail    = 2
 )
 
 // KdbDoc  知识库文档
@@ -25,8 +25,8 @@ type KdbDoc struct {
 	DocName    string `gorm:"type:varchar(128);default:'';comment:文档名称"`
 	DataSource string `gorm:"type:varchar(52);default:'';comment:文档来源 file"`
 	SourceId   string `gorm:"type:varchar(128);default:0;comment:来源id"`
-	Enable     bool   `gorm:"type:tinyint;default:0;comment:是否启用"`
-	Status     int    `gorm:"type:varchar(52);default:0;comment: 状态 0 初始化，没有导入，1 导入成功 2 导入失败"`
+	NeedSplit  bool   `gorm:"type:tinyint;default:0;comment:是否切分"`
+	Status     int    `gorm:"type:varchar(52);default:0;comment: 状态 0 初始化，没有导入，1 正在处理， 2 导入失败 9 导入成功"`
 	UserId     string `gorm:"type:varchar(128);default:'';comment:上传用户id"`
 	orm.CrudModel
 }
@@ -91,4 +91,11 @@ func (entity *KdbDocDao) GetList(kdbId int64, queryName string, param dto.PagePa
 		return nil, 0, components.ErrorMysqlError
 	}
 	return
+}
+
+func (entity *KdbDocDao) DeleteById(docId int64) (err error) {
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable())
+	err = db.Where("id =  ? ", docId).Delete(&KdbDoc{}).Error
+	return err
 }
