@@ -17,6 +17,7 @@ type LoginInfo struct {
 type KdbSetting struct {
 	EmbeddingModel DocEmbeddingModel `json:"embeddingModel"` // Embedding 模型
 	RetrievalModel RetrievalSetting  `json:"retrievalModel"` // 召回设置
+	KdbAttach      KdbAttach         `json:"kdbAttach"`      // 附加属性
 }
 
 // 文档embedding模式
@@ -43,6 +44,13 @@ const (
 	DocSearchMethodVector  DocSearchMethod = "vector"
 	DocSearchMethodAll     DocSearchMethod = "all"
 )
+
+type KdbAttach struct {
+	Language   string   `json:"language"`
+	Cover      string   `json:"cover"`
+	CoverColor bool     `json:"coverColor"`
+	Cases      []string `json:"cases"`
+}
 
 type RetrievalSettingWeights struct {
 	KeywordWeight float32 `json:"keywordWeight"` //关键词权重

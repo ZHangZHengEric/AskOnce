@@ -96,3 +96,8 @@ var ErrorLoginPwdError = errors.Error{
 	Code:    200004,
 	Message: "用户不存在或密码错误！",
 }
+
+var ErrorShareEmpty = errors.Error{
+	Code:    100014,
+	Message: "分享不正确或已过期，请确认！",
+}

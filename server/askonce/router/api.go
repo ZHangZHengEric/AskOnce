@@ -2,6 +2,7 @@ package router
 
 import (
 	"askonce/components/dto/dto_kdb"
+	"askonce/controllers/api"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/flow"
 )

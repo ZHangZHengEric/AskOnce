@@ -78,7 +78,7 @@ func (entity *KdbUserDao) GetByUserId(userId string) (res []*KdbUser, err error)
 	return
 }
 
-func (entity *KdbUserDao) DeleteByKdbIdAndUserId(kdbId int64, userId int64) (err error) {
+func (entity *KdbUserDao) DeleteByKdbIdAndUserId(kdbId int64, userId string) (err error) {
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
 	err = db.Where("kdb_id = ? and user_id = ?", kdbId, userId).Delete(&KdbUser{}).Error
