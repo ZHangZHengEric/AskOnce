@@ -1,11 +1,19 @@
 package defines
 
+import "github.com/xiangtao94/golib/flow"
+
 /*
 *
 上下文相关
 */
 const (
 	LoginInfo = "loginInfo"
+)
+
+const (
+	COOKIE_KEY         = "askOnceSession"
+	COOKIE_PATH        = "/"
+	COOKIE_DEFAULT_AGE = flow.EXPIRE_TIME_1_WEEK
 )
 
 /*

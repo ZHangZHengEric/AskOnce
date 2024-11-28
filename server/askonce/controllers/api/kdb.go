@@ -1,4 +1,4 @@
-package kdb_api
+package api
 
 import (
 	"askonce/service"
