@@ -1,6 +1,8 @@
 package dto_kdb
 
-import "askonce/components/defines"
+import (
+	"askonce/components/dto"
+)
 
 type AddRes struct {
 	KdbId int64 `json:"kdbId"`
@@ -12,12 +14,15 @@ type ListResp struct {
 }
 
 type ListItem struct {
-	Id         int64  `json:"id"`
-	Name       string `json:"name"`
-	CreateTime string `json:"createTime"`
-	DataSource string `json:"dataSource"`
-	Type       string `json:"type"`   // 类型  private 私有知识库 public 共有知识库
-	DocNum     int    `json:"docNum"` // 文档数量
+	Id           int64  `json:"id"`
+	Name         string `json:"name"`
+	CreateTime   string `json:"createTime"`
+	DataSource   string `json:"dataSource"`
+	DocNum       int    `json:"docNum"` // 文档数量
+	Cover        string `json:"cover"`
+	DefaultColor bool   `json:"defaultColor"`
+	Creator      string `json:"creator"`
+	Type         int    `json:"type"` // 1 公共数据
 }
 
 type DataListResp struct {
@@ -36,29 +41,62 @@ type DataListItem struct {
 }
 
 type InfoRes struct {
-	Id             int64          `json:"id"`
-	Name           string         `json:"name"`
-	Description    string         `json:"description"`
+	KdbId          int64          `json:"kdbId"`
+	Name           string         `json:"name"`  // 知识库名称
+	Intro          string         `json:"intro"` // 知识库介绍
+	Cover          string         `json:"cover"` // 知识库封面
 	CreatedAt      int64          `json:"createdAt"`
 	CreatedBy      string         `json:"createdBy"`
 	UpdatedAt      int64          `json:"updatedAt"`
 	DataSourceType DataSourceType `json:"dataSourceType"`
 	WordCount      int64          `json:"wordCount"`
 	DocumentCount  int64          `json:"documentCount"`
-
-	KdbSetting
+	dto.KdbSetting
 }
 
-type ProcessRuleRes struct {
-	ProcessRule ProcessRule `json:"processRule"`
+type CoversRes struct {
+	List []CoverItem `json:"list"`
 }
 
-type ProcessReviewRes struct {
-	IsStructured     bool     `json:"isStructured,omitempty"`     // 是否结构化
-	StructuredFields []string `json:"structuredFields,omitempty"` // 结构化的字段
+type CoverItem struct {
+	Id   int64  `json:"id"`
+	Type string `json:"type"`
+	Url  string `json:"url"`
+}
 
-	Segments []map[defines.StructuredKey]any `json:"segments"` // 分段分片
-	Total    int                             `json:"total"`    // 分段总数
+type AuthRes struct {
+	AuthType int `json:"authType"`
+}
+
+type UserListRes struct {
+	List  []UserListItem `json:"list"`
+	Total int64          `json:"total"`
+}
+
+type UserListItem struct {
+	UserId   string `json:"userId"`
+	UserName string `json:"userName"`
+	JoinTime string `json:"joinTime"`
+}
+
+type UserQueryRes struct {
+	List  []UserQueryItem `json:"list"`
+	Total int64           `json:"total"`
+}
+
+type UserQueryItem struct {
+	UserId   string `json:"userId"`
+	UserName string `json:"userName"`
+}
+
+type GenShareCodeRes struct {
+	ShareCode string `json:"shareCode" `
+}
+
+type ShareCodeInfoRes struct {
+	Creator  string `json:"creator"`
+	KdbName  string `json:"kdbName"`
+	AuthType int    `json:"authType"`
 }
 
 type DocAddRes struct {

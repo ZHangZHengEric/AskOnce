@@ -7,7 +7,7 @@ import Http from "@/http/http";
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeAdd = (data) => {
-    return Http.post("/askOnce/knowledge/add", data);
+    return Http.post("/askonce/kdb/add", data);
 };
 /**
  * 知识库列表
@@ -15,7 +15,7 @@ export const knowledgeAdd = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeList = (data) => {
-    return Http.post("/askOnce/knowledge/list", data);
+    return Http.post("/askonce/kdb/list", data);
 };
 /**
  * 知识库删除
@@ -23,7 +23,7 @@ export const knowledgeList = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeDel = (data) => {
-    return Http.post("/askOnce/knowledge/delete", data);
+    return Http.post("/askonce/kdb/delete", data);
 };
 /**
  * 问答可选知识库列表
@@ -39,7 +39,7 @@ export const kdbList = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeDetail = (params) => {
-    return Http.get("/askOnce/knowledge/detail", {params});
+    return Http.get("/askonce/kdb/detail", {params});
 };
 /**
  * 知识库详情
@@ -47,7 +47,7 @@ export const knowledgeDetail = (params) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeUpdate = (data) => {
-    return Http.post("/askOnce/knowledge/update", data);
+    return Http.post("/askonce/kdb/update", data);
 };
 /**
  * 知识库数据新增
@@ -55,7 +55,7 @@ export const knowledgeUpdate = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeDataAdd = (data, config) => {
-    return Http.post("/askOnce/knowledge/data/add", data, config);
+    return Http.post("/askonce/kdb/doc/add", data, config);
 };
 /**
  * 知识库数据列表
@@ -63,7 +63,7 @@ export const knowledgeDataAdd = (data, config) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeDataList = (data) => {
-    return Http.post("/askOnce/knowledge/data/list", data);
+    return Http.post("/askonce/kdb/doc/list", data);
 };
 /**
  * 知识库数据删除
@@ -71,7 +71,7 @@ export const knowledgeDataList = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeDataDel = (data) => {
-    return Http.post("/askOnce/knowledge/data/delete", data);
+    return Http.post("/askonce/kdb/doc/delete", data);
 };
 /**
  * 知识库搜索
@@ -79,7 +79,7 @@ export const knowledgeDataDel = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeSearch = (data) => {
-    return Http.post("/askOnce/knowledge/search", data);
+    return Http.post("/askonce/kdb/doc/recall", data);
 }
 /**
  * 知识库封面
@@ -87,7 +87,7 @@ export const knowledgeSearch = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeCovers = () => {
-    return Http.get("/askOnce/knowledge/covers");
+    return Http.get("/askonce/kdb/covers");
 }
 /**
  * 知识库权限检查
@@ -95,7 +95,7 @@ export const knowledgeCovers = () => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeAuth = (data) => {
-    return Http.post("/askOnce/knowledge/auth", data);
+    return Http.post("/askonce/kdb/auth", data);
 }
 /**
  * 已有用户列表
@@ -103,7 +103,7 @@ export const knowledgeAuth = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeUserList = (data) => {
-    return Http.post("/askOnce/knowledge/userList", data);
+    return Http.post("/askonce/kdb/userList", data);
 }
 /**
  * 用户新增查询
@@ -111,7 +111,7 @@ export const knowledgeUserList = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeUserQuery = (data) => {
-    return Http.post("/askOnce/knowledge/userQuery", data);
+    return Http.post("/askonce/kdb/userQuery", data);
 }
 /**
  * 用户新增
@@ -119,7 +119,7 @@ export const knowledgeUserQuery = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeUserAdd = (data) => {
-    return Http.post("/askOnce/knowledge/userAdd", data);
+    return Http.post("/askonce/kdb/userAdd", data);
 }
 /**
  * 用户删除
@@ -127,7 +127,7 @@ export const knowledgeUserAdd = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeUserDelete = (data) => {
-    return Http.post("/askOnce/knowledge/userDelete", data);
+    return Http.post("/askonce/kdb/userDelete", data);
 }
 /**
  * 用户删除自己
@@ -135,7 +135,7 @@ export const knowledgeUserDelete = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeUserDeleteSelf = (data) => {
-    return Http.post("/askOnce/knowledge/deleteSelf", data);
+    return Http.post("/askonce/kdb/deleteSelf", data);
 }
 /**
  * 数据重做
@@ -143,7 +143,7 @@ export const knowledgeUserDeleteSelf = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeDataRedo = (data) => {
-    return Http.post("/askOnce/knowledge/data/redo", data);
+    return Http.post("/askonce/kdb/doc/redo", data);
 }
 /**
  * 数据重做
@@ -151,7 +151,7 @@ export const knowledgeDataRedo = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeShareCodeGen = (data) => {
-    return Http.post("/askOnce/knowledge/shareCodeGen", data);
+    return Http.post("/askonce/kdb/shareCodeGen", data);
 }
 /**
  * 分享码验证
@@ -159,7 +159,7 @@ export const knowledgeShareCodeGen = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeShareCodeVerify = (data) => {
-    return Http.post("/askOnce/knowledge/shareCodeVerify", data);
+    return Http.post("/askonce/kdb/shareCodeVerify", data);
 }
 /**
  * 分享码信息获取
@@ -167,5 +167,5 @@ export const knowledgeShareCodeVerify = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const knowledgeShareCodeInfo = (params) => {
-    return Http.get("/askOnce/knowledge/shareCodeInfo", {params});
+    return Http.get("/askonce/kdb/shareCodeInfo", {params});
 }

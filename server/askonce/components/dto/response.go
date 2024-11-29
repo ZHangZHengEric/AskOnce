@@ -1,10 +1,10 @@
 package dto
 
 type FileUploadRes struct {
-	FileId    string        `json:"fileId"`    // 文件id
-	Name      string        `json:"name"`      // 文件名
-	Extension string        `json:"extension"` // 文件后缀
-	Size      FileSizeLabel `json:"size"`
+	FileId    string `json:"fileId"`    // 文件id
+	Name      string `json:"name"`      // 文件名
+	Extension string `json:"extension"` // 文件后缀
+	Size      int64  `json:"size"`
 }
 
 type ModelProviderRes struct {

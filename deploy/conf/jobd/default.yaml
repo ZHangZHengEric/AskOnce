@@ -1,0 +1,34 @@
+#app端口
+port: 8080
+appName: jobd
+log:
+  level: DEBUG
+  stdout: true
+  logToFile: true
+
+redis:
+  default:
+    service: default
+    addr: "redis:6379"
+    maxIdle: 100
+    maxActive: 500
+    idleTimeout: 5m
+    connTimeOut: 10m
+    readTimeOut: 10m
+    writeTimeOut: 10m
+    maxConnLifetime: 10m
+
+mysql:
+  default:
+    service: jobd
+    database: jobd
+    addr: "mysql:3306"
+    user: "root"
+    password: "123456"
+    maxidleconns: 10
+    maxopenconns: 30
+    maxIdleTime: 60s
+    connMaxLifeTime: 60s
+    connTimeOut: 5s
+    writeTimeOut: 5s
+    readTimeOut: 5s

@@ -2,36 +2,37 @@ services:
   mysql:
     restart: always
     image: mysql:8.0.35
+    container_name: askonce-mysql
     environment:
       TZ: 'Asia/Shanghai'
-      MYSQL_ROOT_PASSWORD: '123456'
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_HOST: '%'
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - ./data/mysql:/var/lib/mysql
-      - ./conf/mysql:/etc/mysql/conf.d
+      - ${MYSQL_DATA_DIR}:/var/lib/mysql
+      - ${MYSQL_CONF_DIR}:/etc/mysql/conf.d
+      ## 初始化脚本
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - 3306:3306
   redis:
     restart: always
     image: redis:alpine
+    container_name: askonce-redis
     volumes:
-      - ./conf/redis/redis.conf:/etc/redis/redis.conf
-      - ./data/redis:/data
-    ports:
-      - 6379:6379
+      - ${REDIS_CONF_DIR}/redis.conf:/etc/redis/redis.conf
+      - ${REDIS_DATA_DIR}:/data
+
   minio:
     image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
     ports:
       - 9000:9000
       - 9001:9001
     volumes:
-      - "./data/minio:/data"
+      - ${MINIO_DATA_DIR}:/data
     command: server /data --console-address ":9001"
+    container_name: askonce-minio
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=12345678

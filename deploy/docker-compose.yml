@@ -1,24 +1,32 @@
 version: "3.9"
 services:
-  dispatch:
+  jobd:
     extends:
       file: backend-docker-compose.yml
-      service: dispatch
+      service: jobd
     depends_on:
       - mysql
       - redis
+    ports:
+      - 20033:8080
   mysql:
     extends:
-      file: backend-docker-compose.yml
+      file: db-docker-compose.yml
       service: mysql
+    ports:
+      - 20000:3306
   redis:
     extends:
-      file: backend-docker-compose.yml
+      file: db-docker-compose.yml
       service: redis
+    ports:
+      - 20001:6379
   askonce-es1:
     extends:
       file: elastic-docker-compose.yml
       service: askonce-es1
+    ports:
+      - 20002:6379
   askonce-es2:
     extends:
       file: elastic-docker-compose.yml
@@ -31,3 +39,5 @@ services:
     extends:
       file: elastic-docker-compose.yml
       service: askonce-es-dashboard
+    ports:
+      - 20003:5601

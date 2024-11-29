@@ -24,14 +24,14 @@ Http.interceptors.request.use((config) => {
 
 Http.interceptors.response.use((response) => {
         const data = response.data;
-        if (data.errNo === 0) {
+        if (data.code === 0) {
             return data;
-        } else if (data.errNo === 3) {
-            ElMessage.error(data.errMsg);
+        } else if (data.code === 3) {
+            ElMessage.error(data.message);
             clearSession();
             router.push('/login?redirect=' + window.location.pathname + window.location.search)
         } else {
-            ElMessage.error(data.errMsg);
+            ElMessage.error(data.message);
             return Promise.reject(data);
         }
     },

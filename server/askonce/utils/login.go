@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/zlog"
+	"net"
+	"strings"
 )
 
 func LoginInfo(ctx *gin.Context) (loginInfo dto.LoginInfo, err error) {
@@ -20,4 +22,15 @@ func LoginInfo(ctx *gin.Context) (loginInfo dto.LoginInfo, err error) {
 		err = errors.ErrorSystemError
 	}
 	return loginInfo, err
+}
+
+func GetCookieDomain(host string) (domain string) {
+	hostArr := strings.Split(host, ":")
+	if len(hostArr) != 0 {
+		if net.ParseIP(hostArr[0]) == nil {
+			//域名
+			domain = hostArr[0]
+		}
+	}
+	return domain
 }

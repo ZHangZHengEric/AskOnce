@@ -4,5 +4,5 @@
 ## askonce
 与web交互的服务、基于golang 1.22
 
-## dispatch
+## jobd
 与算法交互的服务、基于golang 1.22

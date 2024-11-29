@@ -19,13 +19,12 @@ func InitResource() {
 
 	// 初始化elastic
 	InitElastic()
-	// 初始化mongoDB
-	InitMongoDB()
+
 }
 
 func Clear() {
 	// 服务结束时的清理工作，对应 InitResource() 初始化的资源
 	zlog.CloseLogger()
 	CloseRedis()
-	CloseMongoDb()
+
 }

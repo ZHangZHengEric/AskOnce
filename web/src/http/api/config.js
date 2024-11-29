@@ -12,7 +12,7 @@ import Http from "@/http/http";
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const configDetail = (params) => {
-    return Http.get("/askOnce/config/detail", {params});
+    return Http.get("/askonce/config/detail", {params});
 };
 /**
  * 模型配置字典
@@ -20,7 +20,7 @@ export const configDetail = (params) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const configDict = (params) => {
-    return Http.get("/askOnce/config/dict", {params});
+    return Http.get("/askonce/config/dict", {params});
 }
 
 
@@ -30,5 +30,5 @@ export const configDict = (params) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const configSave = (data) => {
-    return Http.post("/askOnce/config/save", data);
+    return Http.post("/askonce/config/save", data);
 }

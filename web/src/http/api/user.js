@@ -12,7 +12,7 @@ import Http from "@/http/http";
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const login = (data) => {
-    return Http.post("/askOnce/user/loginByAccount", data);
+    return Http.post("/askonce/user/loginByAccount", data);
 };
 
 
@@ -22,7 +22,7 @@ export const login = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const register = (data) => {
-    return Http.post("/askOnce/user/registerByAccount", data);
+    return Http.post("/askonce/user/registerByAccount", data);
 };
 
 /**
@@ -31,7 +31,7 @@ export const register = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const loginInfo = () => {
-    return Http.get("/askOnce/user/loginInfo");
+    return Http.get("/askonce/user/loginInfo");
 };
 /**
  * 手机号验证码
@@ -39,7 +39,7 @@ export const loginInfo = () => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const loginSendSms = (data) => {
-    return Http.post("/askOnce/user/loginSendSms", data);
+    return Http.post("/askonce/user/loginSendSms", data);
 };
 /**
  * 手机号登录
@@ -47,6 +47,6 @@ export const loginSendSms = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const loginByPhone = (data) => {
-    return Http.post("/askOnce/user/loginByPhone", data);
+    return Http.post("/askonce/user/loginByPhone", data);
 };
 

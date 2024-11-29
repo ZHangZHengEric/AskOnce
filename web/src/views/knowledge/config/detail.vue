@@ -155,11 +155,13 @@ const delDetail = computed(() => {
 const getStatus = (row) => {
   switch (row.status) {
     case 0:
-      return '正在构建到知识库'
+      return '等待中'
     case 1:
-      return '成功'
+      return '正在构建到知识库'
     case 2:
       return '失败'
+    case 9:
+      return '成功'
   }
 }
 
