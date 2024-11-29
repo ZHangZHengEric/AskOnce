@@ -2,6 +2,7 @@ services:
   mysql:
     restart: always
     image: mysql:8.0.35
+    container_name: askonce-mysql
     environment:
       TZ: 'Asia/Shanghai'
       MYSQL_ROOT_PASSWORD: '123456'
@@ -20,6 +21,7 @@ services:
   redis:
     restart: always
     image: redis:alpine
+    container_name: askonce-redis
     volumes:
       - ${REDIS_CONF_DIR}/redis.conf:/etc/redis/redis.conf
       - ${REDIS_DATA_DIR}:/data
@@ -33,6 +35,7 @@ services:
     volumes:
       - ${MINIO_DATA_DIR}:/data
     command: server /data --console-address ":9001"
+    container_name: askonce-minio
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=12345678

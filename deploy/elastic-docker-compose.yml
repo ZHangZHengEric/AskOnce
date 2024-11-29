@@ -17,8 +17,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-    group_add:
-      - 0
     volumes:
       - ${ES_DATA_DIR}/node1:/usr/share/elasticsearch/data
       - ${ES_CONF_DIR}plugins:/usr/share/elasticsearch/plugins
@@ -29,8 +27,6 @@ services:
     restart: always
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     container_name: askonce-es2
-    group_add:
-      - 0
     environment:
       - cluster.name=askonce
       - node.name=askonce-es2
@@ -53,8 +49,6 @@ services:
     restart: always
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     container_name: askonce-es3
-    group_add:
-      - 0
     environment:
       - cluster.name=askonce
       - node.name=askonce-es3

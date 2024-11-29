@@ -3,6 +3,7 @@ services:
     build:
       context: ../server/jobd
       dockerfile: Dockerfile
+    container_name: askonce-jobd
     ports:
       - "20033:8080"
     volumes:
