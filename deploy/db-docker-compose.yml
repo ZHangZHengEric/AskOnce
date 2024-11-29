@@ -11,8 +11,8 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./data/mysql:/var/lib/mysql
-      - ./conf/mysql:/etc/mysql/conf.d
+      - ${MYSQL_DATA_DIR}:/var/lib/mysql
+      - ${MYSQL_CONF_DIR}:/etc/mysql/conf.d
       ## 初始化脚本
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
@@ -21,8 +21,8 @@ services:
     restart: always
     image: redis:alpine
     volumes:
-      - ./conf/redis/redis.conf:/etc/redis/redis.conf
-      - ./data/redis:/data
+      - ${REDIS_CONF_DIR}/redis.conf:/etc/redis/redis.conf
+      - ${REDIS_DATA_DIR}:/data
     ports:
       - 6379:6379
   minio:
@@ -31,7 +31,7 @@ services:
       - 9000:9000
       - 9001:9001
     volumes:
-      - "./data/minio:/data"
+      - ${MINIO_DATA_DIR}:/data
     command: server /data --console-address ":9001"
     environment:
       - MINIO_ROOT_USER=admin
