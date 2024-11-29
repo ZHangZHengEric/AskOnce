@@ -156,7 +156,7 @@ const getStatus = (row) => {
   switch (row.status) {
     case 0:
       return '等待中'
-    case 0:
+    case 1:
       return '正在构建到知识库'
     case 2:
       return '失败'
