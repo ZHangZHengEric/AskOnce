@@ -9,11 +9,11 @@ services:
       - redis
   mysql:
     extends:
-      file: backend-docker-compose.yml
+      file: db-docker-compose.yml
       service: mysql
   redis:
     extends:
-      file: backend-docker-compose.yml
+      file: db-docker-compose.yml
       service: redis
   askonce-es1:
     extends:
