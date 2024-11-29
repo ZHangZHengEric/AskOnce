@@ -19,9 +19,9 @@ ES_CONF_DIR="./conf/elasticsearch"
 ```
 ## 安装说明
 1. elasticsearch安装：设置数据目录权限：
-mkdir ${ES_DATA_DIR}
-chmod g+rwx ${ES_DATA_DIR}
-chgrp 0 ${ES_DATA_DIR}
+mkdir -p ${ES_DATA_DIR}/node1 ${ES_DATA_DIR}/node2 ${ES_DATA_DIR}/node3
+chmod g+rwx ${ES_DATA_DIR}/node1 ${ES_DATA_DIR}/node2 ${ES_DATA_DIR}/node3
+chgrp 0 ${ES_DATA_DIR}/node1 ${ES_DATA_DIR}/node2 ${ES_DATA_DIR}/node3
 
 2. elasticsearch安装：配置max_map_count
    sysctl -w vm.max_map_count=262144

@@ -16,8 +16,6 @@ services:
       - ${MYSQL_CONF_DIR}:/etc/mysql/conf.d
       ## 初始化脚本
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - 3306:3306
   redis:
     restart: always
     image: redis:alpine
@@ -25,8 +23,7 @@ services:
     volumes:
       - ${REDIS_CONF_DIR}/redis.conf:/etc/redis/redis.conf
       - ${REDIS_DATA_DIR}:/data
-    ports:
-      - 6379:6379
+
   minio:
     image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
     ports:
