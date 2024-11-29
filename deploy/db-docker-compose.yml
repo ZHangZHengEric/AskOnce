@@ -5,7 +5,7 @@ services:
     container_name: askonce-mysql
     environment:
       TZ: 'Asia/Shanghai'
-      MYSQL_ROOT_PASSWORD: '123456'
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_HOST: '%'
     ulimits:
       memlock:
