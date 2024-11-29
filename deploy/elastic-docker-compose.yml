@@ -7,7 +7,7 @@ services:
       - cluster.name=askonce
       - node.name=askonce-es1
       - bootstrap.memory_lock=true
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
       - xpack.security.enabled=false
       - TAKE_FILE_OWNERSHIP=true
       - "ES_JAVA_OPTS=-Xms4096m -Xmx4096m"
@@ -29,7 +29,7 @@ services:
       - cluster.name=askonce
       - node.name=askonce-es2
       - bootstrap.memory_lock=true
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
       - TAKE_FILE_OWNERSHIP=true
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms4096m -Xmx4096m"
@@ -51,7 +51,7 @@ services:
       - cluster.name=askonce
       - node.name=askonce-es3
       - bootstrap.memory_lock=true
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
       - TAKE_FILE_OWNERSHIP=true
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms4096m -Xmx4096m"
