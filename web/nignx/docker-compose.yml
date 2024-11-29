@@ -1,0 +1,13 @@
+services:
+  nginx:
+    restart : "always"
+    container_name: askonce-nginx
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    tty: true
+    privileged: true
+    network_mode: host
+    volumes:
+      - ./nginx:/etc/nginx
+      - /srv/AskOnce/web:/srv/AskOnce/web
