@@ -21,6 +21,10 @@ class LLMBaseAPI:
         )
         self.model_name = model_name
     
+    def search_internet(self,queston):
+        pass
+    
+    
     def ask_llm(
             self, 
             prompt: str | list, 
