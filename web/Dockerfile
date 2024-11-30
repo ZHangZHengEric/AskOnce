@@ -4,8 +4,8 @@ FROM node:18-alpine AS base
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json
-COPY package*.json ./
+# 复制项目文件到容器
+COPY . .
 
 # 配置国内镜像源
 RUN npm config set registry 'https://registry.npmmirror.com/'
@@ -15,9 +15,6 @@ RUN npm install -g pnpm
 
 # 安装依赖
 RUN pnpm install
-
-# 复制项目文件到容器
-COPY . .
 
 # 构建项目
 RUN npm run build
