@@ -29,7 +29,7 @@ COPY --from=base /app/dist /usr/share/nginx/html/dist
 COPY askonce.conf /etc/nginx/conf.d/default.conf
 
 # 暴露服务端口
-# EXPOSE 80
+EXPOSE 80
 
 # 启动 nginx 服务
 CMD ["nginx", "-g", "daemon off;"]
