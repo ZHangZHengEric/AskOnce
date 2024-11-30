@@ -57,10 +57,14 @@ if __name__ == '__main__':
     parser.add_argument("--jobdurl", type=str, default='', help="jobd use url not use ip & port")
     parser.add_argument("--tasktype", type=str, nargs='+', default=[], help="task_type")
     parser.add_argument("--worker_name", type=str, default='', help="worker_name")
+    parser.add_argument("--es_address", type=str, help="es_address")
+    parser.add_argument("--es_username", type=str, help="es_username")
+    parser.add_argument("--es_password", type=str, help="es_password")
     parser.add_argument("--es_setting_path", type=str, help="es_setting_path")
     args = parser.parse_args()
     tm = TaskManager(jobdurl=args.jobdurl)
-    model = BasicEs8(args.es_setting_path)
+    model = BasicEs8(args.es_address,args.es_username,args.es_password,args.es_setting_path)
+
     for one_task_type in args.tasktype:
         tm.add_task_type_info(one_task_type,10000,args.worker_name)
 

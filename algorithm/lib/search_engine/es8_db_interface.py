@@ -48,7 +48,7 @@ class Es8Config:
 
 class Es8Interface:
     
-    def __init__(self,es_setting_path) -> None:
+    def __init__(self,address,username,password, es_setting_path) -> None:
         # self.mapper = mapper
         # self.index =self.mapper['mappings_config']['index_name']
         # /home/nlp_platform/AtomES/lib/db_model/db_config/es_config_example.json
@@ -59,11 +59,8 @@ class Es8Interface:
         print("获取es8配置成功")
         print(self.setting)
         try:
-            self.address = self.setting['es_conn']['address']
-            self.username = self.setting['es_conn']['username']
-            self.password = self.setting['es_conn']['password']
             self.es = Elasticsearch(
-                [self.address], bearer_auth=(self.username, self.password), request_timeout=30,
+                [address], bearer_auth=(username, password), request_timeout=30,
             )
             logger.info("es engine 初始化成功")
         except:
@@ -156,8 +153,8 @@ class Es8Interface:
             return failed_doc_ids
 
 class BasicEs8(Es8Interface):
-    def __init__(self, es_setting_path) -> None:
-        super().__init__(es_setting_path)
+    def __init__(self, address,username,password,es_setting_path) -> None:
+        super().__init__(address,username,password,es_setting_path)
     
     def bm25_search(self, search_body,mapper ,return_fields):
         index_name = mapper['mappings_config']['index_name']
