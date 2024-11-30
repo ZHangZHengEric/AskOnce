@@ -1,10 +1,8 @@
 package dto_config
 
-import "askOnce/components/defines"
-
 type ConfigResp struct {
-	Language  string                      `json:"language"`
-	ModelType defines.ChatCompletionModel `json:"modelType"`
+	Language  string `json:"language"`
+	ModelType string `json:"modelType"`
 }
 
 type Dict struct {

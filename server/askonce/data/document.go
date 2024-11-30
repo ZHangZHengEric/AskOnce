@@ -53,7 +53,7 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 		})
 	}
 	if err := eg2.Wait(); err != nil {
-		return
+		return nil, err
 	}
 	for i := range sentsG {
 		embResAll = append(embResAll, embResMap[i]...)

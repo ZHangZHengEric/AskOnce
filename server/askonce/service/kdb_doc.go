@@ -42,7 +42,7 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 		List:  make([]dto_kdb.DataListItem, 0),
 		Total: 0,
 	}
-	docs, cnt, err := k.kdbDocDao.GetList(kdb.Id, req.QueryName, req.PageParam)
+	docs, cnt, err := k.kdbDocDao.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
 	if err != nil {
 		return nil, err
 	}
@@ -130,11 +130,18 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 		return nil, err
 	}
 	go func(k *KdbDocService) {
+		defer func() {
+			if r := recover(); r != nil {
+				k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, r)
+				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+			}
+		}()
 		err = k.DocBuild(kdb, doc)
 		if err != nil {
-			k.LogErrorf("文档构建内存数据库失败 %s", err.Error())
+			k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
+			k.LogErrorf("文档【%v】构建内存数据库成功 %s", doc.Id)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
@@ -161,6 +168,12 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 		return
 	}
 	go func(k *KdbDocService) {
+		defer func() {
+			if r := recover(); r != nil {
+				k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, r)
+				_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocFail)
+			}
+		}()
 		doc, err := k.kdbDocDao.GetById(req.DocId)
 		if err != nil {
 			return
@@ -168,7 +181,11 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 		_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocSuccess)
 		err = k.DocBuild(kdb, doc)
 		if err != nil {
-			k.LogErrorf("文档构建内存数据库失败 %s", err.Error())
+			k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, err.Error())
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+		} else {
+			k.LogErrorf("文档【%v】构建内存数据库成功 %s", req.DocId)
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
 	return

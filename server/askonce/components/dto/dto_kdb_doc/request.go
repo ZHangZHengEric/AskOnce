@@ -14,8 +14,9 @@ type AddReq struct {
 }
 
 type ListReq struct {
-	KdbId     int64  `json:"kdbId" binding:"required"`
-	QueryName string `query:"queryName"`
+	KdbId       int64  `json:"kdbId" binding:"required"`
+	QueryName   string `json:"queryName"`
+	QueryStatus []int  `json:"queryStatus"`
 	dto.PageParam
 }
 

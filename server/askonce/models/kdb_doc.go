@@ -93,11 +93,14 @@ func (entity *KdbDocDao) GetByIds(ids []int64) (res []*KdbDoc, err error) {
 	return
 }
 
-func (entity *KdbDocDao) GetList(kdbId int64, queryName string, param dto.PageParam) (list []*KdbDoc, cnt int64, err error) {
+func (entity *KdbDocDao) GetList(kdbId int64, queryName string, status []int, param dto.PageParam) (list []*KdbDoc, cnt int64, err error) {
 	db := entity.GetDB().Model(&KdbDoc{})
 	db = db.Where("kdb_id =   ?", kdbId)
 	if len(queryName) > 0 {
 		db = db.Where("doc_name like ?", "%"+queryName+"%")
+	}
+	if len(status) > 0 {
+		db = db.Where("status in (?)", status)
 	}
 	db = db.Count(&cnt)
 	if err = db.Offset((param.PageNo - 1) * param.PageSize).Limit(param.PageSize).Order("created_at desc").Find(&list).Error; err != nil {

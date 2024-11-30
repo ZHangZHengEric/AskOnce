@@ -69,7 +69,6 @@ func Http(engine *gin.Engine) {
 		knowledgeGroup.POST("shareCodeVerify", flow.Use[dto_kdb.VerifyShareCodeReq](new(kdb.VerifyShareCodeController))) // 知识库用户删除
 		// 知识库分享码信息
 		knowledgeGroup.GET("shareCodeInfo", flow.Use[dto_kdb.InfoShareCodeReq](new(kdb.ShareCodeInfoController))) // 知识库用户删除
-
 		docGroup := knowledgeGroup.Group("doc")
 		{
 			// 列表
@@ -83,7 +82,6 @@ func Http(engine *gin.Engine) {
 			// 召回测试
 			knowledgeGroup.POST("recall", flow.Use[dto_kdb_doc.RecallReq](new(kdb.RecallController)))
 		}
-
 	}
 	configGroup := router.Group("config", middleware.LoginCheck)
 	{

@@ -5,6 +5,7 @@ import (
 	"askonce/components/dto/dto_search"
 	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
+	"github.com/xiangtao94/golib/pkg/sse"
 	"time"
 )
 
@@ -39,7 +40,7 @@ func (entity *AskController) Action(req *dto_search.AskReq) (interface{}, error)
 	err := s.Ask(req)
 	if err != nil {
 		time.Sleep(50 * time.Millisecond)
-		sse.EchoStreamError(entity.GetCtx(), err)
+		sse.RenderStreamError(entity.GetCtx(), err)
 	}
 	return nil, nil
 }
