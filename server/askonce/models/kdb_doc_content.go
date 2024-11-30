@@ -5,12 +5,13 @@ import (
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/gorm"
+	"time"
 )
 
 type KdbDocContent struct {
 	DocId   int64  `gorm:"type:int(11);default:0;comment:文档id"`
 	KdbId   int64  `gorm:"type:int(11);default:0;comment:知识库id"`
-	Content string `gorm:"column:content"` //  文本内容地址
+	Content string `gorm:"column:content"` //  文本内容
 	orm.CrudModel
 }
 
@@ -23,6 +24,9 @@ func (entity *KdbDocContentDao) OnCreate() {
 }
 
 func (entity *KdbDocContentDao) Insert(add *KdbDocContent) (err error) {
+	now := time.Now()
+	add.CreatedAt = now
+	add.UpdatedAt = now
 	return entity.GetDB().Create(add).Error
 }
 

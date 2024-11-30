@@ -13,8 +13,7 @@ type FileToTextItem struct {
 }
 
 type FileToTextRes struct {
-	DetailText any    `json:"text_detail"`
-	Text       string `json:"text"`
+	Text string `json:"text"`
 }
 
 type TextDetail struct {
@@ -41,5 +40,6 @@ func (entity *JobdApi) FileToText(path string) (res *FileToTextRes, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return ress[0], nil
+	res = ress[0]
+	return
 }

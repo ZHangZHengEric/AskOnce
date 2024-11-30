@@ -28,23 +28,6 @@ const (
 	BucketText string = "text" // 解析完成后文本数据存储桶
 )
 
-/*
-*
-结构化相关json的固定key
-*/
-type StructuredKey string
-
-const (
-	StructuredId         StructuredKey = "id"          // 文档id
-	StructuredTitle      StructuredKey = "title"       // 标题
-	StructuredContent    StructuredKey = "content"     // 内容
-	StructuredStartIndex StructuredKey = "start_index" // 起始下标
-	StructuredEndIndex   StructuredKey = "end_index"   // 结尾下标
-)
-
-// 强结构化文件结尾
-var StructuredExtension = []string{"json", "csv", "xls", "xlsx"}
-
 type GPTSource string
 
 const (

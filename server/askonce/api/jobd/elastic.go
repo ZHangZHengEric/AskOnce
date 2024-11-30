@@ -39,7 +39,7 @@ type SearchOutputSource struct {
 	DataSplitId int64  `json:"data_split_id"`
 }
 
-func (entity *JobdApi) Search(emb any, query string, querySize int, mapValue string) (res []ESSearchOutput, err error) {
+func (entity *JobdApi) EsSearch(emb any, query string, querySize int, mapValue string) (res []ESSearchOutput, err error) {
 	inputReq := &ESSearchReq{
 		SearchType:        "all",
 		MapperValueOrPath: json.RawMessage(mapValue),
@@ -73,7 +73,7 @@ type ESInsertReq struct {
 	MapperValueOrPath any              `json:"mapper_value_or_path"`
 }
 
-func (entity *JobdApi) Insert(inputReq ESInsertReq) (res any, err error) {
+func (entity *JobdApi) EsInsert(inputReq ESInsertReq) (res any, err error) {
 	entity.Client.MaxReqBodyLen = -1
 	return doTaskProcessString[ESInsertReq](entity, "atomes_es8_insert", inputReq, 50000)
 }
@@ -89,6 +89,6 @@ type ESDeleteRes struct {
 	DeleteResults []string `json:"delete_results"`
 }
 
-func (entity *JobdApi) AtomEsDelete(inputReq ESDeleteReq) (res ESDeleteRes, err error) {
-	return doTaskProcess[ESDeleteReq, ESDeleteRes](entity, "atomes_es8_delete", inputReq, 10000)
+func (entity *JobdApi) EsDelete(inputReq *ESDeleteReq) (res ESDeleteRes, err error) {
+	return doTaskProcess[*ESDeleteReq, ESDeleteRes](entity, "atomes_es8_delete", inputReq, 10000)
 }

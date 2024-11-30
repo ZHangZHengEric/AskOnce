@@ -2,13 +2,14 @@ package data
 
 import (
 	"askonce/api/jobd"
-	"askonce/components/dto"
 	"askonce/conf"
 	"askonce/helpers"
 	"askonce/models"
 	"encoding/json"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"golang.org/x/sync/errgroup"
 	"strconv"
 	"strings"
 	"time"
@@ -20,8 +21,6 @@ type KdbDocData struct {
 	kdbDocContentDao *models.KdbDocContentDao
 	kdbDocSegmentDao *models.KdbDocSegmentDao
 	jobdApi          *jobd.JobdApi
-	documentData     *DocumentData
-	fileData         *FileData
 }
 
 func (k *KdbDocData) OnCreate() {
@@ -29,33 +28,6 @@ func (k *KdbDocData) OnCreate() {
 	k.kdbDocContentDao = flow.Create(k.GetCtx(), new(models.KdbDocContentDao))
 	k.kdbDocSegmentDao = flow.Create(k.GetCtx(), new(models.KdbDocSegmentDao))
 	k.jobdApi = flow.Create(k.GetCtx(), new(jobd.JobdApi))
-	k.documentData = flow.Create(k.GetCtx(), new(DocumentData))
-	k.fileData = flow.Create(k.GetCtx(), new(FileData))
-}
-
-func (k *KdbDocData) GetDocList(kdbId int64, queryName string, pageParam dto.PageParam) (list []*models.KdbDoc, cnt int64, err error) {
-	list = make([]*models.KdbDoc, 0)
-	list, cnt, err = k.kdbDocDao.GetList(kdbId, queryName, pageParam)
-	return
-}
-
-func (k *KdbDocData) AddDocFormFile(kdbId int64, userId string, file *models.File, split bool) (add *models.KdbDoc, err error) {
-	add = &models.KdbDoc{
-		KdbId:      kdbId,
-		DocName:    file.OriginName,
-		DataSource: "file",
-		SourceId:   file.Id,
-		NeedSplit:  split,
-		Status:     models.KdbDocWaiting,
-		UserId:     userId,
-		CrudModel: orm.CrudModel{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-	}
-	err = k.kdbDocDao.Insert(add)
-
-	return
 }
 
 func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
@@ -88,7 +60,7 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 	}
 	if doc.Status == models.KdbDocSuccess {
 		esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "${indexName}", kdb.GetIndexName(), 1)
-		_, err = k.jobdApi.AtomEsDelete(jobd.ESDeleteReq{DocIds: []string{
+		_, err = k.jobdApi.EsDelete(&jobd.ESDeleteReq{DocIds: []string{
 			strconv.FormatInt(docId, 10)},
 			MapperValueOrPath: json.RawMessage(esDbConfigStr),
 		})
@@ -101,18 +73,87 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 	return
 }
 
-// 文档构建到内存数据库
-func (k *KdbDocData) DocBuild(docIds []int64) (err error) {
-	//1. 文件导入加锁
+func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content string, splitList []jobd.TextSplitRes, embeddingAll [][]float32) (err error) {
+	segments := make([]*models.KdbDocSegment, 0, len(splitList))
+	esInsertCorpus := make([]map[string]any, 0)
+	for i, split := range splitList {
+		if len(split.PassageContent) == 0 {
+			continue
+		}
+		segments = append(segments, &models.KdbDocSegment{
+			DocId:      doc.Id,
+			KdbId:      doc.KdbId,
+			StartIndex: split.Start,
+			EndIndex:   split.End,
+			Text:       split.PassageContent,
+			CrudModel: orm.CrudModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		})
+		esInsertCorpus = append(esInsertCorpus, map[string]any{
+			"doc_id":      doc.Id,
+			"doc_content": split.PassageContent,
+			"start":       split.Start,
+			"end":         split.End,
+			"emb":         embeddingAll[i],
+		})
+	}
+	db := helpers.MysqlClient.WithContext(k.GetCtx())
+	k.kdbDocDao.SetDB(db)
+	k.kdbDocContentDao.SetDB(db)
+	k.kdbDocSegmentDao.SetDB(db)
+	tx := db.Begin()
+	err = k.kdbDocContentDao.Insert(&models.KdbDocContent{
+		DocId:   doc.Id,
+		KdbId:   doc.KdbId,
+		Content: content,
+	})
+	if err != nil {
+		tx.Rollback()
+		k.LogErrorf("kdbDocContentDao insert error，docId %v, error %v", doc.Id, err.Error())
+		return err
+	}
+	err = k.kdbDocSegmentDao.BatchInsert(doc.Id, segments)
+	if err != nil {
+		tx.Rollback()
+		k.LogErrorf("kdbDocSegmentDao insert error，docId %v, error %v", doc.Id, err.Error())
+		return err
+	}
+	err = k.saveEs(kdb, doc, esInsertCorpus)
+	if err != nil {
+		tx.Rollback()
+		k.LogErrorf("saveEs error，docId %v, error %v", doc.Id, err.Error())
+		return err
+	}
+	tx.Commit()
+	return
+}
 
-	//2. 文件解析文本
+func (k *KdbDocData) saveEs(kdb *models.Kdb, doc *models.KdbDoc, corpus []map[string]any) (err error) {
+	corpusG := slice.Chunk(corpus, 500)
+	eg, _ := errgroup.WithContext(k.GetCtx())
+	esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "${indexName}", kdb.GetIndexName(), 1)
+	for _, ccc := range corpusG {
+		tmp := ccc
+		eg.Go(func() error {
+			_, err := k.jobdApi.EsInsert(jobd.ESInsertReq{
+				Corpus:            tmp,
+				MapperValueOrPath: json.RawMessage(esDbConfigStr),
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 
-	//3. 文本切分
-
-	//4. 文本转向量
-
-	//5. 存向量数据库
-
-	// 6.更新db
+	}
+	if err := eg.Wait(); err != nil {
+		_, _ = k.jobdApi.EsDelete(&jobd.ESDeleteReq{
+			DocIds:            []string{strconv.FormatInt(doc.Id, 10)},
+			MapperValueOrPath: json.RawMessage(esDbConfigStr),
+		})
+		return err
+	}
 	return
 }
