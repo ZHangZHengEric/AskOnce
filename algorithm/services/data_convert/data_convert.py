@@ -6,9 +6,10 @@ import argparse
 import os,sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))))
 from AskOnce.algorithm.services.task_manager.task_manager import TaskManager,http_post_json
-from AskOnce.algorithm.lib.data_convvert.factory import BasicLoaderFactory
+from AskOnce.algorithm.lib.data_convert.factory import BasicLoaderFactory
 import time
 from datetime import datetime
+from urllib.parse import urlparse, unquote
 import traceback
 import re
 
@@ -26,7 +27,10 @@ def unmarshal_task_input(GetTaskResp : dict):
     task_type = GetTaskResp['task_type']
     input_json = json.loads(GetTaskResp["input"])
     if task_type ==args.tasktype[0]:
-        return  task_type,DataInput(json_data=input_json, task_id=GetTaskResp["task_id"]) 
+        if type(input_json)==list:
+            return  task_type,[DataInput(json_data=input_item, task_id=GetTaskResp["task_id"]) for input_item in input_json] 
+        else:
+            return task_type,[DataInput(json_data=input_json, task_id=GetTaskResp["task_id"]) ]
     
 url_regex = re.compile(
     r'^(?:http|ftp)s?://'  # http:// or https:// or ftp:// or ftps://
@@ -40,7 +44,7 @@ url_regex = re.compile(
 def dowmload_url_to_path(url):
     parsed_url = unquote(url)
     parsed_url = urlparse(parsed_url)
-    local_file_path = os.path.join(os.environ.get('ATOM_CONVERT_CACHE'),os.path.basename(parsed_url.path))
+    local_file_path = os.path.join(os.environ.get('CONVERT_CACHE'),os.path.basename(parsed_url.path))
     print('下载到本地地址',local_file_path)
     start_download_time = time.time()
     response = requests.get(url)
@@ -82,14 +86,12 @@ def process(task_input,task_type,model,args,tm):
             try: 
                 # text 还是全部的有价值文本，text_detail 是更加详细的结构化解析，但是pdf 得与之前一样。其他的我们这次可以加上一些。
                 text,meta_data = model.create(file_path) 
-                result_all['id'] = data_item.id
                 result_all['text_detail'] = meta_data
                 result_all['text'] = text
                 print('解析后字数长度：',len(result_all['text'])) 
                 list_result.append(result_all)
             except:
                 print(traceback.format_exc())
-                result_all['id'] = data_item.id
                 result_all['file_type'] = None
                 result_all['text_detail'] = None
                 result_all['text'] = ''

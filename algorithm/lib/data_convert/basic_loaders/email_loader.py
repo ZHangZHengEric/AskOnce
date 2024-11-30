@@ -32,18 +32,18 @@ from AskOnce.algorithm.lib.data_convert.utils.json_serializable import register_
 from AskOnce.algorithm.lib.data_convert.utils.dist_id import Snowflake
 # 本地调试, push前备注掉
 # debug = False
-# os.environ.setdefault("ATOM_CONVERT_CACHE", "/mnt/nvme0n1/chendong/aiwork/data/convert_file_to_text_data/ATOM_CONVERT_CACHE")
+# os.environ.setdefault("CONVERT_CACHE", "/mnt/nvme0n1/chendong/aiwork/data/convert_file_to_text_data/CONVERT_CACHE")
 try:
-    ATOM_CONVERT_CACHE = os.environ.get("ATOM_CONVERT_CACHE")
-    if ATOM_CONVERT_CACHE is None or len(ATOM_CONVERT_CACHE) <=0:
-        raise Exception("ATOM_CONVERT_CACHE 不存在")
+    CONVERT_CACHE = os.environ.get("CONVERT_CACHE")
+    if CONVERT_CACHE is None or len(CONVERT_CACHE) <=0:
+        raise Exception("CONVERT_CACHE 不存在")
 except:
-    raise Exception("ATOM_CONVERT_CACHE 不存在")
+    raise Exception("CONVERT_CACHE 不存在")
     
 
-# ATOM_CONVERT_CACHE = os.environ.get("ATOM_CONVERT_CACHE")
+# CONVERT_CACHE = os.environ.get("CONVERT_CACHE")
 dist_id = Snowflake(worker_id=2024, data_center_id=2024)
-convert = OpenCC("tw2s.json").convert
+convert = OpenCC("tw2s").convert
 
 def clean_body_text_placeholder(body_text:str):
     # 去掉一些邮件图片解析的一些乱码占位符
@@ -121,12 +121,12 @@ class EmailLoader(BaseLoader):
             file_name = attach.get_filename() #如果是附件，这里就会取出附件的文件名
             if file_name is None:
                 file_name = "attach.pdf"  # 需要猜测attach_data的文件类型
-            local_file_path = os.path.join(os.environ.get("ATOM_CONVERT_CACHE"), file_name)
+            local_file_path = os.path.join(os.environ.get("CONVERT_CACHE"), file_name)
             attach_data = attach.get_payload(decode=True)
             if attach_data and ctype != "message/rfc822":
                 attach_content = ""
                 file_name_ = file_name[-8:]
-                local_file_path = os.path.join(ATOM_CONVERT_CACHE,str(dist_id.next_id()) + file_name_)
+                local_file_path = os.path.join(CONVERT_CACHE,str(dist_id.next_id()) + file_name_)
                 with open(local_file_path, 'wb') as f:
                     f.write(attach_data)
                     # print(f'附件文档已保存: {local_file_path}')
@@ -142,7 +142,7 @@ class EmailLoader(BaseLoader):
                             attach_content, _ = "", None
             else:
                 attach_content = ""
-                print("附件内容为None或者附件是邮件处理不了") # ATOM_CONVERT_CACHE/ssxxx.pdf
+                print("附件内容为None或者附件是邮件处理不了") # CONVERT_CACHE/ssxxx.pdf
             attachment['files'].append({"file_name":local_file_path, "file_content":attach_content, "attach_name": file_name})
             if ctype.startswith("image/"):
                 file_name = attach.get_filename()
@@ -153,7 +153,7 @@ class EmailLoader(BaseLoader):
                 # if isinstance(file_name, bytes):
                 #     file_name = file_name.decode()
                 # 保存附件到本地
-                local_file_path = os.path.join(ATOM_CONVERT_CACHE, str(dist_id.next_id()) + file_name)
+                local_file_path = os.path.join(CONVERT_CACHE, str(dist_id.next_id()) + file_name)
                 with open(local_file_path, 'wb') as f:
                     f.write(attach.get_payload(decode=True))
                 # print(f'图片已保存: {local_file_path}')

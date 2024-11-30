@@ -79,7 +79,7 @@ class PdfLoader(BaseLoader):
     
     def load_data(self, url):
         result_text = ''
-        self.cache_folder = os.environ.get('ATOM_CONVERT_CACHE')
+        self.cache_folder = os.environ.get('CONVERT_CACHE')
         detail_result  = []
         file_name = os.path.basename(url)
         if file_name.endswith('.pdf'):
