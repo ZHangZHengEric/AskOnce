@@ -26,7 +26,7 @@ FROM nginx:stable-alpine
 COPY --from=base /app/dist /usr/share/nginx/html/dist
 
 # 替换默认 nginx 配置
-COPY askonce.conf /etc/nginx/conf.d/askonce.conf
+COPY askonce.conf /etc/nginx/conf.d/default.conf
 
 # 暴露服务端口
 EXPOSE 80

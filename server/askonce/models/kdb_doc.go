@@ -27,7 +27,7 @@ type KdbDoc struct {
 	DataSource string `gorm:"type:varchar(52);default:'';comment:文档来源 file"`
 	SourceId   string `gorm:"type:varchar(128);default:0;comment:来源id"`
 	NeedSplit  bool   `gorm:"type:tinyint;default:0;comment:是否切分"`
-	Status     int    `gorm:"type:varchar(52);default:0;comment: 状态 0 初始化，没有导入，1 正在处理， 2 导入失败 9 导入成功"`
+	Status     int    `gorm:"type:int(11);default:0;comment: 状态 0 初始化，没有导入，1 正在处理， 2 导入失败 9 导入成功"`
 	UserId     string `gorm:"type:varchar(128);default:'';comment:上传用户id"`
 	orm.CrudModel
 }
@@ -58,6 +58,19 @@ func (entity *KdbDocDao) Update(id int64, update map[string]interface{}) error {
 	return nil
 }
 
+// 更新状态
+func (entity *KdbDocDao) UpdateStatus(id int64, status int) error {
+	update := map[string]interface{}{
+		"status":     status,
+		"updated_at": time.Now(),
+	}
+	err := entity.GetDB().Where("id = ?", id).Updates(update).Error
+	if err != nil {
+		return components.ErrorMysqlError
+	}
+	return nil
+}
+
 func (entity *KdbDocDao) GetById(id int64) (res *KdbDoc, err error) {
 	res = &KdbDoc{}
 	db := entity.GetDB()
@@ -80,11 +93,14 @@ func (entity *KdbDocDao) GetByIds(ids []int64) (res []*KdbDoc, err error) {
 	return
 }
 
-func (entity *KdbDocDao) GetList(kdbId int64, queryName string, param dto.PageParam) (list []*KdbDoc, cnt int64, err error) {
+func (entity *KdbDocDao) GetList(kdbId int64, queryName string, status []int, param dto.PageParam) (list []*KdbDoc, cnt int64, err error) {
 	db := entity.GetDB().Model(&KdbDoc{})
 	db = db.Where("kdb_id =   ?", kdbId)
 	if len(queryName) > 0 {
 		db = db.Where("doc_name like ?", "%"+queryName+"%")
+	}
+	if len(status) > 0 {
+		db = db.Where("status in (?)", status)
 	}
 	db = db.Count(&cnt)
 	if err = db.Offset((param.PageNo - 1) * param.PageSize).Limit(param.PageSize).Order("created_at desc").Find(&list).Error; err != nil {

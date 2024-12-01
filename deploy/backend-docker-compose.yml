@@ -5,5 +5,13 @@ services:
       dockerfile: Dockerfile
     container_name: askonce-jobd
     volumes:
-      - ./conf/jobd:/app/conf/mount
+      - ${BACKEND_CONF_DIR}/jobd:/app/conf/mount
+    restart: unless-stopped
+  askonce:
+    build:
+      context: ../server/askonce
+      dockerfile: Dockerfile
+    container_name: askonce-backend
+    volumes:
+      - ${BACKEND_CONF_DIR}/askonce:/app/conf/mount
     restart: unless-stopped

@@ -67,10 +67,12 @@ services:
       - ${ES_CONF_DIR}/stopwords:/usr/share/elasticsearch/config/stopwords
   askonce-es-dashboard:
     restart: always
-    image: docker.elastic.co/kibana/kibana:8.16.1
+    image: docker.elastic.co/kibana/kibana:8.15.3
     container_name: askonce-es-dashboard
     environment:
       - ELASTICSEARCH_HOSTS=["http://askonce-es1:9200"]
       - I18N_LOCALE=zh-CN
       - ELASTICSEARCH_USERNAME='elastic'
       - ELASTICSEARCH_PASSWORD='123456'
+    volumes:
+      - ${ES_CONF_DIR}/kibana:/usr/share/kibana/config

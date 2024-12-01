@@ -5,6 +5,7 @@ import (
 	"askonce/components/dto/dto_search"
 	"askonce/service"
 	"github.com/xiangtao94/golib/flow"
+	"github.com/xiangtao94/golib/pkg/sse"
 	"time"
 )
 
@@ -12,7 +13,7 @@ type CaseController struct {
 	flow.Controller
 }
 
-func (entity *CaseController) Action(req *dto.EmptyReq) (interface{}, error) {
+func (entity *CaseController) Action(req *dto_search.CaseReq) (interface{}, error) {
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.Case(req)
 }
@@ -39,7 +40,7 @@ func (entity *AskController) Action(req *dto_search.AskReq) (interface{}, error)
 	err := s.Ask(req)
 	if err != nil {
 		time.Sleep(50 * time.Millisecond)
-		sse.EchoStreamError(entity.GetCtx(), err)
+		sse.RenderStreamError(entity.GetCtx(), err)
 	}
 	return nil, nil
 }
@@ -69,20 +70,6 @@ type OutlineController struct {
 func (entity *OutlineController) Action(req *dto_search.OutlineReq) (interface{}, error) {
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.Outline(req)
-}
-
-type KdbListGetController struct {
-	flow.Controller
-}
-
-func (entity *KdbListGetController) Action(req *dto.EmptyReq) (interface{}, error) {
-	s := entity.Create(new(service.SearchService)).(*service.SearchService)
-	return s.KdbList(&dto_search.KdbListReq{
-		PageParam: dto.PageParam{
-			PageNo:   1,
-			PageSize: 10,
-		},
-	})
 }
 
 type UnlikeController struct {

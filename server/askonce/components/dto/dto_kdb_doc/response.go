@@ -15,11 +15,11 @@ type ListItem struct {
 	CreateTime string `json:"createTime"`
 }
 
-type SearchRes struct {
-	List []SearchItem `json:"list"`
+type RecallRes struct {
+	List []RecallItem `json:"list"`
 }
 
-type SearchItem struct {
+type RecallItem struct {
 	DataName      string `json:"dataName"`
 	DataPath      string `json:"dataPath"`
 	SearchContent string `json:"searchContent"`

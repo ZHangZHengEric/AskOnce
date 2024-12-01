@@ -2,12 +2,16 @@ package dto_search
 
 import "askonce/components/dto"
 
+type CaseReq struct {
+	KdbId int64 `json:"kdbId"` // 为kdb时有值
+}
+
 type SettingReq struct {
 	SearchEngine string `json:"searchEngine" binding:"required"`
 }
 
 type HisReq struct {
-	dto.PageParam
+	SessionId string `json:"sessionId"`
 }
 
 type HisDetailReq struct {

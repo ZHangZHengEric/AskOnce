@@ -2,7 +2,6 @@ package data
 
 import (
 	"askonce/api/jobd"
-	"askonce/components/defines"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"golang.org/x/sync/errgroup"
@@ -23,18 +22,10 @@ func (d *DocumentData) OnCreate() {
 }
 
 // 文本切分
-func (d *DocumentData) TextSplit(text string) (segments []map[defines.StructuredKey]any, err error) {
-	segments = make([]map[defines.StructuredKey]any, 0)
-	ragRes, err := d.jobdApi.TextSplit(text)
+func (d *DocumentData) TextSplit(text string) (segments []jobd.TextSplitRes, err error) {
+	segments, err = d.jobdApi.TextSplit(text)
 	if err != nil {
-		return segments, err
-	}
-	for _, t := range ragRes {
-		segments = append(segments, map[defines.StructuredKey]any{
-			defines.StructuredContent:    t.PassageContent,
-			defines.StructuredStartIndex: t.Start,
-			defines.StructuredEndIndex:   t.End,
-		})
+		return nil, err
 	}
 	return segments, nil
 }
@@ -62,7 +53,7 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 		})
 	}
 	if err := eg2.Wait(); err != nil {
-		return
+		return nil, err
 	}
 	for i := range sentsG {
 		embResAll = append(embResAll, embResMap[i]...)

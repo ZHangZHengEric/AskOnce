@@ -14,8 +14,9 @@ type AddReq struct {
 }
 
 type ListReq struct {
-	KdbId     int64  `json:"kdbId" binding:"required"`
-	QueryName string `query:"queryName"`
+	KdbId       int64  `json:"kdbId" binding:"required"`
+	QueryName   string `json:"queryName"`
+	QueryStatus []int  `json:"queryStatus"`
 	dto.PageParam
 }
 
@@ -28,7 +29,6 @@ type RedoReq struct {
 	KdbId int64 `json:"kdbId" binding:"required"`
 	DocId int64 `json:"dataId" binding:"required"`
 }
-
 type RecallReq struct {
 	KdbId int64  `json:"kdbId" binding:"required"`
 	Query string `query:"query" binding:"required"`

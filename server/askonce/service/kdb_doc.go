@@ -10,23 +10,26 @@ import (
 	"askonce/utils"
 	"fmt"
 	"github.com/xiangtao94/golib/flow"
+	"github.com/xiangtao94/golib/pkg/orm"
 	"os"
 	"time"
 )
 
 type KdbDocService struct {
 	flow.Service
-	kdbData    *data.KdbData
-	fileData   *data.FileData
-	kdbDocData *data.KdbDocData
-	userData   *data.UserData
+	kdbData      *data.KdbData
+	fileData     *data.FileData
+	documentData *data.DocumentData
+	kdbDocData   *data.KdbDocData
+	kdbDocDao    *models.KdbDocDao
 }
 
 func (k *KdbDocService) OnCreate() {
 	k.kdbData = flow.Create(k.GetCtx(), new(data.KdbData))
 	k.fileData = flow.Create(k.GetCtx(), new(data.FileData))
+	k.documentData = flow.Create(k.GetCtx(), new(data.DocumentData))
 	k.kdbDocData = flow.Create(k.GetCtx(), new(data.KdbDocData))
-	k.userData = flow.Create(k.GetCtx(), new(data.UserData))
+	k.kdbDocDao = flow.Create(k.GetCtx(), new(models.KdbDocDao))
 }
 
 func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataListResp, err error) {
@@ -39,7 +42,7 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 		List:  make([]dto_kdb.DataListItem, 0),
 		Total: 0,
 	}
-	docs, cnt, err := k.kdbDocData.GetDocList(kdb.Id, req.QueryName, req.PageParam)
+	docs, cnt, err := k.kdbDocDao.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
 	if err != nil {
 		return nil, err
 	}
@@ -109,14 +112,37 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 	if err != nil {
 		return nil, err
 	}
-	doc, err := k.kdbDocData.AddDocFormFile(kdb.Id, userInfo.UserId, file, needSplit)
+	doc := &models.KdbDoc{
+		KdbId:      kdb.Id,
+		DocName:    file.OriginName,
+		DataSource: "file",
+		SourceId:   file.Id,
+		NeedSplit:  needSplit,
+		Status:     models.KdbDocRunning,
+		UserId:     userInfo.UserId,
+		CrudModel: orm.CrudModel{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	}
+	err = k.kdbDocDao.Insert(doc)
 	if err != nil {
-		return nil, components.ErrorFileUploadError
+		return nil, err
 	}
 	go func(k *KdbDocService) {
-		err = k.kdbDocData.DocBuild([]int64{doc.Id})
+		defer func() {
+			if r := recover(); r != nil {
+				k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, r)
+				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+			}
+		}()
+		err = k.DocBuild(kdb, doc)
 		if err != nil {
-			k.LogErrorf("文档构建内存数据库失败 %s", err.Error())
+			k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+		} else {
+			k.LogErrorf("文档【%v】构建内存数据库成功 %s", doc.Id)
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
 	return
@@ -137,15 +163,67 @@ func (k *KdbDocService) DocDelete(req *dto_kdb_doc.DeleteReq) (res interface{}, 
 
 func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
-	_, err = k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
+	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
 	if err != nil {
 		return
 	}
 	go func(k *KdbDocService) {
-		err = k.kdbDocData.DocBuild([]int64{req.DocId})
+		defer func() {
+			if r := recover(); r != nil {
+				k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, r)
+				_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocFail)
+			}
+		}()
+		doc, err := k.kdbDocDao.GetById(req.DocId)
 		if err != nil {
-			k.LogErrorf("文档构建内存数据库失败 %s", err.Error())
+			return
+		}
+		_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocSuccess)
+		err = k.DocBuild(kdb, doc)
+		if err != nil {
+			k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, err.Error())
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+		} else {
+			k.LogErrorf("文档【%v】构建内存数据库成功 %s", req.DocId)
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
+	return
+}
+
+// 文档构建到内存数据库
+func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+	//2. 文件解析文本段
+	k.LogInfof("开始文件解析文本，docId %v", doc.Id)
+	_, content, err := k.fileData.ConvertFileToText(doc.SourceId)
+	if err != nil {
+		k.LogErrorf("文件解析文本，docId %v, error %v", doc.Id, err.Error())
+		return err
+	}
+	//3. 文本切分
+	k.LogInfof("开始文本切分，docId %v", doc.Id)
+	splitList, err := k.documentData.TextSplit(content)
+	if err != nil {
+		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
+		return err
+	}
+	contents := make([]string, 0, len(splitList))
+	for _, split := range splitList {
+		contents = append(contents, split.PassageContent)
+	}
+	//4. 文本转向量
+	k.LogInfof("开始文本转向量，docId %v", doc.Id)
+	embeddingAll, err := k.documentData.TextEmbedding(contents)
+	if err != nil || len(embeddingAll) != len(contents) {
+		k.LogErrorf("文本转向量error，docId %v,error %v", doc.Id, err.Error())
+		return err
+	}
+	//5. 存向量数据库和mysql
+	k.LogInfof("开始存数据库，docId %v", doc.Id)
+	err = k.kdbDocData.SaveDocBuild(kdb, doc, content, splitList, embeddingAll)
+	if err != nil {
+		k.LogErrorf("存mysql error，docId %v,error %v", doc.Id, err.Error())
+		return err
+	}
 	return
 }
