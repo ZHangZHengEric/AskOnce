@@ -78,5 +78,4 @@ services:
       - I18N_LOCALE=zh-CN
       - ELASTICSEARCH_USERNAME='elastic'
       - ELASTICSEARCH_PASSWORD=${ES_PASSWORD}
-    volumes:
-      - ${ES_CONF_DIR}/kibana:/usr/share/kibana/config
+
