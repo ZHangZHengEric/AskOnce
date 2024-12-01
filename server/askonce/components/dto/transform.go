@@ -11,7 +11,6 @@ type EmptyReq struct {
 type LoginInfoSession struct {
 	UserId     string `json:"UserId" redis:"UserId"`
 	Account    string `json:"Account" redis:"Account"`
-	Phone      string `json:"Phone" redis:"Phone"`
 	LoginTime  int64  `json:"LoginTime" redis:"LoginTime"`
 	ExpireTime int64  `json:"ExpireTime" redis:"ExpireTime"`
 }

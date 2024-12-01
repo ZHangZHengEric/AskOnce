@@ -22,7 +22,7 @@ func (entity *UserService) LoginAccount(req *dto_user.LoginAccountReq) (res *dto
 	}
 	// 3.种缓存
 	sessionCache := entity.Create(new(data.SessionCache)).(*data.SessionCache)
-	session := data.LoginInfoSession{
+	session := dto.LoginInfoSession{
 		UserId:    user.UserId,
 		Account:   req.Account,
 		LoginTime: user.LastLoginTime.Unix(),

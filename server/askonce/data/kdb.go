@@ -94,7 +94,7 @@ func (k *KdbData) CheckKdbAuth(kdbId int64, userId string, authCode int) (*model
 	return kdb, nil
 }
 
-func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfo) (add *models.Kdb, err error) {
+func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 	now := time.Now()
 	add = &models.Kdb{
 		Name:       kdbName,
@@ -102,7 +102,7 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfo) (add *mod
 		Setting:    datatypes.NewJSONType(DefaultKdbSetting),
 		Type:       models.KdbTypePrivate,
 		DataSource: models.DataSourceFile,
-		Creator:    user.UserName,
+		Creator:    user.Account,
 		CrudModel: orm.CrudModel{
 			CreatedAt: now,
 			UpdatedAt: now,
