@@ -4,7 +4,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     container_name: askonce-es1
     ports:
-      - 20004:6379
+      - 20004:9200
     environment:
       - cluster.name=askonce
       - node.name=askonce-es1
@@ -77,6 +77,6 @@ services:
       - ELASTICSEARCH_HOSTS=["http://askonce-es1:9200"]
       - I18N_LOCALE=zh-CN
       - ELASTICSEARCH_USERNAME='elastic'
-      - ELASTICSEARCH_PASSWORD='123456'
+      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD}
     volumes:
       - ${ES_CONF_DIR}/kibana:/usr/share/kibana/config
