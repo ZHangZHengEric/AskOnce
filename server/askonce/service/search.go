@@ -5,6 +5,7 @@ import (
 	"askonce/components"
 	"askonce/components/dto"
 	"askonce/components/dto/dto_gpt"
+	"askonce/components/dto/dto_kdb_doc"
 	"askonce/components/dto/dto_search"
 	"askonce/data"
 	"askonce/helpers"
@@ -1130,6 +1131,38 @@ func (s *SearchService) treeAskForResearch(tree []*jobd.KeyPointNode, answerAll 
 		echoReferAll = append(echoReferAll, echoRefers...)
 	}
 	return answerAll, echoReferAll, beginIndex, err
+}
+
+func (s *SearchService) Recall(req *dto_kdb_doc.RecallReq) (res *dto_kdb_doc.RecallRes, err error) {
+	userInfo, err := utils.LoginInfo(s.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_kdb_doc.RecallRes{
+		List: make([]dto_kdb_doc.RecallItem, 0),
+	}
+
+	// es搜索的片段
+	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
+		IndexName: kdb.GetIndexName(),
+		Query:     req.Query,
+	})
+	if err != nil {
+		return nil, components.ErrorQueryEmpty
+	}
+	for _, result := range esSearchResult {
+		res.List = append(res.List, dto_kdb_doc.RecallItem{
+			DataName:      result.Title,
+			DataPath:      result.Url,
+			SearchContent: result.Content,
+			DataContent:   result.FullContent,
+		})
+	}
+	return
 }
 
 func mergeItems(items []DoReferItem) []DoReferItem {

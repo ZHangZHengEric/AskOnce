@@ -9,13 +9,13 @@ log:
 mysql:
   default:
     database: askonce
-    addr: "127.0.0.1:3306"
+    addr: "36.133.44.114:20000"
     user: "root"
-    password: "123456"
+    password: "askonce@123."
 
 redis:
   default:
-    addr: "127.0.0.1::6379"
+    addr: "36.133.44.114:20001"
     password: ""
     db: 1
 

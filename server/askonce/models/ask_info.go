@@ -23,8 +23,8 @@ type AskInfo struct {
 	Question    string                      `gorm:"type:varchar(1024);default:'';comment:问题"`
 	AskType     string                      `gorm:"type:varchar(52);default:'';comment:问题类型"`
 	KdbId       int64                       `gorm:"type:int(11);default:0;comment:知识库id"`
-	SubQuestion datatypes.JSONSlice[string] `gorm:"type:json;sub_question;comment:切分的问题"`
-	Answer      datatypes.JSON              `gorm:"type:json;answer;comment:答案"`
+	SubQuestion datatypes.JSONSlice[string] `gorm:"type:json;comment:切分的问题"`
+	Answer      datatypes.JSON              `gorm:"type:json;comment:答案"`
 	UserId      string                      `gorm:"type:varchar(128);default:'';comment:用户id"`
 	Status      int64                       `gorm:"type:int(11);default:0;comment:状态"`
 	LikeStatus  int64                       `gorm:"type:int(11);default:0;comment:喜欢状态"`

@@ -162,7 +162,7 @@ func (k *KdbData) GetKdbList(userId string, query string, param dto.PageParam) (
 	if len(userId) > 0 {
 		userRelation, err := k.kdbUserDao.GetByUserId(userId)
 		if err != nil {
-			return
+			return nil, 0, err
 		}
 		for _, ur := range userRelation {
 			kdbIds = append(kdbIds, ur.KdbId)

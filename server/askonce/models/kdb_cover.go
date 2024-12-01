@@ -7,9 +7,9 @@ import (
 
 type KdbCover struct {
 	Id           int64  `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`
-	Type         string `json:"type" gorm:"type"`                   // 类型
-	Url          string `json:"url" gorm:"url"`                     // 地址
-	DefaultColor bool   `json:"default_color" gorm:"default_color"` // 默认颜色
+	Type         string `gorm:"type:varchar(52);default:'';comment:类型"`
+	Url          string `gorm:"type:varchar(512);default:'';comment:url"`
+	DefaultColor bool   `gorm:"type:tinyint(1);default:0;comment:默认颜色"`
 	UserId       string `gorm:"type:varchar(128);default:'';comment:用户id"`
 	orm.CrudModel
 }

@@ -29,7 +29,6 @@ type RedoReq struct {
 	KdbId int64 `json:"kdbId" binding:"required"`
 	DocId int64 `json:"dataId" binding:"required"`
 }
-
 type RecallReq struct {
 	KdbId int64  `json:"kdbId" binding:"required"`
 	Query string `query:"query" binding:"required"`

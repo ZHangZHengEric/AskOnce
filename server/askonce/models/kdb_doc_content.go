@@ -15,12 +15,16 @@ type KdbDocContent struct {
 	orm.CrudModel
 }
 
+func (KdbDocContent) TableName() string {
+	return "kdb_doc_content"
+}
+
 type KdbDocContentDao struct {
 	flow.Dao
 }
 
 func (entity *KdbDocContentDao) OnCreate() {
-	entity.SetTable("kdb_doc_content")
+	entity.SetTable(KdbDocContent{}.TableName())
 }
 
 func (entity *KdbDocContentDao) Insert(add *KdbDocContent) (err error) {

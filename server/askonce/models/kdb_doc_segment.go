@@ -15,12 +15,16 @@ type KdbDocSegment struct {
 	orm.CrudModel
 }
 
+func (KdbDocSegment) TableName() string {
+	return "kdb_doc_segment"
+}
+
 type KdbDocSegmentDao struct {
 	flow.Dao
 }
 
 func (entity *KdbDocSegmentDao) OnCreate() {
-	entity.SetTable("kdb_doc_segment")
+	entity.SetTable(KdbDocSegment{}.TableName())
 	entity.SetPartitionNum(5)
 }
 

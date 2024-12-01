@@ -12,11 +12,15 @@ import (
 
 type AskAttach struct {
 	Id        int64          `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`
-	SessionId string         `gorm:"session_id"`       // sessionId
-	Reference datatypes.JSON `gorm:"column:reference"` //  参考引用
-	Outline   datatypes.JSON `gorm:"column:outline"`   //  大纲
-	Relation  datatypes.JSON `gorm:"column:relation"`  //  相关
+	SessionId string         `gorm:"type:varchar(128);default:'';comment:会话id"`
+	Reference datatypes.JSON `gorm:"type:json;column:reference"` //  参考引用
+	Outline   datatypes.JSON `gorm:"type:json;column:outline"`   //  大纲
+	Relation  datatypes.JSON `gorm:"type:json;column:relation"`  //  相关
 	orm.CrudModel
+}
+
+func (AskAttach) TableName() string {
+	return "ask_attach"
 }
 
 type AskAttachDao struct {
@@ -24,7 +28,7 @@ type AskAttachDao struct {
 }
 
 func (entity *AskAttachDao) OnCreate() {
-	entity.SetTable("ask_attach")
+	entity.SetTable(AskAttach{}.TableName())
 }
 
 func (entity *AskAttachDao) Insert(add *AskAttach) error {

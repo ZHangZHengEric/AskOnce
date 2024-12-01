@@ -10,10 +10,14 @@ import (
 
 type AskSubSearch struct {
 	Id           int64          `gorm:"id; primaryKey;autoIncrement" json:"id"` //  自增主键
-	SessionId    string         `gorm:"session_id"`                             // sessionId
-	SubQuestion  string         `gorm:"sub_question"`                           // 子问题
-	SearchResult datatypes.JSON `gorm:"column:search_result"`                   //  搜索结果
+	SessionId    string         `gorm:"type:varchar(128);default:'';comment:会话id"`
+	SubQuestion  string         `gorm:"type:varchar(1024);default:'';comment:子问题"` // 子问题
+	SearchResult datatypes.JSON `gorm:"type:json;column:search_result"`            //  搜索结果
 	orm.CrudModel
+}
+
+func (AskSubSearch) TableName() string {
+	return "ask_sub_search"
 }
 
 type AskSubSearchDao struct {
@@ -21,7 +25,7 @@ type AskSubSearchDao struct {
 }
 
 func (entity *AskSubSearchDao) OnCreate() {
-	entity.SetTable("ask_sub_search")
+	entity.SetTable(AskSubSearch{}.TableName())
 }
 
 func (entity *AskSubSearchDao) Insert(add *AskSubSearch) error {

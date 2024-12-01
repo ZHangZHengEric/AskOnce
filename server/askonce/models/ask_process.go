@@ -14,12 +14,16 @@ var ProcessTypeNameMap = map[string]string{
 }
 
 type AskProcess struct {
-	Id        int64  `gorm:"id; primaryKey;autoIncrement" json:"id"` // 自增主键
-	SessionId string `gorm:"session_id"`                             // sessionId
-	Type      string `gorm:"type"`                                   // 进度类型
-	Time      int64  `gorm:"time"`                                   // 时间戳
-	Content   string `gorm:"content"`                                // 进度内容
+	Id        int64  `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`
+	SessionId string `gorm:"type:varchar(128);default:'';comment:会话id"`
+	Type      string `gorm:"type:varchar(52);default:'';comment:进度类型"`
+	Time      int64  `gorm:"type:int(11);default:0;comment:时间戳"`
+	Content   string `gorm:"content"` // 进度内容
 	orm.CrudModel
+}
+
+func (AskProcess) TableName() string {
+	return "ask_process"
 }
 
 type AskProcessDao struct {
@@ -27,7 +31,7 @@ type AskProcessDao struct {
 }
 
 func (entity *AskProcessDao) OnCreate() {
-	entity.SetTable("ask_process")
+	entity.SetTable(AskProcess{}.TableName())
 }
 
 func (entity *AskProcessDao) Insert(add *AskProcess) error {
