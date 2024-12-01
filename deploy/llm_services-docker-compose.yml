@@ -4,7 +4,7 @@ services:
   askonce_answer_by_documents_0:
     container_name:   askonce_answer_by_documents_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -19,7 +19,7 @@ services:
   askonce_data_convert_0:
     container_name:   askonce_data_convert_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -34,7 +34,7 @@ services:
   askonce_generate_outlines_0:
     container_name:   askonce_generate_outlines_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -49,7 +49,7 @@ services:
   askonce_result_add_reference_0:
     container_name:   askonce_result_add_reference_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -64,7 +64,7 @@ services:
   askonce_split_question_0:
     container_name:   askonce_split_question_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -79,7 +79,7 @@ services:
   askonce_search_engine_insert_0:
     container_name:   askonce_search_engine_insert_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -94,7 +94,7 @@ services:
   askonce_search_engine_delete_0:
     container_name:   askonce_search_engine_delete_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image
@@ -109,7 +109,7 @@ services:
   askonce_search_engine_search_0:
     container_name:   askonce_search_engine_search_0
     build:
-      context: ../
+      context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
     image: askonce_llm_service_image

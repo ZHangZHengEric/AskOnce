@@ -2,6 +2,7 @@ import requests
 import json
 from time import sleep
 import os
+import traceback
 os.environ['CURL_CA_BUNDLE'] = ''
 
 def http_post_json(url : str, body : dict):
@@ -14,6 +15,7 @@ def http_post_json(url : str, body : dict):
         resp.close()
         return resp.status_code, body
     except:
+        traceback.print_exc()
         print('error',body,resp)
         resp.close()
         return 502,''

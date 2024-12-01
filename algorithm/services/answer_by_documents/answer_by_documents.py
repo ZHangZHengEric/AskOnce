@@ -82,21 +82,18 @@ if __name__ == '__main__':
     tm = TaskManager(jobdurl=args.jobdurl)
     model = SearchAnswer(api_key=args.api_key,platform_api_url=args.platform_api_url,model_name= args.model_name)    
     for one_task_type in args.tasktype:
-        # 
         tm.add_task_type_info(one_task_type,10000,args.worker_name)
 
     while (True):
         try:
             errcode, get_task_resp = tm.get_task_block(args.tasktype)
-            print('收到任务',datetime.now())
+            get_task_resp = get_task_resp['data']
+            print('收到任务',datetime.now(),errcode)
         except Exception as e:
             if 'value' not in str(e):
                 print('gettask',e)
             continue
         if errcode != 200:
-            sleep(0.05)
-            continue
-        elif "code" in get_task_resp.keys():
             sleep(0.05)
             continue
         else:

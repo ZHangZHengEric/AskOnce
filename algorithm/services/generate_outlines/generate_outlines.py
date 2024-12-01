@@ -52,6 +52,7 @@ if __name__ == '__main__':
     while (True):
         try:
             errcode, get_task_resp = tm.get_task_block(args.tasktype)
+            get_task_resp = get_task_resp['data']
             print('收到任务',datetime.now())
         except Exception as e:
             if 'value' not in str(e):
