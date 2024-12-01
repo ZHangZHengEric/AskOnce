@@ -13,6 +13,11 @@ func (d *ChatData) ChatSync(modelType string, id string, req *dto_gpt.ChatComple
 	return
 }
 
-func (d *ChatData) Chat(modelType string, id string, req *dto_gpt.ChatCompletionReq, f func(offset int, chatCompletionResp dto_gpt.ChatCompletionResp) error) error {
+type ChatAnswer struct {
+	Answer string `json:"answer"`
+	Status string `json:"status"`
+}
+
+func (d *ChatData) Chat(modelType string, id string, req *dto_gpt.ChatCompletionReq, f func(offset int, chatAnswer ChatAnswer) error) error {
 	return nil
 }

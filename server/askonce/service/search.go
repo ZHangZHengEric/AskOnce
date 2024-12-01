@@ -872,22 +872,22 @@ func (s *SearchService) askChat(req AskContext, promptRes *jobd.SimpleQAConstruc
 	wg := sync.WaitGroup{}
 	lock := sync.Mutex{}
 	first := true
-	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatCompletionResp dto_gpt.ChatCompletionResp) error {
+	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
 		if first {
 			s.EchoRes("generate", "")
 			first = false
 		}
-		currentAnswer := chatCompletionResp.Answer
+		currentAnswer := chatAnswer.Answer
 		// 对话展示逻辑
 		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && chatCompletionResp.Status != "FINISH" {
+		if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
 			return nil
 		}
 		s.EchoRes("appendText", echoAnswer)
-		answer = chatCompletionResp.Answer
+		answer = chatAnswer.Answer
 		if len(searchResult) > 0 {
 			// 引用判断逻辑
-			needReference, begin := IsCompleted(currentAnswer, chatCompletionResp.Status, alreadyReferAnswer)
+			needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
 			if len(needReference) > 0 {
 				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
 				wg.Add(1)
@@ -949,18 +949,18 @@ func (s *SearchService) askChatForResearch(req AskContext, promptRes *jobd.Simpl
 	alreadyReferAnswer := ""
 	wg := sync.WaitGroup{}
 	lock := sync.Mutex{}
-	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatCompletionResp dto_gpt.ChatCompletionResp) error {
-		currentAnswer := hubRes.Answer
+	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
+		currentAnswer := chatAnswer.Answer
 		// 对话展示逻辑
 		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && hubRes.Status != "FINISH" {
+		if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
 			return nil
 		}
 		s.EchoRes("appendText", echoAnswer)
-		answer = hubRes.Answer
+		answer = chatAnswer.Answer
 		if len(searchResult) > 0 {
 			// 引用判断逻辑
-			needReference, begin := IsCompleted(currentAnswer, hubRes.Status, alreadyReferAnswer)
+			needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
 			begin = begin + startIndex
 			if len(needReference) > 0 {
 				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)

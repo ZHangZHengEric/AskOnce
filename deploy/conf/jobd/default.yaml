@@ -2,7 +2,7 @@
 port: 8080
 appName: jobd
 log:
-  level: DEBUG
+  level: INFO
   stdout: true
   logToFile: true
 
