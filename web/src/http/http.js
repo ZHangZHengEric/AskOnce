@@ -23,7 +23,7 @@ Http.interceptors.request.use((config) => {
 });
 
 Http.interceptors.response.use((response) => {
-        const data = response;
+        const data = response.data;
         if (data.code === 200) {
             return data;
         } else if (data.code === 3) {
