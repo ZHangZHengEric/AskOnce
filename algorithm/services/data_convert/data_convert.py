@@ -53,8 +53,8 @@ def dowmload_url_to_path(url):
             with open(local_file_path, 'wb') as file:
                 file.write(response.content)
                 print(f'文件已下载至：{local_file_path}')
-        except:
-            print()
+        except e:
+            traceback.print_exc()
     else:
         print('下载失败，状态码：', response.status_code)
     print(f"下载文件时间: {time.time() - start_download_time}")

@@ -32,6 +32,10 @@ RUN pip install pypandoc -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install python-docx markdown python-pptx PyMuPDF tqdm unstructured -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install matplotlib pandas python-magic pylibmagic pypdf opencc-python-reimplemented docx2txt langchain -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install lxml lxml_html_clean trafilatura   -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install git+https://github.com/mailgun/flanker@v0.9.14
+RUN pip install --upgrade "embedchain[dataloaders]"
+RUN pip install jieba -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install elasticsearch Levenshtein -i https://mirrors.aliyun.com/pypi/simple/
 ENV PYTHONPATH /home/workspace:$PYTHONPATH
 WORKDIR /home/workspace
 ADD AskOnce /home/workspace/AskOnce

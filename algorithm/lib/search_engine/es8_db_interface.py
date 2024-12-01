@@ -16,7 +16,7 @@ from pathlib import Path
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
-
+import traceback
 # from AtomES.lib.atom_utils.common_utils import genenrate_id_based_string
 
 logging.basicConfig(
@@ -64,6 +64,7 @@ class Es8Interface:
             )
             logger.info("es engine 初始化成功")
         except:
+            traceback.print_exc()
             raise Exception("es engine 初始化出错")
     
     def conn(self,mapper):
