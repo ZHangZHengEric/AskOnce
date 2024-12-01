@@ -7,8 +7,6 @@ services:
     depends_on:
       - mysql
       - redis
-    ports:
-      - 20033:8080
   askonce:
     extends:
       file: backend-docker-compose.yml
@@ -16,26 +14,18 @@ services:
     depends_on:
       - mysql
       - redis
-    ports:
-      - 20034:8080
   mysql:
     extends:
       file: db-docker-compose.yml
       service: mysql
-    ports:
-      - 20000:3306
   redis:
     extends:
       file: db-docker-compose.yml
       service: redis
-    ports:
-      - 20001:6379
   askonce-es1:
     extends:
       file: elastic-docker-compose.yml
       service: askonce-es1
-    ports:
-      - 20002:6379
   askonce-es2:
     extends:
       file: elastic-docker-compose.yml
@@ -48,5 +38,3 @@ services:
     extends:
       file: elastic-docker-compose.yml
       service: askonce-es-dashboard
-    ports:
-      - 20003:5601

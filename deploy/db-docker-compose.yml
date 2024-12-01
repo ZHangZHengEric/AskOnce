@@ -3,6 +3,8 @@ services:
     restart: always
     image: mysql:8.0.35
     container_name: askonce-mysql
+    ports:
+      - 20000:3306
     environment:
       TZ: 'Asia/Shanghai'
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
@@ -20,6 +22,8 @@ services:
     restart: always
     image: redis:alpine
     container_name: askonce-redis
+    ports:
+      - 20001:6379
     volumes:
       - ${REDIS_CONF_DIR}/redis.conf:/etc/redis/redis.conf
       - ${REDIS_DATA_DIR}:/data
@@ -27,8 +31,8 @@ services:
   minio:
     image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
     ports:
-      - 9000:9000
-      - 9001:9001
+      - 20002:9000
+      - 20003:9001
     volumes:
       - ${MINIO_DATA_DIR}:/data
     command: server /data --console-address ":9001"

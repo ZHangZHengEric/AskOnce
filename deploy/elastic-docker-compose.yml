@@ -3,6 +3,8 @@ services:
     restart: always
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
     container_name: askonce-es1
+    ports:
+      - 20004:6379
     environment:
       - cluster.name=askonce
       - node.name=askonce-es1
@@ -69,6 +71,8 @@ services:
     restart: always
     image: docker.elastic.co/kibana/kibana:8.15.3
     container_name: askonce-es-dashboard
+    ports:
+      - 20005:5601
     environment:
       - ELASTICSEARCH_HOSTS=["http://askonce-es1:9200"]
       - I18N_LOCALE=zh-CN
