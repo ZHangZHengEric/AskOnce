@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/timeout v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.4.0
-	github.com/xiangtao94/golib v1.0.2
+	github.com/xiangtao94/golib v1.0.3
 	gorm.io/gorm v1.25.12
 )
 
