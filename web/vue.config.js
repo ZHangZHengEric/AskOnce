@@ -81,9 +81,9 @@ module.exports = defineConfig({
 	devServer: {
 		proxy: {
 			"/serverApi": {
-				target: "https://gateway.atomecho.cn",
+				target: "http://36.133.44.114:20010",
 				pathRewrite: {
-					"^/serverApi": "/",
+					"^/serverApi": "/serverApi",
 				},
 				changeOrigin: true,
 				onProxyRes(proxyRes) {

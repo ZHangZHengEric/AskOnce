@@ -424,7 +424,7 @@ const search = async (question) => {
   }, 100)
   data.loading = true
   data.analyseing = true
-  const response = await fetch('/serverApi/askOnce/search/ask', {
+  const response = await fetch('/serverApi/askonce/search/ask', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
