@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   askonce:
     container_name: askonce-nginx
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../web
+      dockerfile: ../web/Dockerfile
     ports:
       - "20010:8080"
     volumes:

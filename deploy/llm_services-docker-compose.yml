@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   askonce_answer_by_documents_0:
     container_name:   askonce_answer_by_documents_0
