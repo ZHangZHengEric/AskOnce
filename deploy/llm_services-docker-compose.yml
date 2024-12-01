@@ -29,6 +29,7 @@ services:
     tty: true
     environment:
       - LANG=C.UTF-8
+      - CONVERT_CACHE=${CONVERT_CACHE}
     restart: "no"
 
   askonce_generate_outlines_0:
