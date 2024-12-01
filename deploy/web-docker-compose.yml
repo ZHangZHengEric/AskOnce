@@ -1,5 +1,5 @@
 services:
-  askonce:
+  askonce-nginx:
     container_name: askonce-nginx
     build:
       context: ../web
