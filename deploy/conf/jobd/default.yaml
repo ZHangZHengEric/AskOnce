@@ -1,5 +1,5 @@
 #app端口
-port: 8080
+port: 20033
 appName: jobd
 log:
   level: INFO
