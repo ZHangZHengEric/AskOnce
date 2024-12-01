@@ -21,7 +21,7 @@ type GenerateParamItem struct {
 	MaxNewTokens    int     `json:"max_new_tokens"`
 }
 
-func (entity *JobdApi) SimpleQAConstruct(question, answerStyle string, searchResult []dto_search.CommonSearchOutput, modelName string) (res *SimpleQAConstructRes, err error) {
+func (entity *JobdApi) SimpleQAConstruct(question, answerStyle string, searchResult []dto_search.CommonSearchOutput) (res *SimpleQAConstructRes, err error) {
 	if len(searchResult) == 0 {
 		searchResult = make([]dto_search.CommonSearchOutput, 0)
 	}
@@ -30,7 +30,6 @@ func (entity *JobdApi) SimpleQAConstruct(question, answerStyle string, searchRes
 		Question:     question,
 		AnswerStyle:  answerStyle,
 		SearchResult: searchResult,
-		ModelName:    modelName,
 	}
 	return doTaskProcess[*SimpleQAConstructReq, *SimpleQAConstructRes](entity, "atom_app_askonce_simple_qa_construct", input, 100000)
 }

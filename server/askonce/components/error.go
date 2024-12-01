@@ -113,3 +113,23 @@ var ErrorLoginPwdError = errors.Error{
 	Code:    200004,
 	Message: "用户不存在或密码错误！",
 }
+
+var ErrorAskSessionError = errors.Error{
+	Code:    100011,
+	Message: "会话失败，请重新提问！",
+}
+
+var ErrorTextCheckError = errors.Error{
+	Code:    100008,
+	Message: "文本检测不通过，请更换问题！",
+}
+
+var ErrorAskSessionNoExist = errors.Error{
+	Code:    100009,
+	Message: "session不存在！",
+}
+
+var ErrorQueryEmpty = errors.Error{
+	Code:    100010,
+	Message: "未搜索到内容，请换个问题提问！",
+}

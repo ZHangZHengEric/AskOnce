@@ -34,9 +34,11 @@ type ESSearchOutput struct {
 }
 
 type SearchOutputSource struct {
-	DocId       int64  `json:"doc_id"`
+	DocId       string `json:"doc_id"`
 	DocContent  string `json:"doc_content"`
 	DataSplitId int64  `json:"data_split_id"`
+	Start       int    `json:"start"`
+	End         int    `json:"end"`
 }
 
 func (entity *JobdApi) EsSearch(emb any, query string, querySize int, mapValue string) (res []ESSearchOutput, err error) {

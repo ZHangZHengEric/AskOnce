@@ -92,7 +92,7 @@ func Http(engine *gin.Engine) {
 	searchGroup := router.Group("search", middleware.NLIGetLoginInfo)
 	{
 		// 智能搜索 用例
-		searchGroup.GET("case", flow.Use[dto.EmptyReq](new(search.CaseController)))
+		searchGroup.GET("case", flow.Use[dto_search.CaseReq](new(search.CaseController)))
 		// 智能搜索 可选知识库列表
 		searchGroup.POST("kdbList", flow.Use[dto_search.KdbListReq](new(search.KdbListController)))
 		// 智能搜索 session

@@ -32,3 +32,8 @@ func GenUserID() string {
 func GenID() int64 {
 	return userNode.Generate().Int64()
 }
+
+// 生成 64 位的 雪花 ID
+func GenIDStr() string {
+	return userNode.Generate().String()
+}

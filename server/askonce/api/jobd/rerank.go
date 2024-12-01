@@ -6,7 +6,7 @@ type AtomEsRankReq struct {
 	Id            string   `json:"id"`
 }
 
-func (entity *JobdApi) AtomEsRank(query string, recallResults []string) (res []float32, err error) {
+func (entity *JobdApi) Rerank(query string, recallResults []string) (res []float32, err error) {
 	input := &AtomEsRankReq{
 		Query:         query,
 		RecallResults: recallResults,

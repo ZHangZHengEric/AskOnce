@@ -153,19 +153,21 @@ func (k *KdbData) UpdateKdb(kdb *models.Kdb, kdbName, kdbIntro string, kdbSettin
 
 // 获取可用的kdb列表
 func (k *KdbData) GetKdbList(userId string, query string, param dto.PageParam) (list []*models.Kdb, cnt int64, err error) {
-	userRelation, err := k.kdbUserDao.GetByUserId(userId)
-	if err != nil {
-		return
-	}
 	kdbIds := make([]int64, 0)
-	for _, ur := range userRelation {
-		kdbIds = append(kdbIds, ur.KdbId)
-	}
 	pubIds, err := k.kdbDao.GetPubIds()
 	if err != nil {
 		return
 	}
 	kdbIds = append(kdbIds, pubIds...)
+	if len(userId) > 0 {
+		userRelation, err := k.kdbUserDao.GetByUserId(userId)
+		if err != nil {
+			return
+		}
+		for _, ur := range userRelation {
+			kdbIds = append(kdbIds, ur.KdbId)
+		}
+	}
 	list, cnt, err = k.kdbDao.GetList(kdbIds, query, param)
 	if err != nil {
 		return
