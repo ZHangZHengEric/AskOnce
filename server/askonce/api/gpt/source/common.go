@@ -19,12 +19,11 @@ type CommonGPT struct {
 	version   string
 }
 
-func (gpt *CommonGPT) Init(endpoint string, ak string, proxyUrl string) {
+func (gpt *CommonGPT) Init(endpoint string, ak string) {
 	gpt.accessKey = ak
 	gpt.Client = &http.HttpClientConf{
 		Domain: endpoint,
 		Retry:  3,
-		Proxy:  proxyUrl,
 	}
 }
 

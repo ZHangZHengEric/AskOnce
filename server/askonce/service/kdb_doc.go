@@ -1,6 +1,7 @@
 package service
 
 import (
+	"askonce/components"
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
@@ -196,7 +197,10 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	splitList, err := k.documentData.TextSplit(content)
 	if err != nil {
 		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
-		return err
+		return components.ErrorTextSplitError
+	}
+	if len(splitList) == 0 {
+		return components.ErrorTextSplitError
 	}
 	contents := make([]string, 0, len(splitList))
 	for _, split := range splitList {

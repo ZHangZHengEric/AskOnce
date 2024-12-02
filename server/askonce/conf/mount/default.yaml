@@ -27,6 +27,12 @@ minioConf:
 esConf:
   addr: ${BACKEND_ES_ADDR}
 
+embeddingModelConf:
+  source: skylark
+  addr: https://ark.cn-beijing.volces.com
+  ak: ${BACKEND_EMBEDDING_MODEL_AK}
+  model: ep-20241101093918-nwnsj
+
 api:
   jobd:
     # 调用下游的服务名称

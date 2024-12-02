@@ -8,17 +8,8 @@ type DocumentSplitInput struct {
 	FixLengthList      []int  `json:"fix_length_list"`
 	TextCuttingVersion string `json:"text_cutting_version"`
 }
-type DocumentSplitRender struct {
-	S DocumentSplitV2Res `json:"sentences_list"`
-}
-
-type DocumentSplitV2Res struct {
-	DocId               string          `json:"doc_id"`
-	DocName             string          `json:"doc_name"`
-	DocTitle            string          `json:"doc_title"`
-	DocContent          string          `json:"doc_content"`
-	DocSummary          string          `json:"doc_summary"`
-	MoveWindowTextChunk []TextChunkItem `json:"move_window_text_chunk"`
+type DocumentSplitResp struct {
+	SentencesList []TextChunkItem `json:"sentences_list"`
 }
 
 type TextChunkItem struct {
@@ -28,8 +19,8 @@ type TextChunkItem struct {
 	End            int    `json:"end"`
 }
 
-func (entity *JobdApi) DocumentSplit(content string) (res DocumentSplitV2Res, err error) {
-	render := DocumentSplitRender{}
+func (entity *JobdApi) DocumentSplit(content string) (res DocumentSplitResp, err error) {
+	render := DocumentSplitResp{}
 	inputReq := DocumentSplitInput{
 		Text:               content,
 		Id:                 1,
@@ -38,9 +29,9 @@ func (entity *JobdApi) DocumentSplit(content string) (res DocumentSplitV2Res, er
 	inputReq.WindowSize = 256
 	inputReq.Stride = 170
 	inputReq.FixLengthList = []int{256}
-	render, err = doTaskProcess[DocumentSplitInput, DocumentSplitRender](entity, "document_split", inputReq, 10000)
+	render, err = doTaskProcess[DocumentSplitInput, DocumentSplitResp](entity, "document_split", inputReq, 10000)
 	if err != nil {
 		return
 	}
-	return render.S, nil
+	return render, nil
 }

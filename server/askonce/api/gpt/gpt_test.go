@@ -16,7 +16,7 @@ func TestCommonGPT_ChatCompletion(t *testing.T) {
 	if errB != nil {
 		return
 	}
-	g.Init("", "", "")
+	g.Init("", "")
 	req := &dto_gpt.ChatCompletionReq{
 		Model: "gpt-4-vision-preview",
 		Messages: []dto_gpt.ChatCompletionMessage{
@@ -43,7 +43,7 @@ func TestEmbedding(t *testing.T) {
 	if errB != nil {
 		return
 	}
-	g.Init("", "", "")
+	g.Init("", "")
 	req := &dto_gpt.EmbeddingReq{
 		Model: "ep-20241101093918-nwnsj",
 		Input: "今天天气真好",

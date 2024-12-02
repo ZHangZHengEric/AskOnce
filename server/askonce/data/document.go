@@ -2,7 +2,6 @@ package data
 
 import (
 	"askonce/api/jobd"
-	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"golang.org/x/sync/errgroup"
 	"sync"
@@ -15,10 +14,12 @@ import (
 type DocumentData struct {
 	flow.Layer
 	jobdApi *jobd.JobdApi
+	gptData *GptData
 }
 
 func (d *DocumentData) OnCreate() {
 	d.jobdApi = flow.Create(d.GetCtx(), new(jobd.JobdApi))
+	d.gptData = flow.Create(d.GetCtx(), new(GptData))
 }
 
 // 文本切分
@@ -27,23 +28,22 @@ func (d *DocumentData) TextSplit(content string) (segments []jobd.TextChunkItem,
 	if err != nil {
 		return nil, err
 	}
-	segments = documentSplitRes.MoveWindowTextChunk
+	segments = documentSplitRes.SentencesList
 	return segments, nil
 }
 
 // 批量文本转向量
 func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err error) {
 	// 最大批次
-	sentsG := slice.Chunk(texts, 1000)
 	embResAll = make([][]float32, 0)
 	lock := sync.Mutex{}
-	embResMap := make(map[int][][]float32)
+	embResMap := make(map[int][]float32)
 	eg2, _ := errgroup.WithContext(d.GetCtx())
-	for i, ss := range sentsG {
+	for i, ss := range texts {
 		tmp := ss
 		index := i
 		eg2.Go(func() error {
-			embRes, errA := d.jobdApi.Embedding(tmp)
+			embRes, errA := d.gptData.Embedding(tmp)
 			if errA != nil {
 				return errA
 			}
@@ -56,8 +56,8 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 	if err := eg2.Wait(); err != nil {
 		return nil, err
 	}
-	for i := range sentsG {
-		embResAll = append(embResAll, embResMap[i]...)
+	for i := range texts {
+		embResAll = append(embResAll, embResMap[i])
 	}
 	return
 }

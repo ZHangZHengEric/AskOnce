@@ -41,7 +41,7 @@ type SearchService struct {
 	askAttachDao *models.AskAttachDao
 	processDao   *models.AskProcessDao
 	userDao      *models.UserDao
-	chatData     *data.ChatData
+	chatData     *data.GptData
 }
 
 func (s *SearchService) OnCreate() {
@@ -52,7 +52,7 @@ func (s *SearchService) OnCreate() {
 	s.processDao = s.Create(new(models.AskProcessDao)).(*models.AskProcessDao)
 	s.searchData = s.Create(new(data.SearchData)).(*data.SearchData)
 	s.kdbData = s.Create(new(data.KdbData)).(*data.KdbData)
-	s.chatData = s.Create(new(data.ChatData)).(*data.ChatData)
+	s.chatData = s.Create(new(data.GptData)).(*data.GptData)
 }
 
 func (s *SearchService) EchoRes(stage, text string) {

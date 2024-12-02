@@ -78,7 +78,6 @@ func (k *KdbData) CheckKdbAuth(kdbId int64, userId string, authCode int) (*model
 func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 
 	defaultSetting := dto.KdbSetting{
-		EmbeddingModel: dto.DocEmbeddingModelCommon,
 		RetrievalModel: dto.RetrievalSetting{
 			SearchMethod:          dto.DocSearchMethodAll,
 			TopK:                  10,
@@ -145,7 +144,6 @@ func (k *KdbData) UpdateKdb(kdb *models.Kdb, kdbName, kdbIntro string, kdbSettin
 	updateMap["intro"] = kdbIntro
 	if kdbSetting != nil {
 		// 先不更新embedding
-		kdbSetting.EmbeddingModel = kdb.Setting.Data().EmbeddingModel
 		settingStr, _ := json.Marshal(*kdbSetting)
 		updateMap["setting"] = settingStr
 	}
