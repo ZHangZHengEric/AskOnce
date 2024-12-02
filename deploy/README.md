@@ -54,7 +54,7 @@ ES_ADDR="http://127.0.0.1:20004"
 JOBD_ADDR="http://127.0.0.1:20033"
 
 # LLM API INFO
-LLM_API_KEY="sk-0d772fccdde0421088e31668e862eee9"
+LLM_API_KEY="sk-**"
 LLM_MODEL_NAME="deepseek-chat"
 LLM_API_URL="https://api.deepseek.com/v1"
 
