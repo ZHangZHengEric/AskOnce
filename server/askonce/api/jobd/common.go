@@ -55,7 +55,7 @@ func doTaskProcess[K any, V any](entity *JobdApi, taskType string, input K, time
 		RequestBody: jobdReq,
 		Encode:      entity.GetEncodeType(),
 	}
-	apiRes, err := entity.ApiPostWithOpts("/jobd/committer/DoTaskInner", reqOpts)
+	apiRes, err := entity.ApiPostWithOpts("/jobd/committer/DoTask", reqOpts)
 	if err != nil {
 		return output, components.ErrorJobdError
 	}
@@ -86,7 +86,7 @@ func doTaskProcessString[K any](entity *JobdApi, taskType string, input K, timeo
 		RequestBody: jobdReq,
 		Encode:      entity.GetEncodeType(),
 	}
-	apiRes, err := entity.ApiPostWithOpts("/jobd/committer/DoTaskInner", reqOpts)
+	apiRes, err := entity.ApiPostWithOpts("/jobd/committer/DoTask", reqOpts)
 	if err != nil {
 		return output, components.ErrorJobdError
 	}

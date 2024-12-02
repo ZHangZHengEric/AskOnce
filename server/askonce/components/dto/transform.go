@@ -49,7 +49,7 @@ const (
 
 type KdbAttach struct {
 	Language   string   `json:"language"`
-	Cover      string   `json:"cover"`
+	CoverId    int64    `json:"coverId"`
 	CoverColor bool     `json:"coverColor"`
 	Cases      []string `json:"cases"`
 }

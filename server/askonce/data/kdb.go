@@ -22,6 +22,7 @@ import (
 type KdbData struct {
 	flow.Service
 	kdbDao      *models.KdbDao
+	kdbCoverDao *models.KdbCoverDao
 	kdbUserDao  *models.KdbUserDao
 	kdbShareDao *models.KdbShareDao
 	askInfoDao  *models.AskInfoDao
@@ -30,31 +31,11 @@ type KdbData struct {
 
 func (k *KdbData) OnCreate() {
 	k.kdbDao = flow.Create(k.GetCtx(), new(models.KdbDao))
+	k.kdbCoverDao = flow.Create(k.GetCtx(), new(models.KdbCoverDao))
 	k.kdbUserDao = flow.Create(k.GetCtx(), new(models.KdbUserDao))
 	k.kdbShareDao = flow.Create(k.GetCtx(), new(models.KdbShareDao))
 	k.askInfoDao = flow.Create(k.GetCtx(), new(models.AskInfoDao))
 	k.userDao = flow.Create(k.GetCtx(), new(models.UserDao))
-}
-
-// 默认的知识库设置
-var DefaultKdbSetting = dto.KdbSetting{
-	EmbeddingModel: dto.DocEmbeddingModelCommon,
-	RetrievalModel: dto.RetrievalSetting{
-		SearchMethod:          dto.DocSearchMethodAll,
-		TopK:                  10,
-		ScoreThresholdEnabled: false,
-		ScoreThreshold:        0.3,
-		Weights: dto.RetrievalSettingWeights{
-			KeywordWeight: 0.5,
-			VectorWeight:  0.5,
-		},
-	},
-	KdbAttach: dto.KdbAttach{
-		Language:   "zh-cn",
-		Cover:      "",
-		CoverColor: false,
-		Cases:      []string{},
-	},
 }
 
 // 校验同一个用户下是否有同名知识库
@@ -95,11 +76,35 @@ func (k *KdbData) CheckKdbAuth(kdbId int64, userId string, authCode int) (*model
 }
 
 func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
+
+	defaultSetting := dto.KdbSetting{
+		EmbeddingModel: dto.DocEmbeddingModelCommon,
+		RetrievalModel: dto.RetrievalSetting{
+			SearchMethod:          dto.DocSearchMethodAll,
+			TopK:                  10,
+			ScoreThresholdEnabled: true,
+			ScoreThreshold:        0.3,
+			Weights: dto.RetrievalSettingWeights{
+				KeywordWeight: 0.5,
+				VectorWeight:  0.5,
+			},
+		},
+		KdbAttach: dto.KdbAttach{
+			Language: "zh-cn",
+		},
+	}
+	cover, err := k.kdbCoverDao.GetRandom()
+	if err != nil {
+		return nil, err
+	}
+	if cover != nil {
+		defaultSetting.KdbAttach.CoverId = cover.Id
+	}
 	now := time.Now()
 	add = &models.Kdb{
 		Name:       kdbName,
 		Intro:      kdbIntro,
-		Setting:    datatypes.NewJSONType(DefaultKdbSetting),
+		Setting:    datatypes.NewJSONType(defaultSetting),
 		Type:       models.KdbTypePrivate,
 		DataSource: models.DataSourceFile,
 		Creator:    user.Account,
