@@ -115,6 +115,12 @@ class LLMBaseAPI:
         return all_search_result
     
     
+    def messages_to_str(self,messages):
+        messages_str = ''
+        for item in messages:
+            messages_str+=item['role']+':\n'
+            messages_str+=item['content']+'\n'
+        return messages_str
     @staticmethod
     def get_temperature_list(result_num):
         """

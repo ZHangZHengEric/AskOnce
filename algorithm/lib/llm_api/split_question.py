@@ -34,3 +34,15 @@ class QuestionSplit (LLMBaseAPI):
         quesiton = self.ask_llm(prompt=prompt.format(question=question),temperature=0.2)
         quesiton_list = quesiton.split('\n')
         return quesiton_list
+    
+    # 当用户的输入过短的时候触发重写
+    def question_rewrite_by_context(self,question,history):
+        prompt = '''为了提高问题搜索的准确性和完整性，我需要你根据当前的提问（query）和对话上文（history）来重写问题。
+请确保重写的问题能够准确反映用户的需求，并包含所有必要的信息，以便进行有效的搜索。重写后的问题不要超过30个词。
+以下是当前的提问和对话上下文：
+对话上文（history）: {history}
+当前提问（query）: {question}
+
+请重写问题，使其更加完整和方便搜索。'''
+        quesiton_after_rewrite = self.ask_llm(prompt=prompt.format(question=question,history=self.messages_to_str(history)),temperature=0.2)
+        return quesiton_after_rewrite
