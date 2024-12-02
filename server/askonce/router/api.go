@@ -3,12 +3,13 @@ package router
 import (
 	"askonce/components/dto/dto_kdb"
 	"askonce/controllers/kdb"
+	"askonce/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/flow"
 )
 
 func API(engine *gin.Engine) {
-	router := engine.Group("/askOnce/api/v1")
+	router := engine.Group("/askonce/api/v1", middleware.ApiAuth)
 	// 知识库
 	kdbGroup := router.Group("kdb")
 	{
