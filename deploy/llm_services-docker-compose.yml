@@ -123,3 +123,18 @@ services:
     environment:
       - LANG=C.UTF-8
     restart: "no"
+
+  askonce_document_split_0:
+    container_name:   askonce_document_split_0
+    build:
+      context: ../../
+      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
+      network: host
+    image: askonce_llm_service_image
+    network_mode: host
+    shm_size: '4gb'
+    command: /bin/bash -c "python document_split/document_split.py --jobdurl ${JOBD_URL} --tasktype document_split --worker_name document_split_0"
+    tty: true
+    environment:
+      - LANG=C.UTF-8
+    restart: "no"

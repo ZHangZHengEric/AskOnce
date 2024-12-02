@@ -1,5 +1,6 @@
 import re
 import hashlib    
+from typing import List, Dict
 
 class TextChunkPorcessor:
     def __init__(
