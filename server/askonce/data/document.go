@@ -2,6 +2,7 @@ package data
 
 import (
 	"askonce/api/jobd"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"golang.org/x/sync/errgroup"
 	"sync"
@@ -35,11 +36,12 @@ func (d *DocumentData) TextSplit(content string) (segments []jobd.TextChunkItem,
 // 批量文本转向量
 func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err error) {
 	// 最大批次
+	sentsG := slice.Chunk(texts, 200)
 	embResAll = make([][]float32, 0)
 	lock := sync.Mutex{}
-	embResMap := make(map[int][]float32)
+	embResMap := make(map[int][][]float32)
 	eg2, _ := errgroup.WithContext(d.GetCtx())
-	for i, ss := range texts {
+	for i, ss := range sentsG {
 		tmp := ss
 		index := i
 		eg2.Go(func() error {
@@ -56,8 +58,8 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 	if err := eg2.Wait(); err != nil {
 		return nil, err
 	}
-	for i := range texts {
-		embResAll = append(embResAll, embResMap[i])
+	for i := range sentsG {
+		embResAll = append(embResAll, embResMap[i]...)
 	}
 	return
 }

@@ -11,7 +11,7 @@ type ChatCompletionReq struct {
 }
 
 type EmbeddingReq struct {
-	Model string `json:"model"` // 此处model需要替换、获取对应渠道的model
-	Input string `json:"input"`
-	User  string `json:"user,omitempty"`
+	Model string   `json:"model"` // 此处model需要替换、获取对应渠道的model
+	Input []string `json:"input"`
+	User  string   `json:"user,omitempty"`
 }

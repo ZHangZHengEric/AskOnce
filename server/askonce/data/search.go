@@ -116,7 +116,9 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 		return
 	}
 	querySize := 10
-	esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "${indexName}", input.IndexName, 1)
+	esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "@indexName@", input.IndexName, 1)
+	esDbConfigStr = strings.ReplaceAll(esDbConfigStr, "@dimsLength@", strconv.Itoa(len(embRes[0])))
+
 	recalls, err := entity.jobdApi.EsSearch(embRes[0], input.Query, querySize, esDbConfigStr)
 	if err != nil {
 		return

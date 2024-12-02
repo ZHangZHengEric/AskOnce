@@ -25,7 +25,7 @@ func (d *GptData) Chat(modelType string, id string, req *dto_gpt.ChatCompletionR
 	return nil
 }
 
-func (d *GptData) Embedding(text string) (output []float32, err error) {
+func (d *GptData) Embedding(texts []string) (output [][]float32, err error) {
 	embeddingModel := conf.WebConf.EmbeddingModelConf
 	g, err := gpt.CreateGptClient(d.GetCtx(), defines.GPTSource(embeddingModel.Source))
 	if err != nil {
@@ -34,7 +34,7 @@ func (d *GptData) Embedding(text string) (output []float32, err error) {
 	g.Init(embeddingModel.Addr, embeddingModel.AK)
 	req := &dto_gpt.EmbeddingReq{
 		Model: embeddingModel.Model,
-		Input: text,
+		Input: texts,
 	}
 
 	resp, err := gpt.Embedding(g, req)
@@ -44,5 +44,9 @@ func (d *GptData) Embedding(text string) (output []float32, err error) {
 	if resp.Error != nil {
 		return nil, resp.Error
 	}
-	return resp.Data[0].Embedding, nil
+	output = make([][]float32, 0)
+	for _, bb := range resp.Data {
+		output = append(output, bb.Embedding)
+	}
+	return output, nil
 }
