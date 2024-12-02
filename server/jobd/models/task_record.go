@@ -3,7 +3,6 @@ package models
 import (
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
-	"hash/crc32"
 )
 
 type TaskRecord struct {
@@ -29,5 +28,5 @@ func (entity *TaskRecordDao) OnCreate() {
 }
 
 func (entity *TaskRecordDao) Insert(add *TaskRecord) error {
-	return entity.GetDB().Table(entity.GetPartitionTable(int64(crc32.ChecksumIEEE([]byte(add.TaskType))))).Create(&add).Error
+	return entity.GetDB().Create(&add).Error
 }

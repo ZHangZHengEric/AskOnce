@@ -49,6 +49,11 @@ type SMinioConf struct {
 var WebConf *SWebConf
 
 func InitConf() {
+	//envPath := filepath.Join(env.GetRootPath(), "/../../deploy/.env")
+	//err := godotenv.Load(envPath)
+	//if err != nil {
+	//	log.Fatalf("godotenv load. Err: %s", err)
+	//}
 	// load from yaml
 	env.LoadConf("default.yaml", "mount", &WebConf)
 }

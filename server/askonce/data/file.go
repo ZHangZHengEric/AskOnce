@@ -49,6 +49,55 @@ func (f *FileData) ConvertFileToText(fileId string) (fileName string, output str
 // 允许的格式
 var allowExtension = []string{"pdf", "doc", "docx", "txt", "ppt", "pptx", "xlsx", "xls", "json"}
 
+func (f *FileData) UploadContent(userId string, fileName string, content string, source string) (add *models.File, err error) {
+	splitF := strings.Split(fileName, ".")
+	// 文件原始名称
+	fileOriginName := splitF[0]
+	// 文件原始格式
+	fileOriginExtension := splitF[1]
+	if !slice.Contain(allowExtension, fileOriginExtension) {
+		return nil, components.ErrorFormatError
+	}
+	// 文件上传名称
+	uploadObjectName := fmt.Sprintf("%v_%s", helpers.GenID(), fileOriginName)
+	// 文件上传目录
+	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
+	// 文件上传路径
+	uploadObjectPath := fmt.Sprintf("%s/%s.%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
+	// 文件bucket
+	bucketName := defines.BucketOrigin
+	minioClient, err := helpers.GetMinioClient(f.GetCtx())
+	if err != nil {
+		return nil, components.ErrorFileClientError
+	}
+	objectInfo, err := minioClient.PutObject(f.GetCtx(), bucketName, uploadObjectPath, strings.NewReader(content), int64(len(content)), minio.PutObjectOptions{})
+	if err != nil {
+		zlog.Errorf(f.GetCtx(), "upload file fail: %+v", err)
+		return nil, components.ErrorFileUploadError
+	}
+	filePath2 := url.PathEscape(uploadObjectPath)
+	fileUrl := minioClient.EndpointURL().String() + "/" + bucketName + "/" + filePath2
+	add = &models.File{
+		Id:         cryptor.HmacMd5(objectInfo.Key, "askonce"),
+		Name:       uploadObjectName,
+		OriginName: fileOriginName,
+		Extension:  fileOriginExtension,
+		Path:       fileUrl,
+		Size:       objectInfo.Size,
+		Source:     source,
+		UserId:     userId,
+		CrudModel: orm.CrudModel{
+			CreatedAt: objectInfo.LastModified,
+			UpdatedAt: objectInfo.LastModified,
+		},
+	}
+	err = f.fileDao.Insert(add)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
 func (f *FileData) Upload(userId string, file *multipart.FileHeader, source string) (add *models.File, err error) {
 	splitF := strings.Split(file.Filename, ".")
 	// 文件原始名称

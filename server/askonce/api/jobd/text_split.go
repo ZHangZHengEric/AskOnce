@@ -19,7 +19,7 @@ func (entity *JobdApi) TextSplit(text string) (res []TextSplitRes, err error) {
 		Text:      text,
 	}
 
-	res, err = doTaskProcess[*TextSplitReq, []TextSplitRes](entity, "textchunk", input, 100000)
+	res, err = doTaskProcess[*TextSplitReq, []TextSplitRes](entity, "textchunk", input, 10000)
 	if res == nil {
 		res = make([]TextSplitRes, 0)
 	}

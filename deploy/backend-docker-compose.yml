@@ -3,15 +3,23 @@ services:
     build:
       context: ../server/jobd
       dockerfile: Dockerfile
+    env_file:
+      - .env
     container_name: askonce-jobd
     volumes:
       - ${BACKEND_CONF_DIR}/jobd:/app/conf/mount
     restart: unless-stopped
-  askonce:
+    ports:
+      - 20033:8080
+  backend:
     build:
       context: ../server/askonce
       dockerfile: Dockerfile
+    env_file:
+      - .env
     container_name: askonce-backend
     volumes:
       - ${BACKEND_CONF_DIR}/askonce:/app/conf/mount
     restart: unless-stopped
+    ports:
+      - 20034:8080

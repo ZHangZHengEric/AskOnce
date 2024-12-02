@@ -1,7 +1,6 @@
 package service
 
 import (
-	"askonce/components"
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
@@ -11,7 +10,6 @@ import (
 	"fmt"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
-	"os"
 	"time"
 )
 
@@ -81,37 +79,28 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 		return
 	}
 	needSplit := true
+	var file *models.File
 	if req.Type == "text" {
 		fileName := ""
 		if len(req.Title) > 0 {
 			fileName = fmt.Sprintf("%s.txt", req.Title)
 		} else {
-			fileName = fmt.Sprintf("%s.txt", helpers.GenID())
+			fileName = fmt.Sprintf("%v.txt", helpers.GenID())
 		}
 		if len([]rune(req.Text)) < 1024 {
 			needSplit = false
 		}
-		tmpFile, err := os.CreateTemp("", fileName)
+		file, err = k.fileData.UploadContent(userInfo.UserId, fileName, req.Text, "knowledge")
 		if err != nil {
 			return nil, err
 		}
-		defer func() {
-			tmpFile.Close()
-			os.Remove(tmpFile.Name())
-		}()
-		if _, err := tmpFile.Write([]byte(req.Text)); err != nil {
-			return nil, components.ErrorFileUploadError
-		}
-		tmpFileHeader, err := utils.GetFileHeader(tmpFile)
+	} else {
+		file, err = k.fileData.Upload(userInfo.UserId, req.File, "knowledge")
 		if err != nil {
 			return nil, err
 		}
-		req.File = tmpFileHeader
 	}
-	file, err := k.fileData.Upload(userInfo.UserId, req.File, "knowledge")
-	if err != nil {
-		return nil, err
-	}
+
 	doc := &models.KdbDoc{
 		KdbId:      kdb.Id,
 		DocName:    file.OriginName,
@@ -136,12 +125,13 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 			}
 		}()
+		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
 		err = k.DocBuild(kdb, doc)
 		if err != nil {
 			k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
-			k.LogErrorf("文档【%v】构建内存数据库成功 %s", doc.Id)
+			k.LogInfof("文档【%v】构建内存数据库成功 %s", doc.Id)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
@@ -174,6 +164,7 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 				_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocFail)
 			}
 		}()
+		_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocRunning)
 		doc, err := k.kdbDocDao.GetById(req.DocId)
 		if err != nil {
 			return
@@ -184,7 +175,7 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 			k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
-			k.LogErrorf("文档【%v】构建内存数据库成功 %s", req.DocId)
+			k.LogInfof("文档【%v】构建内存数据库成功 %s", req.DocId)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))

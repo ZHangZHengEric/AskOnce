@@ -55,6 +55,16 @@ func (entity *UserDao) Update(userId string, update map[string]interface{}) erro
 	return nil
 }
 
+func (entity *UserDao) GetByUserName(userName string) (res *User, err error) {
+	res = &User{}
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable())
+	err = db.Where("user_name = ?", userName).First(&res).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return
+}
 func (entity *UserDao) GetByUserId(userId string) (res *User, err error) {
 	res = &User{}
 	db := entity.GetDB()

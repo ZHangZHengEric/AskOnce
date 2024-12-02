@@ -130,7 +130,7 @@ const toAdd = () => {
 
 </script>
 <style scoped lang="less">
-/deep/ .el-input__wrapper {
+:deep(.el-input__wrapper) {
   border-radius: 8px;
 }
 </style>

@@ -161,7 +161,7 @@ const {formData} = toRefs(data)
 
 <style scoped lang="less">
 
-/deep/ .el-textarea__inner {
+:deep(.el-textarea__inner) {
   resize: none;
 }
 

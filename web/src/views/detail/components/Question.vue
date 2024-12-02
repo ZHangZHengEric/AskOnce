@@ -96,19 +96,18 @@ const showEditQuestion = () => {
 </script>
 
 <style scoped lang="less">
-/deep/ .el-timeline-item__tail {
+:deep(.el-timeline-item__tail)  {
   border-color: rgba(10, 37, 64, 0.5);
   border-width: 1px;
   margin-left: 3px;
 }
 
-/deep/ .el-timeline-item__node {
+:deep(.el-timeline-item__node) {
   background-image: url("@/assets/img/detail/share_img.png");
 }
 
-/deep/ .el-popover.el-popper {
+:deep(.el-popover.el-popper) {
   border-radius: 15px !important;
-
 }
 
 </style>

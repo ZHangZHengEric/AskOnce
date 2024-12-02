@@ -8,9 +8,11 @@ type PageParam struct {
 type EmptyReq struct {
 }
 
-type LoginInfo struct {
-	UserId   string `json:"UserId" redis:"UserId"`
-	UserName string `json:"UserName" redis:"UserName"`
+type LoginInfoSession struct {
+	UserId     string `json:"UserId" redis:"UserId"`
+	Account    string `json:"Account" redis:"Account"`
+	LoginTime  int64  `json:"LoginTime" redis:"LoginTime"`
+	ExpireTime int64  `json:"ExpireTime" redis:"ExpireTime"`
 }
 
 // 知识库设置
@@ -47,7 +49,7 @@ const (
 
 type KdbAttach struct {
 	Language   string   `json:"language"`
-	Cover      string   `json:"cover"`
+	CoverId    int64    `json:"coverId"`
 	CoverColor bool     `json:"coverColor"`
 	Cases      []string `json:"cases"`
 }

@@ -36,7 +36,7 @@ func (entity *JobdApi) FileToText(path string) (res *FileToTextRes, err error) {
 		RemoveWrap:    true,
 	}
 	entity.Client.MaxRespBodyLen = -1
-	ress, err := doTaskProcess[[]FileToTextItem, []*FileToTextRes](entity, "atom_convert_file_to_text", []FileToTextItem{inputReq}, 5000000)
+	ress, err := doTaskProcess[[]FileToTextItem, []*FileToTextRes](entity, "convert_file_to_text", []FileToTextItem{inputReq}, 5000)
 	if err != nil {
 		return nil, err
 	}

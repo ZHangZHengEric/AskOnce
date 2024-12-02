@@ -191,7 +191,7 @@ const toPage = (item, index) => {
   font-family: 'AlfaSlabOne'
 }
 
-/deep/ .el-main {
+:deep(.el-main ){
   padding-top: 0;
 }
 

@@ -3,6 +3,7 @@ package data
 import (
 	"askonce/components"
 	"askonce/components/defines"
+	"askonce/components/dto"
 	"askonce/helpers"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
@@ -21,14 +22,6 @@ type SessionCache struct {
 
 var USER_SESSION_SET = "user_session_set:"
 
-type LoginInfoSession struct {
-	UserId     string `json:"UserId" redis:"UserId"`
-	Account    string `json:"Account" redis:"Account"`
-	Phone      string `json:"Phone" redis:"Phone"`
-	LoginTime  int64  `json:"LoginTime" redis:"LoginTime"`
-	ExpireTime int64  `json:"ExpireTime" redis:"ExpireTime"`
-}
-
 // 生成
 func (entity *SessionCache) GenSessionValue() string {
 	sessionValue := uuid.NewString()
@@ -36,7 +29,7 @@ func (entity *SessionCache) GenSessionValue() string {
 }
 
 // 设置session
-func (entity *SessionCache) SetSession(session LoginInfoSession, sessionKey string, expire int64) error {
+func (entity *SessionCache) SetSession(session dto.LoginInfoSession, sessionKey string, expire int64) error {
 	if expire == 0 {
 		expire = flow.EXPIRE_TIME_1_DAY * 30
 	}
@@ -67,7 +60,7 @@ func (entity *SessionCache) SetSession(session LoginInfoSession, sessionKey stri
 }
 
 // 设置session
-func (entity *SessionCache) UpdateSession(sessionKey string, session LoginInfoSession) error {
+func (entity *SessionCache) UpdateSession(sessionKey string, session dto.LoginInfoSession) error {
 	cacheKey := entity.FormatCacheKey("%s:%s", defines.COOKIE_KEY, sessionKey)
 	entity.LogDebugf("redisCacheKey:%s", cacheKey)
 	exist, err := helpers.RedisClient.Exists(cacheKey)
@@ -98,9 +91,9 @@ func (entity *SessionCache) UpdateSession(sessionKey string, session LoginInfoSe
 }
 
 // 获取session
-func (entity *SessionCache) GetSession(sessionKey string) (LoginInfoSession, error) {
+func (entity *SessionCache) GetSession(sessionKey string) (dto.LoginInfoSession, error) {
 	cacheKey := entity.FormatCacheKey("%s:%s", defines.COOKIE_KEY, sessionKey)
-	m := LoginInfoSession{}
+	m := dto.LoginInfoSession{}
 	result, err := redis.Values(helpers.RedisClient.Do("hgetall", cacheKey))
 	if err != nil {
 		entity.LogErrorf("GetSessionByZJUSS hgetall redis error,err%s", err)

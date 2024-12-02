@@ -16,12 +16,11 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/gomodule/redigo v1.9.2
 	github.com/google/uuid v1.6.0
-	github.com/json-iterator/go v1.1.12
 	github.com/minio/minio-go/v7 v7.0.81
 	github.com/minio/pkg v1.7.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/xiangtao94/golib v1.0.3
+	github.com/xiangtao94/golib v1.0.5
 	golang.org/x/sync v0.8.0
 	gorm.io/datatypes v1.2.4
 	gorm.io/gorm v1.25.12
@@ -66,6 +65,8 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect

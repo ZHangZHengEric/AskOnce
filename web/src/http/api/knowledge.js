@@ -31,7 +31,7 @@ export const knowledgeDel = (data) => {
  * @returns {Promise<AxiosResponse<any>>}
  */
 export const kdbList = (data) => {
-    return Http.post("/askOnce/search/kdbList", data);
+    return Http.post("/askonce/search/kdbList", data);
 };
 /**
  * 知识库详情

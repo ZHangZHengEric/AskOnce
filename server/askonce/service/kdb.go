@@ -13,11 +13,15 @@ import (
 
 type KdbService struct {
 	flow.Service
+	kdbCoverDao *models.KdbCoverDao
+
 	kdbData  *data.KdbData
 	userData *data.UserData
 }
 
 func (k *KdbService) OnCreate() {
+	k.kdbCoverDao = flow.Create(k.GetCtx(), new(models.KdbCoverDao))
+
 	k.kdbData = flow.Create(k.GetCtx(), new(data.KdbData))
 	k.userData = flow.Create(k.GetCtx(), new(data.UserData))
 }
@@ -70,7 +74,7 @@ func (k *KdbService) List(req *dto_kdb.ListReq) (res *dto_kdb.ListResp, err erro
 		if kdb.Type == models.KdbTypePublic {
 			typeNum = 1
 		}
-		res.List = append(res.List, dto_kdb.ListItem{
+		tmpI := dto_kdb.ListItem{
 			Id:           kdb.Id,
 			Name:         kdb.Name,
 			CreateTime:   kdb.CreatedAt.Format(time.DateTime),
@@ -80,7 +84,14 @@ func (k *KdbService) List(req *dto_kdb.ListReq) (res *dto_kdb.ListResp, err erro
 			DefaultColor: false,
 			Creator:      kdb.Creator,
 			Type:         typeNum,
-		})
+		}
+		if kdb.Setting.Data().KdbAttach.CoverId != 0 {
+			cover, _ := k.kdbCoverDao.GetById(kdb.Setting.Data().KdbAttach.CoverId)
+			if cover != nil {
+				tmpI.Cover = cover.Url
+			}
+		}
+		res.List = append(res.List, tmpI)
 	}
 	return
 }
@@ -92,11 +103,11 @@ func (k *KdbService) Info(req *dto_kdb.InfoReq) (res *dto_kdb.InfoRes, err error
 		return
 	}
 	kdbSetting := kdb.Setting.Data()
+
 	res = &dto_kdb.InfoRes{
 		KdbId:          kdb.Id,
 		Name:           kdb.Name,
 		Intro:          kdb.Intro,
-		Cover:          kdbSetting.KdbAttach.Cover,
 		CreatedAt:      kdb.CreatedAt.Unix(),
 		CreatedBy:      kdb.Creator,
 		UpdatedAt:      kdb.UpdatedAt.Unix(),
@@ -107,6 +118,12 @@ func (k *KdbService) Info(req *dto_kdb.InfoReq) (res *dto_kdb.InfoRes, err error
 			EmbeddingModel: kdbSetting.EmbeddingModel,
 			RetrievalModel: kdbSetting.RetrievalModel,
 		},
+	}
+	if kdbSetting.KdbAttach.CoverId != 0 {
+		cover, _ := k.kdbCoverDao.GetById(kdbSetting.KdbAttach.CoverId)
+		if cover != nil {
+			res.Cover = cover.Url
+		}
 	}
 	return
 }

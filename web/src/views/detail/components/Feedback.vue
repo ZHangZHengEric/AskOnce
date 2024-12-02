@@ -89,7 +89,7 @@ defineExpose({
 
 
 <style scoped lang="less">
-/deep/ .el-dialog {
+:deep(.el-dialog) {
   padding: 0 !important;
 }
 

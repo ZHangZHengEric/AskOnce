@@ -424,7 +424,7 @@ const search = async (question) => {
   }, 100)
   data.loading = true
   data.analyseing = true
-  const response = await fetch('/serverApi/askOnce/search/ask', {
+  const response = await fetch('/serverApi/askonce/search/ask', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -440,6 +440,10 @@ const search = async (question) => {
   });
 
   if (!response.ok) {
+    ElMessage.error("接口错误")
+    data.progress = 100
+    data.loading = false
+    clearInterval(data.timer)
     console.log('err-->', response)
     throw new Error(`HTTP error! status: ${response.status}`);
   }
@@ -570,17 +574,17 @@ const exportPdf = () => {
 
 </script>
 <style scoped lang="less">
-/deep/ .el-skeleton__paragraph {
+:deep(.el-skeleton__paragraph) {
   background: #D9D9D9;
   height: 10px;
 }
 
-/deep/ .el-skeleton__item {
+:deep(.el-skeleton__item) {
   background: #D9D9D9;
   height: 10px;
 }
 
-/deep/ .el-skeleton__p.is-first {
+:deep(.el-skeleton__p.is-first) {
   width: 100%;
 }
 

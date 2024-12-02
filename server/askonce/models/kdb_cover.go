@@ -1,8 +1,10 @@
 package models
 
 import (
+	"github.com/pkg/errors"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"gorm.io/gorm"
 )
 
 type KdbCover struct {
@@ -36,6 +38,16 @@ func (entity *KdbCoverDao) GetAll() (res []*KdbCover, err error) {
 	return
 }
 
+func (entity *KdbCoverDao) GetRandom() (res *KdbCover, err error) {
+	res = &KdbCover{}
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable())
+	err = db.Where("user_id = ''").Order("rand()").First(&res).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return
+}
 func (entity *KdbCoverDao) GetById(id int64) (res *KdbCover, err error) {
 	res = &KdbCover{}
 	db := entity.GetDB()

@@ -3,18 +3,63 @@
 
 环境变量设置如下：
 ```shell
+# 后端配置目录
+BACKEND_CONF_DIR= './conf'
+BACKEND_MYSQL_ADDR='127.0.0.1:20000'
+BACKEND_MYSQL_USER='root'
+BACKEND_MYSQL_PASSWORD='123456'
+BACKEND_REDIS_ADDR='127.0.0.1:6379'
+BACKEND_REDIS_PASSWORD='123456'
+BACKEND_MINIO_ADDR='http://127.0.0.1:20002'
+BACKEND_MINIO_AK=''
+BACKEND_MINIO_SK=''
+BACKEND_ES_ADDR='http://127.0.0.1:20004'
+############################################
 # minio数据存储目录
-MINIO_DATA_DIR="./data/minio"
+MINIO_DATA_DIR="/data/minio"
+# minio root密码
+MINIO_ROOT_PASSWORD='123456'
 
-# msyql数据存储目录
-MYSQL_DATA_DIR="./data/mysql"
+#############################################
+# msyql配置目录
 MYSQL_CONF_DIR="./conf/mysql"
+# msyql数据存储目录
+MYSQL_DATA_DIR="/data/mysql"
+# mysql root密码
+MYSQL_ROOT_PASSWORD="123456"
+
+#############################################
 # redis数据存储目录
-REDIS_DATA_DIR="./data/redis"
+REDIS_DATA_DIR="/data/redis"
+# redis配置目录
 REDIS_CONF_DIR="./conf/redis"
+# redis root密码
+REDIS_ROOT_PASSWORD='123456'
+
+#############################################
 # elasticsearch数据存储目录
-ES_DATA_DIR="./data/elasticsearch"
+ES_DATA_DIR="/data/elasticsearch"
+# elasticsearch配置目录
 ES_CONF_DIR="./conf/elasticsearch"
+# elasticsearch用户名
+ES_USERNAME="elastic"
+# elasticsearch密码
+ES_PASSWORD="123456"
+# es地址
+ES_ADDR="http://127.0.0.1:20004"
+
+##############################################
+
+# jobd地址
+JOBD_ADDR="http://127.0.0.1:20033"
+
+# LLM API INFO
+LLM_API_KEY="sk-0d772fccdde0421088e31668e862eee9"
+LLM_MODEL_NAME="deepseek-chat"
+LLM_API_URL="https://api.deepseek.com/v1"
+
+# CONVERT CACHE FOR SAVING TEMP DATA
+CONVERT_CACHE="/srv/temp_convert_cache"
 
 ```
 ## 安装说明
