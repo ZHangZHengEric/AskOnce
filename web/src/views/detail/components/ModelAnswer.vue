@@ -60,26 +60,26 @@ const detail = computed(() => {
   position: relative !important;
 }
 
-/deep/ .v-note-wrapper .v-note-panel .v-note-show .v-show-content, .v-note-wrapper .v-note-panel .v-note-show .v-show-content-html {
+:deep(.v-note-wrapper .v-note-panel .v-note-show .v-show-content, .v-note-wrapper .v-note-panel .v-note-show .v-show-content-html ) {
   padding: 0 !important;
   line-height: 1.8 !important;
   overflow: hidden;
 }
 
 
-/deep/ .markdown-body blockquote, .markdown-body dl, .markdown-body ol, .markdown-body pre, .markdown-body table, .markdown-body ul {
+:deep( .markdown-body blockquote, .markdown-body dl, .markdown-body ol, .markdown-body pre, .markdown-body table, .markdown-body ul) {
   margin-bottom: 0px !important;
 }
 
-/deep/ .markdown-body p {
+:deep(.markdown-body p) {
   margin-bottom: 10px !important;
 }
 
-/deep/ ol, ul, menu {
+:deep(ol, ul, menu) {
   list-style: auto !important;
 }
 
-/deep/ .markdown-body span a {
+:deep(.markdown-body span a) {
   position: relative;
   overflow: visible; /* 让内容超出父元素布局 */
   clip: auto;
@@ -93,13 +93,13 @@ const detail = computed(() => {
   font-size: 12px;
 }
 
-/deep/ .markdown-body span a:hover {
+:deep(.markdown-body span a:hover) {
   color: white;
   background: #7269FB;
   border-radius: 50%; /* 将伪元素的边框半径设置为50%，使背景呈现圆形 */
 }
 
-/deep/ .markdown-body span a::before {
+:deep(.markdown-body span a::before) {
   content: "";
   position: absolute;
   top: 0;
@@ -111,11 +111,11 @@ const detail = computed(() => {
   z-index: -1; /* 将伪元素放在最底层，使其在内容之后 */
 }
 
-/deep/ .markdown-body span:hover {
+:deep(.markdown-body span:hover) {
   border-bottom: 1px dashed #7269FB;
 }
 
-/deep/ .markdown-body span a span {
+:deep(.markdown-body span a span) {
   visibility: hidden;
   max-width: 300px;
   min-width: 250px;
@@ -133,27 +133,27 @@ const detail = computed(() => {
   right: 0;
 }
 
-/deep/ .markdown-body span a:hover span {
+:deep(.markdown-body span a:hover span) {
   visibility: visible;
 }
 
-/deep/ .v-note-wrapper .v-note-panel .v-note-show {
+:deep(.v-note-wrapper .v-note-panel .v-note-show ){
   overflow: visible;
 }
 
-/deep/ .v-note-wrapper .v-note-panel {
+:deep(.v-note-wrapper .v-note-panel) {
   overflow: visible;
 }
 
-/deep/ .v-note-wrapper .v-note-panel .v-note-show .v-show-content {
+:deep(.v-note-wrapper .v-note-panel .v-note-show .v-show-content ){
   overflow: visible !important;
 }
 
-/deep/ .v-note-wrapper .v-note-panel .v-note-show .v-show-content-html {
+:deep(.v-note-wrapper .v-note-panel .v-note-show .v-show-content-html) {
   overflow: visible !important;
 }
 
-/deep/ .fade-in {
+:deep(.fade-in) {
   animation: fadeInAnimation ease 2s;
   animation-iteration-count: 1; /*设置动画播放次数*/
   animation-fill-mode: forwards; /*设置样式以在动画不播放时应用元素。forward是设置动画结束后，使用元素的结束属性值*/

@@ -11,9 +11,9 @@
         </template>
       </el-input>
       <el-radio-group style="--el-color-primary:#7269FB" v-model="data.queryType" @change="loadByKeyword">
-        <el-radio-button value="">{{$t('knowledge.all')}}</el-radio-button>
+        <el-radio-button value="">{{ $t('knowledge.all') }}</el-radio-button>
         <el-radio-button value="simple">{{ $t('home.simple') }}</el-radio-button>
-        <el-radio-button value="complex">{{$t('home.complex')}}</el-radio-button>
+        <el-radio-button value="complex">{{ $t('home.complex') }}</el-radio-button>
       </el-radio-group>
     </div>
     <el-table
@@ -65,8 +65,8 @@ const data = reactive({
   pageNo: 1,
   pageSize: 10,
   total: 0,
-  queryName:'',
-  queryType:''
+  queryName: '',
+  queryType: ''
 })
 
 const askType = computed(() => {
@@ -103,8 +103,8 @@ const loadData = () => {
   historyAsk({
     pageNo: data.pageNo,
     pageSize: data.pageSize,
-    query:data.queryName,
-    queryType:data.queryType
+    query: data.queryName,
+    queryType: data.queryType
   }).then(res => {
     data.tableData = res.data.list
     data.total = res.data.total
@@ -115,7 +115,7 @@ const loadData = () => {
 
 
 <style scoped lang="less">
-/deep/ .el-pagination.is-background .el-pager li.is-active {
+:deep(.el-pagination.is-background .el-pager li.is-active ) {
   background-color: white;;
   border: 1px solid rgba(114, 105, 251, 1);
   color: rgba(114, 105, 251, 1);

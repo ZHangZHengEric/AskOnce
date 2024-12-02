@@ -221,7 +221,7 @@ const build = (index, row) => {
 
 
 <style scoped lang="less">
-/deep/ .el-input__wrapper {
+:deep(.el-input__wrapper) {
   border-radius: 8px !important;
 }
 

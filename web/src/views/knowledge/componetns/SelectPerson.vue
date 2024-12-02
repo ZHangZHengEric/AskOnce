@@ -116,7 +116,7 @@ defineExpose({
 
 
 <style scoped lang="less">
-/deep/ .el-dialog__header {
+:deep(.el-dialog__header) {
   border-bottom: 1px solid #DBDAF9;
   padding: 10px 0;
 }
