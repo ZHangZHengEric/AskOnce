@@ -39,10 +39,10 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 		return
 	}
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
-	k.kdbDocDao.SetDB(db)
-	k.kdbDocContentDao.SetDB(db)
-	k.kdbDocSegmentDao.SetDB(db)
 	tx := db.Begin()
+	k.kdbDocDao.SetDB(tx)
+	k.kdbDocContentDao.SetDB(tx)
+	k.kdbDocSegmentDao.SetDB(tx)
 	err = k.kdbDocDao.DeleteById(docId)
 	if err != nil {
 		tx.Rollback()
@@ -100,10 +100,11 @@ func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content s
 		})
 	}
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
-	k.kdbDocDao.SetDB(db)
-	k.kdbDocContentDao.SetDB(db)
-	k.kdbDocSegmentDao.SetDB(db)
 	tx := db.Begin()
+
+	k.kdbDocDao.SetDB(tx)
+	k.kdbDocContentDao.SetDB(tx)
+	k.kdbDocSegmentDao.SetDB(tx)
 	err = k.kdbDocContentDao.Insert(&models.KdbDocContent{
 		DocId:   doc.Id,
 		KdbId:   doc.KdbId,
@@ -134,7 +135,6 @@ func (k *KdbDocData) saveEs(kdb *models.Kdb, doc *models.KdbDoc, corpus []map[st
 	corpusG := slice.Chunk(corpus, 500)
 	eg, _ := errgroup.WithContext(k.GetCtx())
 	esDbConfigStr := strings.ReplaceAll(conf.WebConf.EsDbConfig, "@indexName@", kdb.GetIndexName())
-	esDbConfigStr = strings.ReplaceAll(esDbConfigStr, "@dimsLength@", strconv.Itoa(embLength))
 	for _, ccc := range corpusG {
 		tmp := ccc
 		eg.Go(func() error {

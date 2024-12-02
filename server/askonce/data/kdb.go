@@ -113,9 +113,10 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (a
 		},
 	}
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
-	k.kdbDao.SetDB(db)
-	k.kdbUserDao.SetDB(db)
 	tx := db.Begin()
+	k.kdbDao.SetDB(tx)
+	k.kdbUserDao.SetDB(tx)
+
 	err = k.kdbDao.Insert(add)
 	if err != nil {
 		tx.Rollback()
@@ -180,10 +181,10 @@ func (k *KdbData) GetKdbList(userId string, query string, param dto.PageParam) (
 
 func (k *KdbData) DeleteKdb(userId string, kdb *models.Kdb) (err error) {
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
-	k.kdbDao.SetDB(db)
-	k.kdbUserDao.SetDB(db)
-	k.askInfoDao.SetDB(db)
 	tx := db.Begin()
+	k.kdbDao.SetDB(tx)
+	k.kdbUserDao.SetDB(tx)
+	k.askInfoDao.SetDB(tx)
 	err = k.kdbDao.DeleteById(kdb.Id)
 	if err != nil {
 		tx.Rollback()
