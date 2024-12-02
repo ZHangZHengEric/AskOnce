@@ -175,7 +175,7 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 			k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
-			k.LogInfof("文档【%v】构建内存数据库成功 %s", req.DocId)
+			k.LogInfof("文档【%v】构建内存数据库成功", req.DocId)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
@@ -193,7 +193,7 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	}
 	//3. 文本切分
 	k.LogInfof("开始文本切分，docId %v", doc.Id)
-	splitList, err := k.documentData.TextSplit(doc.DocName, content)
+	splitList, err := k.documentData.TextSplit(content)
 	if err != nil {
 		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
 		return err

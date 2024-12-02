@@ -22,8 +22,8 @@ func (d *DocumentData) OnCreate() {
 }
 
 // 文本切分
-func (d *DocumentData) TextSplit(docName string, content string) (segments []jobd.TextChunkItem, err error) {
-	documentSplitRes, err := d.jobdApi.DocumentSplit(docName, content)
+func (d *DocumentData) TextSplit(content string) (segments []jobd.TextChunkItem, err error) {
+	documentSplitRes, err := d.jobdApi.DocumentSplit(content)
 	if err != nil {
 		return nil, err
 	}
