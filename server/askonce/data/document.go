@@ -36,7 +36,7 @@ func (d *DocumentData) TextSplit(content string) (segments []jobd.TextChunkItem,
 // 批量文本转向量
 func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err error) {
 	// 最大批次
-	sentsG := slice.Chunk(texts, 200)
+	sentsG := slice.Chunk(texts, 30)
 	embResAll = make([][]float32, 0)
 	lock := sync.Mutex{}
 	embResMap := make(map[int][][]float32)

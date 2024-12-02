@@ -10,6 +10,17 @@ import (
 
 type GptData struct {
 	flow.Data
+	gptClient gpt.IGPT
+}
+
+func (d *GptData) OnCreate() {
+	embeddingModel := conf.WebConf.EmbeddingModelConf
+	gptClient, err := gpt.CreateGptClient(d.GetCtx(), defines.GPTSource(embeddingModel.Source))
+	if err != nil {
+		return
+	}
+	gptClient.Init(embeddingModel.Addr, embeddingModel.AK)
+	d.gptClient = gptClient
 }
 
 func (d *GptData) ChatSync(modelType string, id string, req *dto_gpt.ChatCompletionReq) (answer string, use dto_gpt.ChatCompletionUsage, err error) {
@@ -27,17 +38,12 @@ func (d *GptData) Chat(modelType string, id string, req *dto_gpt.ChatCompletionR
 
 func (d *GptData) Embedding(texts []string) (output [][]float32, err error) {
 	embeddingModel := conf.WebConf.EmbeddingModelConf
-	g, err := gpt.CreateGptClient(d.GetCtx(), defines.GPTSource(embeddingModel.Source))
-	if err != nil {
-		return
-	}
-	g.Init(embeddingModel.Addr, embeddingModel.AK)
 	req := &dto_gpt.EmbeddingReq{
 		Model: embeddingModel.Model,
 		Input: texts,
 	}
 
-	resp, err := gpt.Embedding(g, req)
+	resp, err := gpt.Embedding(d.gptClient, req)
 	if err != nil {
 		return
 	}

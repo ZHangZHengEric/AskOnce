@@ -132,7 +132,7 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 			k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
-			k.LogInfof("文档【%v】构建内存数据库成功 %s", doc.Id)
+			k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
