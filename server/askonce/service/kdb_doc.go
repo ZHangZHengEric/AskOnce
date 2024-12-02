@@ -56,9 +56,9 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 	}
 	for _, doc := range docs {
 		t := dto_kdb.DataListItem{
-			KdbDataId: doc.Id,
-			Type:      doc.DataSource,
-			DataName:  doc.DocName,
+			Id:       doc.Id,
+			Type:     doc.DataSource,
+			DataName: doc.DocName,
 
 			Status:     doc.Status,
 			CreateTime: doc.CreatedAt.Format(time.DateTime),

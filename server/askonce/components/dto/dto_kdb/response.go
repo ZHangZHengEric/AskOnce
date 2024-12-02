@@ -31,7 +31,7 @@ type DataListResp struct {
 }
 
 type DataListItem struct {
-	KdbDataId  int64  `json:"kdbDataId"`
+	Id         int64  `json:"id"`
 	Type       string `json:"type"`
 	DataSuffix string `json:"dataSuffix"`
 	DataName   string `json:"dataName"`
