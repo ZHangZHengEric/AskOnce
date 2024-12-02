@@ -73,7 +73,7 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 	return
 }
 
-func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content string, splitList []jobd.TextSplitRes, embeddingAll [][]float32) (err error) {
+func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content string, splitList []jobd.TextChunkItem, embeddingAll [][]float32) (err error) {
 	segments := make([]*models.KdbDocSegment, 0, len(splitList))
 	esInsertCorpus := make([]map[string]any, 0)
 	for i, split := range splitList {

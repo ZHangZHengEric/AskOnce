@@ -22,11 +22,12 @@ func (d *DocumentData) OnCreate() {
 }
 
 // 文本切分
-func (d *DocumentData) TextSplit(text string) (segments []jobd.TextSplitRes, err error) {
-	segments, err = d.jobdApi.TextSplit(text)
+func (d *DocumentData) TextSplit(docName string, content string) (segments []jobd.TextChunkItem, err error) {
+	documentSplitRes, err := d.jobdApi.DocumentSplit(docName, content)
 	if err != nil {
 		return nil, err
 	}
+	segments = documentSplitRes.MoveWindowTextChunk
 	return segments, nil
 }
 

@@ -131,7 +131,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python document_split/document_split.py --jobdurl ${JOBD_URL} --tasktype document_split --worker_name document_split_0"
+    command: /bin/bash -c "python document_split/document_split.py --jobdurl ${JOBD_ADDR} --tasktype document_split --worker_name document_split_0"
     tty: true
     environment:
       - LANG=C.UTF-8
@@ -146,7 +146,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python question_rewrite/question_rewrite.py --jobdurl ${JOBD_URL} --tasktype question_rewrite --worker_name question_rewrite_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL}"
+    command: /bin/bash -c "python question_rewrite/question_rewrite.py --jobdurl ${JOBD_ADDR} --tasktype question_rewrite --worker_name question_rewrite_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL}"
     tty: true
     environment:
       - LANG=C.UTF-8
@@ -161,7 +161,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python net_rag_assessment/net_rag_assessment.py --jobdurl ${JOBD_URL} --tasktype net_rag_assessment --worker_name net_rag_assessment_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL}"
+    command: /bin/bash -c "python net_rag_assessment/net_rag_assessment.py --jobdurl ${JOBD_ADDR} --tasktype net_rag_assessment --worker_name net_rag_assessment_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL}"
     tty: true
     environment:
       - LANG=C.UTF-8

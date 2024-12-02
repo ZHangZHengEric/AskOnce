@@ -193,7 +193,7 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	}
 	//3. 文本切分
 	k.LogInfof("开始文本切分，docId %v", doc.Id)
-	splitList, err := k.documentData.TextSplit(content)
+	splitList, err := k.documentData.TextSplit(doc.DocName, content)
 	if err != nil {
 		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
 		return err
