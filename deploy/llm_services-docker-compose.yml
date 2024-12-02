@@ -151,3 +151,18 @@ services:
     environment:
       - LANG=C.UTF-8
     restart: "no"
+  
+  askonce_net_rag_assessment_0:
+    container_name:   askonce_net_rag_assessment_0
+    build:
+      context: ../../
+      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
+      network: host
+    image: askonce_llm_service_image
+    network_mode: host
+    shm_size: '4gb'
+    command: /bin/bash -c "python net_rag_assessment/net_rag_assessment.py --jobdurl ${JOBD_URL} --tasktype net_rag_assessment --worker_name net_rag_assessment_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL}"
+    tty: true
+    environment:
+      - LANG=C.UTF-8
+    restart: "no"

@@ -46,3 +46,24 @@ class QuestionSplit (LLMBaseAPI):
 请重写问题，使其更加完整和方便搜索。'''
         quesiton_after_rewrite = self.ask_llm(prompt=prompt.format(question=question,history=self.messages_to_str(history)),temperature=0.2)
         return quesiton_after_rewrite
+
+    def judge_use_rag(self,question):
+        prompt = '''针对用户提出的问题，我将根据以下评估步骤来判断是否需要进行互联网搜索以增强大模型的知识。请在评估结束后，直接给出“是”或“否”的结果。
+评估步骤：
+1. **问题的性质**：是否为事实性问题，需要特定数据或信息。
+2. **问题的时效性**：是否涉及最新的数据或近期事件。
+3. **问题的复杂性**：是否需要复杂的推理或多个知识点的综合。
+4. **问题的专业性**：是否涉及特定领域的专业知识。
+5. **问题的上下文依赖性**：是否需要特定的上下文信息才能回答。
+6. **大模型的能力**：大模型是否没有足够的知识范围和能力来回答这个问题。
+
+用户问题: {question}
+最终回答：
+'''
+        use_rag = self.ask_llm(prompt=prompt.format(question=question),temperature=0.3)
+        if '是' in use_rag:
+            return True
+        if '不' in use_rag:
+            return False
+        else:
+            return False
