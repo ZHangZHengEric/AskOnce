@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     ports:
       - 20033:8080
-  askonce:
+  backend:
     build:
       context: ../server/askonce
       dockerfile: Dockerfile

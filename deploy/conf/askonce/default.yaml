@@ -4,38 +4,37 @@ appName: askonce
 log:
   level: DEBUG
   stdout: true
-#
+
 ##################################
 mysql:
   default:
     database: askonce
-    addr: "127.0.0.1:3306"
-    user: "root"
-    password: "123456"
+    addr: ${BACKEND_MYSQL_ADDR}
+    user: ${BACKEND_MYSQL_USER}
+    password: ${BACKEND_MYSQL_PASSWORD}
 
 redis:
   default:
-    addr: "127.0.0.1:6379"
-    password: ""
-    db: 1
+    addr: ${BACKEND_REDIS_ADDR}
+    password: ${BACKEND_REDIS_PASSWORD}
 
 minioConf:
-  addr: http://127.0.0.1:9000
-  ak: 9OzakHogqTW8KBunbOaq
-  sk: IvbG5GYw7EwwIR5JWwmQ38YNGQPqtYSmSY02KwaA
+  addr: ${BACKEND_MINIO_ADDR}
+  ak: ${BACKEND_MINIO_AK}
+  sk: ${BACKEND_MINIO_SK}
 
 
 esConf:
-  addr: http://127.0.0.1:30502
+  addr: ${BACKEND_ES_ADDR}
 
 api:
   jobd:
     # 调用下游的服务名称
     service: jobd
     # 请求完整地址
-    domain: http://127.0.0.1:20033
+    domain: http://jobd:8080
     # 超时配置，time.Duration 类型
-    timeout: 600s
+    timeout: 60s
     # 重试次数，最多执行retry+1次
     retry: 2
 

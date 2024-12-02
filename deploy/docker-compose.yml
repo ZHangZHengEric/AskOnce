@@ -24,17 +24,17 @@ services:
       service: redis
   askonce-es1:
     extends:
-      file: elastic-docker-compose.yml
+      file: es-docker-compose.yml
       service: askonce-es1
   askonce-es2:
     extends:
-      file: elastic-docker-compose.yml
+      file: es-docker-compose.yml
       service: askonce-es2
   askonce-es3:
     extends:
-      file: elastic-docker-compose.yml
+      file: es-docker-compose.yml
       service: askonce-es3
   askonce-es-dashboard:
     extends:
-      file: elastic-docker-compose.yml
+      file: es-docker-compose.yml
       service: askonce-es-dashboard

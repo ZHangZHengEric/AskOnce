@@ -8,27 +8,12 @@ log:
 
 redis:
   default:
-    service: default
-    addr: "redis:6379"
-    maxIdle: 100
-    maxActive: 500
-    idleTimeout: 5m
-    connTimeOut: 10m
-    readTimeOut: 10m
-    writeTimeOut: 10m
-    maxConnLifetime: 10m
+    addr: ${BACKEND_REDIS_ADDR}
+    password: ${BACKEND_REDIS_PASSWORD}
 
 mysql:
   default:
-    service: jobd
     database: jobd
-    addr: "mysql:3306"
-    user: "root"
-    password: "123456"
-    maxidleconns: 10
-    maxopenconns: 30
-    maxIdleTime: 60s
-    connMaxLifeTime: 60s
-    connTimeOut: 5s
-    writeTimeOut: 5s
-    readTimeOut: 5s
+    addr: ${BACKEND_MYSQL_ADDR}
+    user: ${BACKEND_MYSQL_USER}
+    password: ${BACKEND_MYSQL_PASSWORD}
