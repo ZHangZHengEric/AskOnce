@@ -7,10 +7,10 @@ services:
     depends_on:
       - mysql
       - redis
-  askonce:
+  backend:
     extends:
       file: backend-docker-compose.yml
-      service: askonce
+      service: backend
     depends_on:
       - mysql
       - redis
