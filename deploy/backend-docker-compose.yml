@@ -3,6 +3,8 @@ services:
     build:
       context: ../server/jobd
       dockerfile: Dockerfile
+    env_file:
+      - .env
     container_name: askonce-jobd
     volumes:
       - ${BACKEND_CONF_DIR}/jobd:/app/conf/mount
@@ -13,6 +15,8 @@ services:
     build:
       context: ../server/askonce
       dockerfile: Dockerfile
+    env_file:
+      - .env
     container_name: askonce-backend
     volumes:
       - ${BACKEND_CONF_DIR}/askonce:/app/conf/mount
