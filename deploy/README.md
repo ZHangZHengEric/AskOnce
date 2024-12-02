@@ -17,6 +17,8 @@ BACKEND_ES_ADDR='http://127.0.0.1:20004'
 ############################################
 # minio数据存储目录
 MINIO_DATA_DIR="/data/minio"
+# minio root密码
+MINIO_ROOT_PASSWORD='123456'
 
 #############################################
 # msyql配置目录

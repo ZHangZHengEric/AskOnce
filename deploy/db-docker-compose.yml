@@ -40,7 +40,7 @@ services:
     command: server /data --console-address ":9001"
     container_name: askonce-minio
     environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_USER=root
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
