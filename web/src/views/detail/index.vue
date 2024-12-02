@@ -440,6 +440,10 @@ const search = async (question) => {
   });
 
   if (!response.ok) {
+    ElMessage.error("接口错误")
+    data.progress = 100
+    data.loading = false
+    clearInterval(data.timer)
     console.log('err-->', response)
     throw new Error(`HTTP error! status: ${response.status}`);
   }
