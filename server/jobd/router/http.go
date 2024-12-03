@@ -19,7 +19,7 @@ func Http(engine *gin.Engine) {
 	committerGroup := router.Group("committer")
 	{
 		committerGroup.POST("DoTask", flow.Use[dto.DoTaskReq](new(committer.DoTaskCtl)))
-		committerGroup.POST("DoTaskStream", sse.UploadEventStream, flow.Use[dto.DoTaskReq](new(committer.DoTaskCtl)))
+		committerGroup.POST("DoTaskStream", sse.UploadEventStream, flow.Use[dto.DoTaskReq](new(committer.DoTaskStreamCtl)))
 		committerGroup.POST("Commit", flow.Use[dto.CommitReq](new(committer.CommitCtl)))
 		committerGroup.POST("GetInfo", flow.Use[dto.GetInfoReq](new(committer.GetInfoCtl)))
 		committerGroup.POST("BlockGetInfo", flow.Use[dto.GetInfoReq](new(committer.BlockGetInfoCtl)))

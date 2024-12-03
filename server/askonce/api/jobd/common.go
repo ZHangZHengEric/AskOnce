@@ -5,7 +5,6 @@ import (
 	"askonce/conf"
 	"encoding/json"
 	"github.com/bytedance/sonic"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/http"
@@ -121,18 +120,9 @@ func doTaskProcessStream[K any, V any](entity *JobdApi, taskType string, input K
 		Encode:      entity.GetEncodeType(),
 	}
 	err = entity.Client.HttpPostStream(entity.GetCtx(), "/jobd/committer/DoTaskStream", reqOpts, func(data string) error {
-		httpRes := flow.Res{}
-		// 解析数据
-		if err = jsoniter.Unmarshal([]byte(data), &httpRes); err != nil {
-			entity.LogErrorf("api error, api response unmarshal, data:%s, err:%+v", data, err.Error())
-			return errors.ErrorSystemError
-		}
-		if httpRes.Code != 200 {
-			return errors.ErrorSystemError
-		}
 		jobdRes := JobdCommonRes{}
 		// 解析数据
-		if err = json.Unmarshal(httpRes.Data, &jobdRes); err != nil {
+		if err = json.Unmarshal([]byte(data), &jobdRes); err != nil {
 			entity.LogErrorf("api error, api response unmarshal, data:%s, err:%+v", data, err.Error())
 			return errors.ErrorSystemError
 		}
