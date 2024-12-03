@@ -184,7 +184,7 @@ class BasicEs8(Es8Interface):
         index_name = mapper['mappings_config']['index_name']
         emb_search_result = self.es.search(index=index_name,body=search_body)
         hits = emb_search_result['hits']['hits']
-        print(hits)
+        # print(hits)
         if len(hits) <= 0: return results
         if len(return_fields) == 0: return_fields = hits[0]['_source'].keys()
         # logger.info(f"return_fields: {return_fields}")
