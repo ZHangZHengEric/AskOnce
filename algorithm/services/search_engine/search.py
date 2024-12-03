@@ -34,8 +34,8 @@ def process(task_input,task_type,model,args,tm):
             search_body = task_input.search_body
             search_type = task_input.search_type
             return_fields = task_input.return_fields
-            if task_input.return_fields is None:
-                task_input.return_fields = []
+            if return_fields is None:
+                return_fields = []
 
             if search_type == "vec":
                 search_results = model.emb_search(search_body[0],task_input.mapper_config, return_fields)
