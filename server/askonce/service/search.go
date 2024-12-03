@@ -226,14 +226,14 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 		UserId:     userInfo.UserId,
 	}
 	s.EchoRes("start", "")
-	askDirect := true
+	askDirect := false
 	if req.KdbId == 0 { // 互联网判断是否要搜索
 		judgeRes, err := s.jobdApi.NetRagAssessment(req.Question)
 		if err != nil {
 			s.LogErrorf("NetRagAssessment err %s", err.Error())
 		} else {
-			if judgeRes.Result {
-				askDirect = false
+			if !judgeRes.Result {
+				askDirect = true
 			}
 		}
 	}
