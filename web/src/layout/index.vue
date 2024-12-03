@@ -125,11 +125,11 @@ const menuList = computed(() => {
       icon: 'know',
       url: '/knowledge-manage'
     },
-    {
-      name: t('app.searchConfig'),
-      icon: 'search',
-      url: '/search-config'
-    },
+    // {
+    //   name: t('app.searchConfig'),
+    //   icon: 'search',
+    //   url: '/search-config'
+    // },
     {
       name: t('app.history'),
       icon: 'history',
