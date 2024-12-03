@@ -130,7 +130,10 @@ func doTaskProcessStream[K any, V any](entity *JobdApi, taskType string, input K
 			err = components.ErrorJobdError
 			return err
 		}
-		return pf(jobdRes)
+		err = pf(jobdRes)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	if err != nil {
