@@ -19,7 +19,7 @@ func InitResource() {
 
 	// 初始化elastic
 	InitElastic()
-
+	InitAliGreenClient()
 }
 
 func Clear() {

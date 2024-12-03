@@ -66,7 +66,7 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 
 // 批量文本转向量
 func (d *DocumentData) QueryEmbedding(text string) (emb []float32, err error) {
-	embRes, err := d.jobdApi.EmbeddingForQuery([]string{text})
+	embRes, err := d.gptData.Embedding([]string{text})
 	if err != nil {
 		return emb, err
 	}

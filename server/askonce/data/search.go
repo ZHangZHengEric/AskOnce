@@ -29,6 +29,7 @@ type SearchData struct {
 	kdbDocDao        *models.KdbDocDao
 	fileDao          *models.FileDao
 	kdbData          *KdbData
+	gptData          *GptData
 }
 
 func (entity *SearchData) OnCreate() {
@@ -39,6 +40,7 @@ func (entity *SearchData) OnCreate() {
 	entity.kdbDocDao = entity.Create(new(models.KdbDocDao)).(*models.KdbDocDao)
 	entity.fileDao = entity.Create(new(models.FileDao)).(*models.FileDao)
 	entity.kdbData = entity.Create(new(KdbData)).(*KdbData)
+	entity.gptData = entity.Create(new(GptData)).(*GptData)
 }
 
 func (entity *SearchData) SearchFromWebOrKnowledge(sessionId, question string, kdbId int64, userId string) (results []dto_search.CommonSearchOutput, err error) {
@@ -111,7 +113,7 @@ type EsCommonSearchResult struct {
 }
 
 func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonSearchResult, err error) {
-	embRes, err := entity.jobdApi.EmbeddingForQuery([]string{input.Query})
+	embRes, err := entity.gptData.Embedding([]string{input.Query})
 	if err != nil {
 		return
 	}

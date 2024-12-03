@@ -7,6 +7,7 @@ type ESSearchReq struct {
 	SearchType        string         `json:"search_type"`
 	MapperValueOrPath any            `json:"mapper_config"`
 	SearchBody        []ESSearchBody `json:"search_body"`
+	ReturnFields      []string       `json:"return_fields"`
 }
 
 type ESSearchBody struct {

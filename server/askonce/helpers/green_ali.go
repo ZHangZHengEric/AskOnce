@@ -17,9 +17,9 @@ var GreenAliClient *green20220302.Client
 func InitAliGreenClient() {
 	config := &openapi.Config{
 		// 必填，您的 AccessKey ID
-		AccessKeyId: tea.String(env.Get("GREEN_ALI_AK", "")),
+		AccessKeyId: tea.String(env.Get("BACKEND_GREEN_ALI_AK", "")),
 		// 必填，您的 AccessKey Secret
-		AccessKeySecret: tea.String(env.Get("GREEN_ALI_SK", "")),
+		AccessKeySecret: tea.String(env.Get("BACKEND_GREEN_ALI_SK", "")),
 		RegionId:        tea.String("cn-hangzhou"),
 		Endpoint:        tea.String("green-cip.cn-hangzhou.aliyuncs.com"),
 		ConnectTimeout:  tea.Int(3000),
