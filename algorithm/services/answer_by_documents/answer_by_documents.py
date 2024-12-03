@@ -15,7 +15,7 @@ class QAnswerInput:
     def __init__(self,json_data,task_id) -> None:
         self.question = json_data['question']
         self.answer_style = json_data['answer_style'] if 'answer_style' in json_data.keys() else 'simplify'
-        self.search_result = json_data['search_result']
+        self.search_result = json_data['search_result'] if 'search_result' in json_data.keys() else []
         self.is_stream = json_data['is_stream'] if 'is_stream' in json_data.keys() else False
         self.task_id = task_id
 
