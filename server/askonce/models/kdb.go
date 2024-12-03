@@ -40,7 +40,7 @@ func (k Kdb) TableName() string {
 }
 
 func (k Kdb) GetIndexName() string {
-	return fmt.Sprintf("dag_backend_%v", k.Id)
+	return fmt.Sprintf("askonce_%v", k.Id)
 }
 
 type KdbDao struct {

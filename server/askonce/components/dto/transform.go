@@ -17,19 +17,11 @@ type LoginInfoSession struct {
 
 // 知识库设置
 type KdbSetting struct {
-	EmbeddingModel DocEmbeddingModel `json:"embeddingModel"` // Embedding 模型
-	RetrievalModel RetrievalSetting  `json:"retrievalModel"` // 召回设置
-	KdbAttach      KdbAttach         `json:"kdbAttach"`      // 附加属性
+	RetrievalModel RetrievalSetting `json:"retrievalModel"` // 召回设置
+	KdbAttach      KdbAttach        `json:"kdbAttach"`      // 附加属性
 }
 
-// 文档embedding模式
-type DocEmbeddingModel string
-
-const (
-	DocEmbeddingModelCommon DocEmbeddingModel = "common"
-)
-
-// 检索模型
+// 检索设置
 type RetrievalSetting struct {
 	SearchMethod          DocSearchMethod         `json:"searchMethod"`          // 搜索方法 “keyword", "vector", "all"
 	TopK                  int                     `json:"topK"`                  // 召回多少条

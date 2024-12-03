@@ -1,6 +1,7 @@
 package service
 
 import (
+	"askonce/components"
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
@@ -55,9 +56,9 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 	}
 	for _, doc := range docs {
 		t := dto_kdb.DataListItem{
-			KdbDataId: doc.Id,
-			Type:      doc.DataSource,
-			DataName:  doc.DocName,
+			Id:       doc.Id,
+			Type:     doc.DataSource,
+			DataName: doc.DocName,
 
 			Status:     doc.Status,
 			CreateTime: doc.CreatedAt.Format(time.DateTime),
@@ -131,7 +132,7 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 			k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
-			k.LogInfof("文档【%v】构建内存数据库成功 %s", doc.Id)
+			k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
@@ -175,7 +176,7 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 			k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, err.Error())
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
 		} else {
-			k.LogInfof("文档【%v】构建内存数据库成功 %s", req.DocId)
+			k.LogInfof("文档【%v】构建内存数据库成功", req.DocId)
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
@@ -193,10 +194,13 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	}
 	//3. 文本切分
 	k.LogInfof("开始文本切分，docId %v", doc.Id)
-	splitList, err := k.documentData.TextSplit(doc.DocName, content)
+	splitList, err := k.documentData.TextSplit(content)
 	if err != nil {
 		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
-		return err
+		return components.ErrorTextSplitError
+	}
+	if len(splitList) == 0 {
+		return components.ErrorTextSplitError
 	}
 	contents := make([]string, 0, len(splitList))
 	for _, split := range splitList {

@@ -12,7 +12,7 @@ import (
 
 type IGPT interface {
 	flow.IApi
-	Init(endpoint string, ak string, proxyUrl string)
+	Init(endpoint string, ak string)
 	GetClient() *http.HttpClientConf
 	GetPath(methodType defines.GPTMethodType, model string) string
 	HandleRequestHeader() map[string]string

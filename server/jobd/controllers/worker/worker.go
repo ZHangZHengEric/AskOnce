@@ -1,9 +1,13 @@
 package worker
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/flow"
+	"github.com/xiangtao94/golib/pkg/errors"
+	"github.com/xiangtao94/golib/pkg/zlog"
 	"jobd/components/dto"
 	"jobd/service"
+	"net/http"
 )
 
 type GetTaskCtl struct {
@@ -32,6 +36,28 @@ func (entity *BlockGetTaskCtl) Action(req *dto.GetTaskReq) (res interface{}, err
 	}
 	entity.LogInfof("worker %v 获取任务成功，task_type:%v , session_id:%v, task_id:%v", entity.GetCtx().ClientIP(), req.TaskType, resp.SessionId, resp.TaskId)
 	return resp, nil
+}
+
+func WorkerBlockBatchGetTask(ctx *gin.Context) {
+	var req dto.BatchGetTaskReq
+	if err := ctx.ShouldBind(&req); err != nil {
+		ctx.Header(zlog.ContextKeyRequestID, zlog.GetRequestID(ctx))
+		ctx.JSON(http.StatusBadRequest, errors.ErrorParamInvalid)
+		return
+	}
+	entity := flow.Create(ctx, new(service.WorkerService))
+	var resp *dto.GetTaskResp
+	var err error
+	resp, err = entity.BlockBatchGetTaskForWorker(&req)
+	if err != nil {
+		ctx.Header(zlog.ContextKeyRequestID, zlog.GetRequestID(ctx))
+		ctx.JSON(http.StatusRequestTimeout, err)
+		return
+	}
+	if resp != nil {
+		entity.LogInfof("worker %v 获取任务成功，task_type:%v , session_id:%v, task_id:%v", ctx.ClientIP(), resp.TaskType, resp.SessionId, resp.TaskId)
+	}
+	flow.RenderJsonSucc(ctx, resp)
 }
 
 type BlockBatchGetTaskCtl struct {

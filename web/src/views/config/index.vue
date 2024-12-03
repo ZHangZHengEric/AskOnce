@@ -15,11 +15,11 @@
                      :label="locale==='zh-cn'?item.name:item.enName" :value="item.value"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item :label="$t('config.model')">
-        <el-select v-model="formData.modelType">
-          <el-option v-for="item in data.models" :key="item.name" :label="item.name" :value="item.value"></el-option>
-        </el-select>
-      </el-form-item>
+<!--      <el-form-item :label="$t('config.model')">-->
+<!--        <el-select v-model="formData.modelType">-->
+<!--          <el-option v-for="item in data.models" :key="item.name" :label="item.name" :value="item.value"></el-option>-->
+<!--        </el-select>-->
+<!--      </el-form-item>-->
       <div class="text-center  ml-10 mt-12 flex justify-center items-center">
         <button type="button" class="px-16 w-fit bg-default text-white rounded-full py-1.5 cursor-pointer"
                 @click="toSave">{{ $t('app.save') }}

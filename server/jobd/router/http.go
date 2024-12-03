@@ -27,7 +27,7 @@ func Http(engine *gin.Engine) {
 	{
 		workerGroup.POST("GetTask", flow.Use[dto.GetTaskReq](new(worker.GetTaskCtl)))
 		workerGroup.POST("BlockGetTask", flow.Use[dto.GetTaskReq](new(worker.BlockGetTaskCtl)))
-		workerGroup.POST("BlockBatchGetTask", flow.Use[dto.BatchGetTaskReq](new(worker.BlockBatchGetTaskCtl)))
+		workerGroup.POST("BlockBatchGetTask", worker.WorkerBlockBatchGetTask)
 		workerGroup.POST("UpdateInfo", flow.Use[dto.UpdateInfoReq](new(worker.UpdateInfoCtl)))
 	}
 

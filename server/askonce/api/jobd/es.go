@@ -5,7 +5,7 @@ import "encoding/json"
 type ESSearchReq struct {
 	Id                string         `json:"id"`
 	SearchType        string         `json:"search_type"`
-	MapperValueOrPath any            `json:"mapper_value_or_path"`
+	MapperValueOrPath any            `json:"mapper_config"`
 	SearchBody        []ESSearchBody `json:"search_body"`
 }
 
@@ -66,24 +66,24 @@ func (entity *JobdApi) EsSearch(emb any, query string, querySize int, mapValue s
 			},
 		},
 	}
-	return doTaskProcess[*ESSearchReq, []ESSearchOutput](entity, "atomes_es8_search", inputReq, 10000)
+	return doTaskProcess[*ESSearchReq, []ESSearchOutput](entity, "search_engine_search", inputReq, 10000)
 }
 
 type ESInsertReq struct {
 	Corpus            []map[string]any `json:"corpus"`
 	Id                string           `json:"id"`
-	MapperValueOrPath any              `json:"mapper_value_or_path"`
+	MapperValueOrPath any              `json:"mapper_config"`
 }
 
 func (entity *JobdApi) EsInsert(inputReq ESInsertReq) (res any, err error) {
 	entity.Client.MaxReqBodyLen = -1
-	return doTaskProcessString[ESInsertReq](entity, "atomes_es8_insert", inputReq, 50000)
+	return doTaskProcessString[ESInsertReq](entity, "search_engine_insert", inputReq, 50000)
 }
 
 type ESDeleteReq struct {
 	DocIds            []string `json:"doc_ids"`
 	Id                string   `json:"id"`
-	MapperValueOrPath any      `json:"mapper_value_or_path"`
+	MapperValueOrPath any      `json:"mapper_config"`
 	DeleteAll         bool     `json:"delete_all"`
 }
 
@@ -92,5 +92,5 @@ type ESDeleteRes struct {
 }
 
 func (entity *JobdApi) EsDelete(inputReq *ESDeleteReq) (res ESDeleteRes, err error) {
-	return doTaskProcess[*ESDeleteReq, ESDeleteRes](entity, "atomes_es8_delete", inputReq, 10000)
+	return doTaskProcess[*ESDeleteReq, ESDeleteRes](entity, "search_engine_delete", inputReq, 10000)
 }

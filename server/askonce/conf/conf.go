@@ -9,7 +9,6 @@ import (
 	"github.com/xiangtao94/golib/pkg/orm"
 	"github.com/xiangtao94/golib/pkg/redis"
 	"github.com/xiangtao94/golib/pkg/zlog"
-	"log"
 	"path/filepath"
 )
 
@@ -24,10 +23,10 @@ type SWebConf struct {
 	ElasticSearch SElasticConf               `yaml:"elastic"`
 	MongoDb       map[string]SMongoDBConf    `yaml:"mongodb"`
 
-	Api       map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
-	MinioConf SMinioConf                      `yaml:"minioConf"`
-
-	EsDbConfig string `yaml:"esDbConfig"`
+	Api                map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
+	MinioConf          SMinioConf                      `yaml:"minioConf"`
+	EmbeddingModelConf SEmbeddingModelConf             `yaml:"embeddingModelConf"`
+	EsDbConfig         string                          `yaml:"esDbConfig"`
 }
 
 type SMongoDBConf struct {
@@ -49,14 +48,18 @@ type SMinioConf struct {
 	Addr string `yaml:"addr"`
 }
 
+type SEmbeddingModelConf struct {
+	Source string `yaml:"source"` // 渠道
+	Addr   string `yaml:"addr"`
+	AK     string `yaml:"ak"`
+	Model  string `yaml:"model"`
+}
+
 var WebConf *SWebConf
 
 func InitConf() {
 	envPath := filepath.Join(env.GetRootPath(), "/../../deploy/.env")
-	err := godotenv.Load(envPath)
-	if err != nil {
-		log.Fatalf("godotenv load. Err: %s", err)
-	}
+	_ = godotenv.Load(envPath)
 	// load from yaml
 	env.LoadConf("default.yaml", "mount", &WebConf)
 }

@@ -1,6 +1,6 @@
 package source
 
-import "oneGPT/components/defines"
+import "askonce/components/defines"
 
 type SkylarkGPT struct {
 	CommonGPT

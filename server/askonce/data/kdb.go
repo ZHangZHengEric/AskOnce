@@ -78,7 +78,6 @@ func (k *KdbData) CheckKdbAuth(kdbId int64, userId string, authCode int) (*model
 func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 
 	defaultSetting := dto.KdbSetting{
-		EmbeddingModel: dto.DocEmbeddingModelCommon,
 		RetrievalModel: dto.RetrievalSetting{
 			SearchMethod:          dto.DocSearchMethodAll,
 			TopK:                  10,
@@ -114,9 +113,10 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (a
 		},
 	}
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
-	k.kdbDao.SetDB(db)
-	k.kdbUserDao.SetDB(db)
 	tx := db.Begin()
+	k.kdbDao.SetDB(tx)
+	k.kdbUserDao.SetDB(tx)
+
 	err = k.kdbDao.Insert(add)
 	if err != nil {
 		tx.Rollback()
@@ -145,7 +145,6 @@ func (k *KdbData) UpdateKdb(kdb *models.Kdb, kdbName, kdbIntro string, kdbSettin
 	updateMap["intro"] = kdbIntro
 	if kdbSetting != nil {
 		// 先不更新embedding
-		kdbSetting.EmbeddingModel = kdb.Setting.Data().EmbeddingModel
 		settingStr, _ := json.Marshal(*kdbSetting)
 		updateMap["setting"] = settingStr
 	}
@@ -182,10 +181,10 @@ func (k *KdbData) GetKdbList(userId string, query string, param dto.PageParam) (
 
 func (k *KdbData) DeleteKdb(userId string, kdb *models.Kdb) (err error) {
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
-	k.kdbDao.SetDB(db)
-	k.kdbUserDao.SetDB(db)
-	k.askInfoDao.SetDB(db)
 	tx := db.Begin()
+	k.kdbDao.SetDB(tx)
+	k.kdbUserDao.SetDB(tx)
+	k.askInfoDao.SetDB(tx)
 	err = k.kdbDao.DeleteById(kdb.Id)
 	if err != nil {
 		tx.Rollback()

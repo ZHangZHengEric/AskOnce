@@ -115,7 +115,6 @@ func (k *KdbService) Info(req *dto_kdb.InfoReq) (res *dto_kdb.InfoRes, err error
 		WordCount:      0,
 		DocumentCount:  0,
 		KdbSetting: dto.KdbSetting{
-			EmbeddingModel: kdbSetting.EmbeddingModel,
 			RetrievalModel: kdbSetting.RetrievalModel,
 		},
 	}

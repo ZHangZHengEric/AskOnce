@@ -15,26 +15,28 @@ import (
 type DocumentData struct {
 	flow.Layer
 	jobdApi *jobd.JobdApi
+	gptData *GptData
 }
 
 func (d *DocumentData) OnCreate() {
 	d.jobdApi = flow.Create(d.GetCtx(), new(jobd.JobdApi))
+	d.gptData = flow.Create(d.GetCtx(), new(GptData))
 }
 
 // 文本切分
-func (d *DocumentData) TextSplit(docName string, content string) (segments []jobd.TextChunkItem, err error) {
-	documentSplitRes, err := d.jobdApi.DocumentSplit(docName, content)
+func (d *DocumentData) TextSplit(content string) (segments []jobd.TextChunkItem, err error) {
+	documentSplitRes, err := d.jobdApi.DocumentSplit(content)
 	if err != nil {
 		return nil, err
 	}
-	segments = documentSplitRes.MoveWindowTextChunk
+	segments = documentSplitRes.SentencesList
 	return segments, nil
 }
 
 // 批量文本转向量
 func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err error) {
 	// 最大批次
-	sentsG := slice.Chunk(texts, 1000)
+	sentsG := slice.Chunk(texts, 30)
 	embResAll = make([][]float32, 0)
 	lock := sync.Mutex{}
 	embResMap := make(map[int][][]float32)
@@ -43,7 +45,7 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 		tmp := ss
 		index := i
 		eg2.Go(func() error {
-			embRes, errA := d.jobdApi.Embedding(tmp)
+			embRes, errA := d.gptData.Embedding(tmp)
 			if errA != nil {
 				return errA
 			}

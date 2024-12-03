@@ -35,41 +35,42 @@ func Http(engine *gin.Engine) {
 		userGroup.POST("/loginByAccount", flow.Use[dto_user.LoginAccountReq](new(user.LoginAccountController)))          // 账户登录
 		userGroup.GET("/loginInfo", middleware.LoginCheck, flow.Use[dto.EmptyReq](new(user.LoginInfoController)))        // 账户信息
 	}
-	knowledgeGroup := router.Group("kdb", middleware.LoginCheck) // 知识库
+	kdbGroup := router.Group("kdb", middleware.LoginCheck) // 知识库
 	{
 		// 封面
-		knowledgeGroup.GET("covers", flow.Use[dto.EmptyReq](new(kdb.CoversController)))
+		kdbGroup.GET("covers", flow.Use[dto.EmptyReq](new(kdb.CoversController)))
 
 		// 列表
-		knowledgeGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))
+		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))
 		// 新增
-		knowledgeGroup.POST("add", flow.Use[dto_kdb.AddReq](new(kdb.AddController)))
+		kdbGroup.POST("add", flow.Use[dto_kdb.AddReq](new(kdb.AddController)))
 		// 修改
-		knowledgeGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController)))
+		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController)))
 		// 删除
-		knowledgeGroup.POST("delete", flow.Use[dto_kdb.DeleteReq](new(kdb.DeleteController)))
+		kdbGroup.POST("delete", flow.Use[dto_kdb.DeleteReq](new(kdb.DeleteController)))
 		// 详情
-		knowledgeGroup.GET("detail", flow.Use[dto_kdb.InfoReq](new(kdb.InfoController)))
+		kdbGroup.GET("detail", flow.Use[dto_kdb.InfoReq](new(kdb.InfoController)))
 		// 删除自己与知识库关系
-		knowledgeGroup.POST("deleteSelf", flow.Use[dto_kdb.DeleteSelfReq](new(kdb.DeleteSelfController)))
+		kdbGroup.POST("deleteSelf", flow.Use[dto_kdb.DeleteSelfReq](new(kdb.DeleteSelfController)))
 		// 判断是否有权限
-		knowledgeGroup.POST("auth", flow.Use[dto_kdb.AuthReq](new(kdb.AuthController)))
+		kdbGroup.POST("auth", flow.Use[dto_kdb.AuthReq](new(kdb.AuthController)))
 
 		// 知识库用户列表
-		knowledgeGroup.POST("userList", flow.Use[dto_kdb.UserListReq](new(kdb.UserListController)))
+		kdbGroup.POST("userList", flow.Use[dto_kdb.UserListReq](new(kdb.UserListController)))
 		// 用户查询
-		knowledgeGroup.POST("userQuery", flow.Use[dto_kdb.UserQueryReq](new(kdb.UserQueryController)))
+		kdbGroup.POST("userQuery", flow.Use[dto_kdb.UserQueryReq](new(kdb.UserQueryController)))
 		// 知识库用户新增
-		knowledgeGroup.POST("userAdd", flow.Use[dto_kdb.UserAddReq](new(kdb.UserAddController)))
+		kdbGroup.POST("userAdd", flow.Use[dto_kdb.UserAddReq](new(kdb.UserAddController)))
 		// 知识库用户删除
-		knowledgeGroup.POST("userDelete", flow.Use[dto_kdb.UserDeleteReq](new(kdb.UserDeleteController)))
+		kdbGroup.POST("userDelete", flow.Use[dto_kdb.UserDeleteReq](new(kdb.UserDeleteController)))
 		// 知识库分享码生成
-		knowledgeGroup.POST("shareCodeGen", flow.Use[dto_kdb.GenShareCodeReq](new(kdb.GenShareCodeController))) // 知识库用户删除
+		kdbGroup.POST("shareCodeGen", flow.Use[dto_kdb.GenShareCodeReq](new(kdb.GenShareCodeController))) // 知识库用户删除
 		// 知识库分享码验证
-		knowledgeGroup.POST("shareCodeVerify", flow.Use[dto_kdb.VerifyShareCodeReq](new(kdb.VerifyShareCodeController))) // 知识库用户删除
+		kdbGroup.POST("shareCodeVerify", flow.Use[dto_kdb.VerifyShareCodeReq](new(kdb.VerifyShareCodeController))) // 知识库用户删除
 		// 知识库分享码信息
-		knowledgeGroup.GET("shareCodeInfo", flow.Use[dto_kdb.InfoShareCodeReq](new(kdb.ShareCodeInfoController))) // 知识库用户删除
-		docGroup := knowledgeGroup.Group("doc")
+		kdbGroup.GET("shareCodeInfo", flow.Use[dto_kdb.InfoShareCodeReq](new(kdb.ShareCodeInfoController))) // 知识库用户删除
+		// 召回测试
+		docGroup := kdbGroup.Group("doc")
 		{
 			// 列表
 			docGroup.POST("list", flow.Use[dto_kdb_doc.ListReq](new(kdb.DocListController)))
@@ -79,8 +80,7 @@ func Http(engine *gin.Engine) {
 			docGroup.POST("delete", flow.Use[dto_kdb_doc.DeleteReq](new(kdb.DocDeleteController)))
 			// 重做
 			docGroup.POST("redo", flow.Use[dto_kdb_doc.RedoReq](new(kdb.DocRedoController)))
-			// 召回测试
-			knowledgeGroup.POST("recall", flow.Use[dto_kdb_doc.RecallReq](new(kdb.RecallController)))
+			docGroup.POST("recall", flow.Use[dto_kdb_doc.RecallReq](new(kdb.RecallController)))
 		}
 	}
 	configGroup := router.Group("config", middleware.LoginCheck)

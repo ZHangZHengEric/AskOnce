@@ -27,6 +27,12 @@ minioConf:
 esConf:
   addr: ${BACKEND_ES_ADDR}
 
+embeddingModelConf:
+  source: skylark
+  addr: https://ark.cn-beijing.volces.com
+  ak: ${BACKEND_EMBEDDING_MODEL_AK}
+  model: ep-20241202225908-h99mn
+
 api:
   jobd:
     # 调用下游的服务名称
@@ -38,4 +44,4 @@ api:
     # 重试次数，最多执行retry+1次
     retry: 2
 
-esDbConfig: "{\"mappings_config\":{\"index_name\":\"${indexName}\",\"mappings\":{\"properties\":{\"doc_id\":{\"type\":\"keyword\",\"index\":\"false\"},\"doc_content\":{\"type\":\"text\",\"index\":\"true\",\"analyzer\": \"my_ana\",\"similarity\": \"my_similarity\"},\"emb\":{\"type\":\"dense_vector\",\"dims\":1024,\"similarity\":\"cosine\"},\"data_split_id\":{\"type\":\"keyword\",\"index\":\"false\"}}},\"bm25_field\":\"doc_content\",\"emb_fields\":\"emb\"}}"
+esDbConfig: "{\"mappings_config\":{\"index_name\":\"@indexName@\",\"mappings\":{\"properties\":{\"doc_id\":{\"type\":\"keyword\",\"index\":\"false\"},\"doc_content\":{\"type\":\"text\",\"index\":\"true\",\"analyzer\": \"my_ana\",\"similarity\": \"my_similarity\"},\"emb\":{\"type\":\"dense_vector\",\"dims\":4096,\"similarity\":\"cosine\"},\"data_split_id\":{\"type\":\"keyword\",\"index\":\"false\"}}},\"bm25_field\":\"doc_content\",\"emb_fields\":\"emb\"}}"
