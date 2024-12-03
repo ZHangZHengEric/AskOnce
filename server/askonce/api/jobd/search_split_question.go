@@ -7,8 +7,7 @@ type SplitQuestionReq struct {
 }
 
 type SplitQuestionRes struct {
-	SubTitles      []string `json:"sub_titles"`
-	SearchContents []string `json:"search_contents"`
+	Questions []string `json:"questions"`
 }
 
 func (entity *JobdApi) SplitQuestion(question string) (res *SplitQuestionRes, err error) {
@@ -16,5 +15,5 @@ func (entity *JobdApi) SplitQuestion(question string) (res *SplitQuestionRes, er
 		Question: question,
 		Id:       "",
 	}
-	return doTaskProcess[*SplitQuestionReq, *SplitQuestionRes](entity, "atom_app_askonce_split_question", input, 100000)
+	return doTaskProcess[*SplitQuestionReq, *SplitQuestionRes](entity, "split_question", input, 100000)
 }

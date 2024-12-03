@@ -20,5 +20,5 @@ func (entity *JobdApi) AnswerOutline(answer string) (res *AnswerOutlineRes, err 
 		Id:     "",
 		Answer: answer,
 	}
-	return doTaskProcess[*AnswerOutlineReq, *AnswerOutlineRes](entity, "atom_app_askonce_generate_outline", input, 100000)
+	return doTaskProcess[*AnswerOutlineReq, *AnswerOutlineRes](entity, "generate_outlines", input, 100000)
 }
