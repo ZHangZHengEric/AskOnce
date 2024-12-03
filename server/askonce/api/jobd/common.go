@@ -70,7 +70,7 @@ func doTaskProcess[K any, V any](entity *JobdApi, taskType string, input K, time
 		err = components.ErrorJobdError
 		return
 	}
-	_ = sonic.Unmarshal([]byte(jobdRes.Output), &output)
+	_ = json.Unmarshal([]byte(jobdRes.Output), &output)
 	return output, nil
 }
 

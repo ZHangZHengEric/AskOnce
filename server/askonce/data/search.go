@@ -14,7 +14,6 @@ import (
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/datatypes"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -105,7 +104,7 @@ type EsCommonSearch struct {
 }
 
 type EsCommonSearchResult struct {
-	Id          string
+	Id          int64
 	Title       string
 	Url         string
 	Content     string
@@ -134,16 +133,16 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	uniqueMap := make(map[string]int)
 	recalls2 := make([]jobd.ESSearchOutput, 0)
 	for _, recall := range recalls {
-		if _, ok := uniqueMap[recall.Source.DocId+recall.Source.DocContent]; !ok {
+		uniqueCode := fmt.Sprintf("%v%s", recall.Source.DocId, recall.Source.DocContent)
+		if _, ok := uniqueMap[uniqueCode]; !ok {
 			recalls2 = append(recalls2, recall)
-			uniqueMap[recall.Source.DocId+recall.Source.DocContent] = 1
+			uniqueMap[uniqueCode] = 1
 		}
 	}
 	var dataIds []int64
 	dataSearchMap := make(map[int]jobd.SearchOutputSource)
 	for i, result := range recalls2 {
-		dataIdInt, _ := strconv.ParseInt(result.Source.DocId, 10, 64)
-		dataIds = append(dataIds, dataIdInt)
+		dataIds = append(dataIds, result.Source.DocId)
 		dataSearchMap[i] = result.Source
 	}
 	dataContents, err := entity.kdbDocContentDao.GetByDataIds(dataIds)
@@ -173,7 +172,7 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 		filePathMap[file.Id] = file.Path
 	}
 	for i, result := range recalls2 {
-		dataIdInt, _ := strconv.ParseInt(result.Source.DocId, 10, 64)
+		dataIdInt := result.Source.DocId
 		ddd, ok := docMap[dataIdInt]
 		if !ok {
 			continue
