@@ -10,7 +10,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/datatypes"
@@ -127,16 +126,6 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	}
 	if len(recalls) == 0 {
 		return
-	}
-	recallResults := slice.FlatMap(recalls, func(index int, item jobd.ESSearchOutput) []string {
-		return []string{item.Source.DocContent}
-	})
-	rankScores, err := entity.jobdApi.Rerank(input.Query, recallResults)
-	if err != nil {
-		return
-	}
-	for i := range recalls {
-		recalls[i].Score = rankScores[i]
 	}
 	sort.Slice(recalls, func(i, j int) bool {
 		return recalls[i].Score > recalls[j].Score
