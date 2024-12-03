@@ -35,7 +35,7 @@ def unmarshal_task_input(GetTaskResp : dict):
 def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
-        result_all = {} 
+        result_all = {'answer':''} 
         print(task_input.answer_style)
         if task_input.answer_style =='simplify':
             result  = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
@@ -49,7 +49,7 @@ def process(task_input,task_type,model,args,tm):
         if task_input.is_stream:
             is_update = 0
             for content_part in result:
-                result_all['answer'] = content_part
+                result_all['answer'] += content_part
                 try:
                     # print(result_all)
                     if is_update % 4==0: 
