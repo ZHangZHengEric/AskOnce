@@ -228,11 +228,11 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 	s.EchoRes("start", "")
 	askDirect := false
 	if req.KdbId == 0 { // 互联网判断是否要搜索
-		judgeRes, err := s.jobdApi.QuestionSearchJudge([]string{req.Question})
+		judgeRes, err := s.jobdApi.NetRagAssessment(req.Question)
 		if err != nil {
-			s.LogErrorf("QuestionSearchJudge err %s", err.Error())
+			s.LogErrorf("NetRagAssessment err %s", err.Error())
 		} else {
-			if judgeRes.NeedSearch[0] == false {
+			if judgeRes.Result {
 				askDirect = true
 			}
 		}
