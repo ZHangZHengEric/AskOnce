@@ -35,17 +35,17 @@ def process(task_input,task_type,model,args,tm):
             search_type = task_input.search_type
             return_fields = task_input.return_fields
             if search_type == "vec":
-                search_results = model.emb_search(search_body[0], return_fields)
+                search_results = model.emb_search(search_body[0],task_input.mapper_config, return_fields)
             elif search_type == "bm25":
-                search_results = model.bm25_search(search_body[0], return_fields)
+                search_results = model.bm25_search(search_body[0],task_input.mapper_config, return_fields)
             elif search_type == "all":
                 if 'knn' in search_body[0].keys():
-                    vec_search_results = model.emb_search(search_body[0],return_fields)
-                    bm25_search_results = model.bm25_search(search_body[1],return_fields)
+                    vec_search_results = model.emb_search(search_body[0],task_input.mapper_config,return_fields)
+                    bm25_search_results = model.bm25_search(search_body[1],task_input.mapper_config,return_fields)
                     search_results = vec_search_results + bm25_search_results
                 else:
-                    vec_search_results = model.emb_search(search_body[1],return_fields)
-                    bm25_search_results = model.bm25_search(search_body[0],return_fields)
+                    vec_search_results = model.emb_search(search_body[1],task_input.mapper_config,return_fields)
+                    bm25_search_results = model.bm25_search(search_body[0],task_input.mapper_config,return_fields)
                     search_results = vec_search_results + bm25_search_results
             print(f"es8检索耗时：{(time.time() - start_time)} ms")
             return search_results
