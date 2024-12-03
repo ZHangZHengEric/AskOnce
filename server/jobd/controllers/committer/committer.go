@@ -41,7 +41,7 @@ func (entity *DoTaskStreamCtl) Action(req *dto.DoTaskReq) (res interface{}, err 
 		fmt.Fprintf(entity.GetCtx().Writer, "%s\n", str)
 		flusher.Flush()
 	}
-	return nil, err
+	return nil, nil
 }
 
 type CommitCtl struct {
