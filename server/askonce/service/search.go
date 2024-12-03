@@ -247,14 +247,14 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 		case "complex":
 			askContext.AnswerStyle = "detailed"
 			err = s.AskComplex(askContext)
-		case "research":
-			if req.KdbId > 0 {
-				askContext.AnswerStyle = "detailed"
-				err = s.AskComplex(askContext)
-			} else {
-				askContext.AnswerStyle = "detailed_no_chapter"
-				err = s.AskResearch(askContext)
-			}
+		//case "research":
+		//	if req.KdbId > 0 {
+		//		askContext.AnswerStyle = "detailed"
+		//		err = s.AskComplex(askContext)
+		//	} else {
+		//		askContext.AnswerStyle = "detailed_no_chapter"
+		//		err = s.AskResearch(askContext)
+		//	}
 		default:
 			return errors.ErrorParamInvalid
 		}
@@ -271,7 +271,7 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 func (s *SearchService) AskDirect(req AskContext) (err error) {
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 	// 开始回答
-	answer, echoRefers, err := s.askChat(req, nil, nil)
+	answer, echoRefers, err := s.askChat(req, req.AnswerStyle, nil)
 	if err != nil {
 		return components.ErrorChatError
 	}
@@ -316,30 +316,25 @@ func (s *SearchService) AskSimple(req AskContext) (err error) {
 	}
 	if req.AnswerStyle == "detailed" {
 		go func(entity *SearchService) {
-			first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResult)
-			if err != nil {
-				entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
-			}
-			second, err := entity.jobdApi.DeduplicationRelateInfo(first)
-			if err != nil {
-				entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
-			}
-			relateStr, _ := json.Marshal(second)
-			err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
-			if err != nil {
-				return
-			}
+			//first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResult)
+			//if err != nil {
+			//	entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
+			//}
+			//second, err := entity.jobdApi.DeduplicationRelateInfo(first)
+			//if err != nil {
+			//	entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
+			//}
+			//relateStr, _ := json.Marshal(second)
+			//err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
+			//if err != nil {
+			//	return
+			//}
 			entity.EchoRes("relate", "done")
 		}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 	}
-	// 处理prompt
-	promptRes, err := s.jobdApi.SimpleQAConstruct(req.Question, req.AnswerStyle, searchResult)
-	if err != nil {
-		return components.ErrorJobdError
-	}
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 	// 开始回答
-	answer, echoRefers, err := s.askChat(req, promptRes, searchResult)
+	answer, echoRefers, err := s.askChat(req, req.AnswerStyle, searchResult)
 	if err != nil {
 		return components.ErrorChatError
 	}
@@ -362,14 +357,14 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 	if err != nil {
 		return components.ErrorJobdError
 	}
-	if len(splitRes.SubTitles) == 0 {
+	if len(splitRes.Questions) == 0 {
 		s.EchoRes("analyze", fmt.Sprintf("分析问题为: %s", req.Question))
 		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s", req.Question))
 	} else {
-		s.EchoRes("analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.SubTitles, ";")))
-		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.SubTitles, ";")))
+		s.EchoRes("analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.Questions, ";")))
+		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.Questions, ";")))
 	}
-	if len(splitRes.SearchContents) <= 1 {
+	if len(splitRes.Questions) <= 1 {
 		return s.AskSimple(req)
 	}
 	s.EchoRes("search", "")
@@ -383,9 +378,9 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 	// 处理拆分问题的单个回答
 	eg0, _ := errgroup.WithContext(s.GetCtx())
 	lock0 := sync.Mutex{}
-	for i, subQ := range splitRes.SubTitles {
+	for i, subQ := range splitRes.Questions {
 		tmpQ := subQ
-		tmpSearchContent := splitRes.SearchContents[i]
+		tmpSearchContent := splitRes.Questions[i]
 		eg0.Go(func() (err error) {
 			searchResult, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, tmpSearchContent, req.KdbId, req.UserId)
 			if err != nil {
@@ -424,60 +419,36 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 		return
 	}
 	go func(entity *SearchService) {
-		first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResultAll)
-		if err != nil {
-			entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
-		}
-		second, err := entity.jobdApi.DeduplicationRelateInfo(first)
-		if err != nil {
-			entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
-		}
-		relateStr, _ := json.Marshal(second)
-		err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
-		if err != nil {
-			return
-		}
+		//first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResultAll)
+		//if err != nil {
+		//	entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
+		//}
+		//second, err := entity.jobdApi.DeduplicationRelateInfo(first)
+		//if err != nil {
+		//	entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
+		//}
+		//relateStr, _ := json.Marshal(second)
+		//err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
+		//if err != nil {
+		//	return
+		//}
 		entity.EchoRes("relation", "done")
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 
 	subAnswerAllMap := make(map[int]string)
 	eg1, _ := errgroup.WithContext(s.GetCtx())
 	lock1 := sync.Mutex{}
-	for i, subQ := range splitRes.SubTitles {
+	for i, subQ := range splitRes.Questions {
 		tmpQ := subQ
 		tmpSearchResult := searchResultAllMap[tmpQ]
 		tmpIndex := i
 		eg1.Go(func() (err error) {
-			// 处理prompt
-			promptRes, err := s.jobdApi.SimpleQAConstruct(tmpQ, req.AnswerStyle, tmpSearchResult)
-			if err != nil {
-				return
-			}
-
-			prompt := tmpQ
-			var temperature float64
-			var maxNewTokens int
-			if len(promptRes.Prompt) > 0 {
-				prompt = promptRes.Prompt
-				temperature = promptRes.GenerateParam.Temperature
-				maxNewTokens = promptRes.GenerateParam.MaxNewTokens
-			}
-			chatReq := &dto_gpt.ChatCompletionReq{
-				Messages: []dto_gpt.ChatCompletionMessage{
-					{
-						Role:    "Human",
-						Content: prompt + req.PromptI18n,
-					},
-				},
-				Temperature: temperature,
-				MaxTokens:   maxNewTokens,
-			}
-			subAnswer, _, err := s.chatData.ChatSync(req.ModelType, req.UserId, chatReq)
+			subAnswer, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, tmpSearchResult)
 			if err != nil {
 				return
 			}
 			lock1.Lock()
-			subAnswerAllMap[tmpIndex] = subAnswer
+			subAnswerAllMap[tmpIndex] = subAnswer.Answer
 			lock1.Unlock()
 			return nil
 		})
@@ -487,22 +458,18 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 	}
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 	var subAnswerAll []string
-	for i := range splitRes.SubTitles {
+	for i := range splitRes.Questions {
 		subAnswerAll = append(subAnswerAll, subAnswerAllMap[i])
 	}
-	promptRes, err := s.jobdApi.MergeAnswers(req.Question, splitRes.SubTitles, subAnswerAll)
-	if err != nil {
-		return components.ErrorChatError
-	}
 	// 开始回答
-	answer, echoRefers, err := s.askChat(req, promptRes, searchResultAll)
+	answer, echoRefers, err := s.askChat(req, req.AnswerStyle, searchResultAll)
 	if err != nil {
 		return components.ErrorChatError
 	}
 	s.saveRes(req.SessionId, "summary", "整理答案结束")
 	// 保存记录
 	go func(entity *SearchService) {
-		_ = entity.askRecordUpdate(req.DbData, splitRes.SubTitles, answer, echoRefers)
+		_ = entity.askRecordUpdate(req.DbData, splitRes.Questions, answer, echoRefers)
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 	// 生成大纲
 	s.askOutline(req.SessionId, answer)
@@ -511,146 +478,142 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 	return
 }
 
-func (s *SearchService) AskResearch(req AskContext) (err error) {
-	s.EchoRes("search", "")
-	s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
-	searchResult := make([]dto_search.CommonSearchOutput, 0)
-	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
-	if err != nil {
-		return components.ErrorQueryError
-	}
-	if len(searchResult) == 0 {
-		return components.ErrorQueryEmpty
-	}
-	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResult)))
-	s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResult)))
-	oreferenceStr, _ := json.Marshal(searchResult)
-	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": oreferenceStr})
-	if err != nil {
-		return
-	}
-	keyPointsRes, err := s.jobdApi.GenerateAnswerKeyPoints(req.Question, searchResult)
-	if err != nil {
-		return components.ErrorChatError
-	}
-	keyPoints := keyPointsRes.AnswerKeyPoints
-	if len(keyPoints) == 0 {
-		return components.ErrorQueryEmpty
-	}
-	moreKeyPoints := make([]string, 0)
-	wg3 := sync.WaitGroup{}
-	wg3.Add(1)
-	go func(entity *SearchService) {
-		defer func() {
-			wg3.Done()
-		}()
-		moreKeyPointRes, err := entity.jobdApi.GenerateMoreKeyPoints(req.Question, keyPointsRes.AnswerKeyPoints)
-		if err != nil {
-			entity.LogErrorf("GenerateMoreKeyPoints err %v", err.Error())
-			return
-		}
-		if len(moreKeyPointRes.MoreKeyPoints) > 0 {
-			moreKeyPoints = append(moreKeyPoints, moreKeyPointRes.MoreKeyPoints...)
-		}
-	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-	// 并发处理相关信息
-	go func(entity *SearchService) {
-		first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResult)
-		if err != nil {
-			entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
-		}
-		second, err := entity.jobdApi.DeduplicationRelateInfo(first)
-		if err != nil {
-			entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
-		}
-		relateStr, _ := json.Marshal(second)
-		err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
-		if err != nil {
-			return
-		}
-		entity.EchoRes("relate", "done")
-	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-	// 按顺序输出
-	s.saveRes(req.SessionId, "summary", "整理答案开始")
-	s.EchoRes("generate", "")
-	answerAll := ""
-	echoReferAll := []DoReferItem{}
-	beginIndex := 0
-	kpointTree, allPath := jobd.ReturnTree(keyPoints)
-
-	answerAll, echoReferAll, beginIndex, err = s.treeAskForResearch(kpointTree, answerAll, echoReferAll, beginIndex, req, searchResult, keyPoints)
-	if err != nil {
-		return components.ErrorChatError
-	}
-	wg3.Wait()
-	morePointDone := false
-	searchResultUnique := make(map[string]bool)
-	for _, output := range searchResult {
-		unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
-		if searchResultUnique[unique] {
-			continue
-		}
-		searchResultUnique[unique] = true
-	}
-	for _, point := range moreKeyPoints {
-		point = strings.Replace(point, "#", "", -1)
-		point = strings.TrimSpace(point)
-		srTmp, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
-		if err != nil {
-			continue
-		}
-		for _, output := range srTmp {
-			unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
-			if searchResultUnique[unique] {
-				continue
-			}
-			searchResultUnique[unique] = true
-			searchResult = append(searchResult, output)
-		}
-		orferenceStr2, _ := json.Marshal(searchResult)
-		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": orferenceStr2})
-		if err != nil {
-			continue
-		}
-		s.EchoRes("refreshSearch", fmt.Sprintf("再次搜索到%v条相关内容", len(searchResult)))
-
-		// 处理prompt
-		promptRes, err := s.jobdApi.SimpleQAConstruct(point, "simplify", searchResult)
-		if err != nil {
-			continue
-		}
-		zhanwei := ""
-		if morePointDone {
-			zhanwei = fmt.Sprintf("\n\n ## %s\n\n", point)
-		} else {
-			zhanwei = fmt.Sprintf("\n\n# %s\n\n ## %s\n\n", "更多问题", point)
-			morePointDone = true
-		}
-		s.EchoRes("appendText", zhanwei)
-		zhanweil := len([]rune(zhanwei))
-		// 开始回答
-		beginIndex = beginIndex + zhanweil
-		answer, echoRefers, err := s.askChatForResearch(req, promptRes, searchResult, beginIndex, echoReferAll)
-		if err != nil {
-			return components.ErrorChatError
-		}
-		answerAll = answerAll + zhanwei + answer
-		beginIndex = beginIndex + len([]rune(answer))
-		echoReferAll = echoRefers
-
-	}
-	s.EchoRes("complete", answerAll)
-	s.saveRes(req.SessionId, "summary", "整理答案结束")
-	// 保存记录
-	go func(entity *SearchService) {
-		_ = entity.askRecordUpdate(req.DbData, allPath, answerAll, echoReferAll)
-	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-	// 生成大纲
-	s.askOutline(req.SessionId, answerAll)
-	s.EchoRes("outline", "done")
-
-	return
-}
+//
+//func (s *SearchService) AskResearch(req AskContext) (err error) {
+//	s.EchoRes("search", "")
+//	s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
+//	searchResult := make([]dto_search.CommonSearchOutput, 0)
+//	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
+//	if err != nil {
+//		return components.ErrorQueryError
+//	}
+//	if len(searchResult) == 0 {
+//		return components.ErrorQueryEmpty
+//	}
+//	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResult)))
+//	s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResult)))
+//	oreferenceStr, _ := json.Marshal(searchResult)
+//	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": oreferenceStr})
+//	if err != nil {
+//		return
+//	}
+//	keyPointsRes, err := s.jobdApi.GenerateAnswerKeyPoints(req.Question, searchResult)
+//	if err != nil {
+//		return components.ErrorChatError
+//	}
+//	keyPoints := keyPointsRes.AnswerKeyPoints
+//	if len(keyPoints) == 0 {
+//		return components.ErrorQueryEmpty
+//	}
+//	moreKeyPoints := make([]string, 0)
+//	wg3 := sync.WaitGroup{}
+//	wg3.Add(1)
+//	go func(entity *SearchService) {
+//		defer func() {
+//			wg3.Done()
+//		}()
+//		moreKeyPointRes, err := entity.jobdApi.GenerateMoreKeyPoints(req.Question, keyPointsRes.AnswerKeyPoints)
+//		if err != nil {
+//			entity.LogErrorf("GenerateMoreKeyPoints err %v", err.Error())
+//			return
+//		}
+//		if len(moreKeyPointRes.MoreKeyPoints) > 0 {
+//			moreKeyPoints = append(moreKeyPoints, moreKeyPointRes.MoreKeyPoints...)
+//		}
+//	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+//	// 并发处理相关信息
+//	go func(entity *SearchService) {
+//		//first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResult)
+//		//if err != nil {
+//		//	entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
+//		//}
+//		//second, err := entity.jobdApi.DeduplicationRelateInfo(first)
+//		//if err != nil {
+//		//	entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
+//		//}
+//		//relateStr, _ := json.Marshal(second)
+//		//err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
+//		//if err != nil {
+//		//	return
+//		//}
+//		entity.EchoRes("relate", "done")
+//	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+//	// 按顺序输出
+//	s.saveRes(req.SessionId, "summary", "整理答案开始")
+//	s.EchoRes("generate", "")
+//	answerAll := ""
+//	echoReferAll := []DoReferItem{}
+//	beginIndex := 0
+//	kpointTree, allPath := jobd.ReturnTree(keyPoints)
+//
+//	answerAll, echoReferAll, beginIndex, err = s.treeAskForResearch(kpointTree, answerAll, echoReferAll, beginIndex, req, searchResult, keyPoints)
+//	if err != nil {
+//		return components.ErrorChatError
+//	}
+//	wg3.Wait()
+//	morePointDone := false
+//	searchResultUnique := make(map[string]bool)
+//	for _, output := range searchResult {
+//		unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
+//		if searchResultUnique[unique] {
+//			continue
+//		}
+//		searchResultUnique[unique] = true
+//	}
+//	for _, point := range moreKeyPoints {
+//		point = strings.Replace(point, "#", "", -1)
+//		point = strings.TrimSpace(point)
+//		srTmp, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
+//		if err != nil {
+//			continue
+//		}
+//		for _, output := range srTmp {
+//			unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
+//			if searchResultUnique[unique] {
+//				continue
+//			}
+//			searchResultUnique[unique] = true
+//			searchResult = append(searchResult, output)
+//		}
+//		orferenceStr2, _ := json.Marshal(searchResult)
+//		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": orferenceStr2})
+//		if err != nil {
+//			continue
+//		}
+//		s.EchoRes("refreshSearch", fmt.Sprintf("再次搜索到%v条相关内容", len(searchResult)))
+//
+//		zhanwei := ""
+//		if morePointDone {
+//			zhanwei = fmt.Sprintf("\n\n ## %s\n\n", point)
+//		} else {
+//			zhanwei = fmt.Sprintf("\n\n# %s\n\n ## %s\n\n", "更多问题", point)
+//			morePointDone = true
+//		}
+//		s.EchoRes("appendText", zhanwei)
+//		zhanweil := len([]rune(zhanwei))
+//		// 开始回答
+//		beginIndex = beginIndex + zhanweil
+//		answer, echoRefers, err := s.askChatForResearch(req, searchResult, beginIndex, echoReferAll)
+//		if err != nil {
+//			return components.ErrorChatError
+//		}
+//		answerAll = answerAll + zhanwei + answer
+//		beginIndex = beginIndex + len([]rune(answer))
+//		echoReferAll = echoRefers
+//
+//	}
+//	s.EchoRes("complete", answerAll)
+//	s.saveRes(req.SessionId, "summary", "整理答案结束")
+//	// 保存记录
+//	go func(entity *SearchService) {
+//		_ = entity.askRecordUpdate(req.DbData, allPath, answerAll, echoReferAll)
+//	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+//	// 生成大纲
+//	s.askOutline(req.SessionId, answerAll)
+//	s.EchoRes("outline", "done")
+//
+//	return
+//}
 
 func IsCompleted(answer string, status string, doneAnswer string) (string, int) {
 	begin := len([]rune(doneAnswer))
@@ -699,9 +662,9 @@ func (s *SearchService) referDo(begin int, needReference string, searchResult []
 		referStrList = append(referStrList, o.Content)
 	}
 
-	referenceRes, err := s.jobdApi.AtomResultReference(needReference, referStrList)
+	referenceRes, err := s.jobdApi.ResultAddReference(needReference, referStrList)
 	if err != nil {
-		zlog.Errorf(s.GetCtx(), "AtomResultReference error %s", err.Error())
+		zlog.Errorf(s.GetCtx(), "ResultAddReference error %s", err.Error())
 		return
 	}
 	for _, referenceMap := range referenceRes.ReferenceMap {
@@ -849,46 +812,30 @@ func (s *SearchService) Unlike(req *dto_search.UnlikeReq) (res interface{}, err 
 	return
 }
 
-func (s *SearchService) askChat(req AskContext, promptRes *jobd.SimpleQAConstructRes, searchResult []dto_search.CommonSearchOutput) (answer string, echoRefers []DoReferItem, err error) {
-	prompt := req.Question
-	var temperature float64
-	var maxNewTokens int
-	if promptRes != nil && len(promptRes.Prompt) > 0 {
-		prompt = promptRes.Prompt
-		temperature = promptRes.GenerateParam.Temperature
-		maxNewTokens = promptRes.GenerateParam.MaxNewTokens
-	}
-	chatReq := &dto_gpt.ChatCompletionReq{
-		Messages: []dto_gpt.ChatCompletionMessage{
-			{
-				Role:    "Human",
-				Content: prompt + req.PromptI18n,
-			},
-		},
-		Temperature: temperature,
-		MaxTokens:   maxNewTokens,
-	}
+func (s *SearchService) askChat(req AskContext, answerStyle string, searchResult []dto_search.CommonSearchOutput) (answer string, echoRefers []DoReferItem, err error) {
 	// 生成答案 + 引用
 	alreadyReferAnswer := ""
 	wg := sync.WaitGroup{}
 	lock := sync.Mutex{}
 	first := true
-	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
+	err = s.jobdApi.AnswerByDocuments(req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
 		if first {
 			s.EchoRes("generate", "")
 			first = false
 		}
+		chatAnswer := jobd.AnswerByDocumentsRes{}
+		_ = json.Unmarshal([]byte(jobdRes.Output), &chatAnswer)
 		currentAnswer := chatAnswer.Answer
 		// 对话展示逻辑
 		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
+		if len([]rune(echoAnswer)) <= 10 && jobdRes.Status != "FINISH" {
 			return nil
 		}
 		s.EchoRes("appendText", echoAnswer)
 		answer = chatAnswer.Answer
 		if len(searchResult) > 0 {
 			// 引用判断逻辑
-			needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
+			needReference, begin := IsCompleted(currentAnswer, jobdRes.Status, alreadyReferAnswer)
 			if len(needReference) > 0 {
 				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
 				wg.Add(1)
@@ -922,20 +869,14 @@ func (s *SearchService) askChat(req AskContext, promptRes *jobd.SimpleQAConstruc
 	})
 	wg.Wait()
 	s.EchoRes("complete", answer)
-
 	return
 }
 
-func (s *SearchService) askChatForResearch(req AskContext, promptRes *jobd.SimpleQAConstructRes, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []DoReferItem) (answer string, echoRefers []DoReferItem, err error) {
+func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []DoReferItem) (answer string, echoRefers []DoReferItem, err error) {
 	echoRefers = append(echoRefers, echoReferAll...)
 	prompt := req.Question
 	var temperature float64
 	var maxNewTokens int
-	if promptRes != nil && len(promptRes.Prompt) > 0 {
-		prompt = promptRes.Prompt
-		temperature = promptRes.GenerateParam.Temperature
-		maxNewTokens = promptRes.GenerateParam.MaxNewTokens
-	}
 	chatReq := &dto_gpt.ChatCompletionReq{
 		Messages: []dto_gpt.ChatCompletionMessage{
 			{
@@ -1040,36 +981,36 @@ func (s *SearchService) Relation(req *dto_search.RelationReq) (res *dto_search.R
 	if askInfo == nil {
 		return
 	}
-	var mapResult = make(map[string]string)
-	_ = json.Unmarshal(askInfo.Answer, &mapResult)
-	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
-	if err != nil {
-		return
-	}
-	if askAttach == nil {
-		return
-	}
-	relationObj := &jobd.GenerateRelateInfoRes{}
-	_ = json.Unmarshal(askAttach.Relation, &relationObj)
-	for _, info := range relationObj.PeopleInfo {
-		res.PeopleInfo = append(res.PeopleInfo, dto_search.RelatePeopleInfo{
-			PersonName:     info.PersonName,
-			PersonDescribe: info.PersonDescribe,
-		})
-	}
-	for _, info := range relationObj.EventsInfo {
-		res.EventsInfo = append(res.EventsInfo, dto_search.RelateEventsInfo{
-			EventName:     info.EventName,
-			EventDate:     info.EventDate,
-			EventDescribe: info.EventDescribe,
-		})
-	}
-	for _, info := range relationObj.OrgsInfo {
-		res.OrgsInfo = append(res.OrgsInfo, dto_search.RelateOrgInfo{
-			OrgName:     info.OrgName,
-			OrgDescribe: info.OrgDescribe,
-		})
-	}
+	//var mapResult = make(map[string]string)
+	//_ = json.Unmarshal(askInfo.Answer, &mapResult)
+	//askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
+	//if err != nil {
+	//	return
+	//}
+	//if askAttach == nil {
+	//	return
+	//}
+	//relationObj := &jobd.GenerateRelateInfoRes{}
+	//_ = json.Unmarshal(askAttach.Relation, &relationObj)
+	//for _, info := range relationObj.PeopleInfo {
+	//	res.PeopleInfo = append(res.PeopleInfo, dto_search.RelatePeopleInfo{
+	//		PersonName:     info.PersonName,
+	//		PersonDescribe: info.PersonDescribe,
+	//	})
+	//}
+	//for _, info := range relationObj.EventsInfo {
+	//	res.EventsInfo = append(res.EventsInfo, dto_search.RelateEventsInfo{
+	//		EventName:     info.EventName,
+	//		EventDate:     info.EventDate,
+	//		EventDescribe: info.EventDescribe,
+	//	})
+	//}
+	//for _, info := range relationObj.OrgsInfo {
+	//	res.OrgsInfo = append(res.OrgsInfo, dto_search.RelateOrgInfo{
+	//		OrgName:     info.OrgName,
+	//		OrgDescribe: info.OrgDescribe,
+	//	})
+	//}
 	return
 }
 
@@ -1098,40 +1039,37 @@ func (s *SearchService) Process(req *dto_search.ProcessReq) (res *dto_search.Pro
 	return
 }
 
-func (s *SearchService) treeAskForResearch(tree []*jobd.KeyPointNode, answerAll string, echoReferAll []DoReferItem, beginIndex int, req AskContext, searchResult []dto_search.CommonSearchOutput, keyPoints []jobd.AnswerKeyPointsItem) (string, []DoReferItem, int, error) {
-	if len(tree) == 0 {
-		return answerAll, echoReferAll, beginIndex, nil
-	}
-	var err error
-	for _, node := range tree {
-		answerAll, echoReferAll, beginIndex, err = s.treeAskForResearch(node.Children, answerAll, echoReferAll, beginIndex, req, searchResult, keyPoints)
-		// 处理prompt
-		promptRes, err := s.jobdApi.ResearchQAConstruct(node.FullPath, req.AnswerStyle, searchResult, node.Content, keyPoints)
-		if err != nil {
-			return answerAll, echoReferAll, beginIndex, components.ErrorJobdError
-		}
-		zhanwei := ""
-		if node.Level == "h1" {
-			zhanwei = fmt.Sprintf("\n\n # %s\n\n", node.Content)
-		} else if node.Level == "h2" {
-			zhanwei = fmt.Sprintf("\n\n ## %s\n\n", node.Content)
-		} else if node.Level == "h3" {
-			zhanwei = fmt.Sprintf("\n\n ### %s\n\n", node.Content)
-		}
-		s.EchoRes("appendText", zhanwei)
-		zhanweil := len([]rune(zhanwei))
-		// 开始回答
-		beginIndex = beginIndex + zhanweil
-		answer, echoRefers, err := s.askChatForResearch(req, promptRes, searchResult, beginIndex, echoReferAll)
-		if err != nil {
-			return answerAll, echoReferAll, beginIndex, components.ErrorChatError
-		}
-		answerAll = answerAll + zhanwei + answer
-		beginIndex = beginIndex + len([]rune(answer))
-		echoReferAll = append(echoReferAll, echoRefers...)
-	}
-	return answerAll, echoReferAll, beginIndex, err
-}
+//
+//func (s *SearchService) treeAskForResearch(tree []*jobd.KeyPointNode, answerAll string, echoReferAll []DoReferItem, beginIndex int, req AskContext, searchResult []dto_search.CommonSearchOutput, keyPoints []jobd.AnswerKeyPointsItem) (string, []DoReferItem, int, error) {
+//	if len(tree) == 0 {
+//		return answerAll, echoReferAll, beginIndex, nil
+//	}
+//	var err error
+//	for _, node := range tree {
+//		answerAll, echoReferAll, beginIndex, err = s.treeAskForResearch(node.Children, answerAll, echoReferAll, beginIndex, req, searchResult, keyPoints)
+//
+//		zhanwei := ""
+//		if node.Level == "h1" {
+//			zhanwei = fmt.Sprintf("\n\n # %s\n\n", node.Content)
+//		} else if node.Level == "h2" {
+//			zhanwei = fmt.Sprintf("\n\n ## %s\n\n", node.Content)
+//		} else if node.Level == "h3" {
+//			zhanwei = fmt.Sprintf("\n\n ### %s\n\n", node.Content)
+//		}
+//		s.EchoRes("appendText", zhanwei)
+//		zhanweil := len([]rune(zhanwei))
+//		// 开始回答
+//		beginIndex = beginIndex + zhanweil
+//		answer, echoRefers, err := s.askChatForResearch(req, searchResult, beginIndex, echoReferAll)
+//		if err != nil {
+//			return answerAll, echoReferAll, beginIndex, components.ErrorChatError
+//		}
+//		answerAll = answerAll + zhanwei + answer
+//		beginIndex = beginIndex + len([]rune(answer))
+//		echoReferAll = append(echoReferAll, echoRefers...)
+//	}
+//	return answerAll, echoReferAll, beginIndex, err
+//}
 
 func (s *SearchService) Recall(req *dto_kdb_doc.RecallReq) (res *dto_kdb_doc.RecallRes, err error) {
 	userInfo, err := utils.LoginInfo(s.GetCtx())

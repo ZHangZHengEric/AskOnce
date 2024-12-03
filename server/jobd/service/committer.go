@@ -1,10 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
+	"github.com/xiangtao94/golib/pkg/sse"
 	"jobd/components"
 	"jobd/components/defines"
 	"jobd/components/dto"
@@ -47,6 +49,70 @@ func (entity *CommitterService) Commit(req *dto.CommitReq) (resp *dto.CommitResp
 		return nil, err
 	}
 	resp.TaskId = taskId
+	return
+}
+
+func (entity *CommitterService) DoTaskStream(req *dto.DoTaskReq) (err error) {
+	// 计算超时
+	var Timeout time.Duration
+	if req.TimeoutMs == 0 {
+		Timeout = 3600000 * time.Millisecond
+	} else {
+		Timeout = time.Duration(req.TimeoutMs) * time.Millisecond
+	}
+	now := time.Now()
+	if len(req.SessionId) == 0 {
+		req.SessionId = uuid.New().String()
+	}
+
+	newTaskInfo := new(dto.TaskInfo)
+	newTaskInfo.Input = req.Input
+	newTaskInfo.CommitTime = time.Now().Unix()
+	newTaskInfo.TaskId = fmt.Sprintf("%s_%v", req.TaskType, helpers.GenTaskId())
+	newTaskInfo.Status = defines.STATUS_WAITTING
+	newTaskInfo.TaskType = req.TaskType
+	newTaskInfo.SessionId = req.SessionId
+	taskId := newTaskInfo.TaskId
+	// 2. 写入消息队列
+	err = entity.taskData.CommitTask(req.TaskType, newTaskInfo)
+	if err != nil {
+		if err != nil {
+			return err
+		}
+	}
+	var ret *dto.TaskInfo
+	for {
+		ret, err = entity.taskData.PopOutputTask(taskId, int64(1*time.Second))
+		if err != nil {
+			if err != nil {
+				return err
+			}
+		}
+		select {
+		case <-entity.GetCtx().Request.Context().Done():
+			entity.LogWarnf("客户端连接断开")
+			return nil
+		default:
+		}
+		if time.Now().After(now.Add(Timeout)) {
+			return errors.NewError(400, components.ERR_TASK_TIMEOUT)
+		}
+		if ret != nil {
+			taskInfo := ret
+			resp := dto.DoTaskResp{}
+			resp.Output = taskInfo.Output
+			resp.Status = taskInfo.Status
+			resp.TaskId = taskInfo.TaskId
+			resp.SessionId = req.SessionId
+			resp.TaskType = taskInfo.TaskType
+			str, _ := json.Marshal(resp)
+			sse.RenderStream(entity.GetCtx(), "", "", string(str))
+			if taskInfo.Status == defines.STATUS_FINISH || taskInfo.Status == defines.STATUS_CANCEL || taskInfo.Status == defines.STATUS_EXEC_FAILED {
+				break
+			}
+		}
+		continue
+	}
 	return
 }
 

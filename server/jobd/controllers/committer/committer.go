@@ -15,6 +15,20 @@ func (entity *DoTaskCtl) Action(req *dto.DoTaskReq) (res interface{}, err error)
 	return s.DoTask(req)
 }
 
+type DoTaskStreamCtl struct {
+	flow.Controller
+}
+
+func (entity *DoTaskStreamCtl) ShouldRender() bool {
+	return false
+}
+
+func (entity *DoTaskStreamCtl) Action(req *dto.DoTaskReq) (res interface{}, err error) {
+	s := flow.Create(entity.GetCtx(), new(service.CommitterService))
+	err = s.DoTaskStream(req)
+	return nil, err
+}
+
 type CommitCtl struct {
 	flow.Controller
 }
