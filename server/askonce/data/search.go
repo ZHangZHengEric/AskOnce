@@ -23,6 +23,7 @@ import (
 type SearchData struct {
 	flow.Data
 	jobdApi          *jobd.JobdApi
+	webSearchApi     *web_search.WebSearchApi
 	askAttachDao     *models.AskAttachDao
 	askSubSearchDao  *models.AskSubSearchDao
 	kdbDocContentDao *models.KdbDocContentDao
@@ -34,6 +35,7 @@ type SearchData struct {
 
 func (entity *SearchData) OnCreate() {
 	entity.jobdApi = entity.Create(new(jobd.JobdApi)).(*jobd.JobdApi)
+	entity.webSearchApi = entity.Create(new(web_search.WebSearchApi)).(*web_search.WebSearchApi)
 	entity.askAttachDao = entity.Create(new(models.AskAttachDao)).(*models.AskAttachDao)
 	entity.askSubSearchDao = entity.Create(new(models.AskSubSearchDao)).(*models.AskSubSearchDao)
 	entity.kdbDocContentDao = entity.Create(new(models.KdbDocContentDao)).(*models.KdbDocContentDao)
@@ -46,7 +48,7 @@ func (entity *SearchData) OnCreate() {
 func (entity *SearchData) SearchFromWebOrKnowledge(sessionId, question string, kdbId int64, userId string) (results []dto_search.CommonSearchOutput, err error) {
 	results = make([]dto_search.CommonSearchOutput, 0)
 	if kdbId == 0 { // web搜索
-		searchList, err := web_search.BingSearch(entity.GetCtx(), question)
+		searchList, err := entity.webSearchApi.Search(question)
 		if err != nil {
 			return nil, err
 		}

@@ -43,5 +43,14 @@ api:
     timeout: 60s
     # 重试次数，最多执行retry+1次
     retry: 2
+  bochaai:
+    # 调用下游的服务名称
+    service: bochaai
+    # 请求完整地址
+    domain: https://api.bochaai.com
+    # 超时配置，time.Duration 类型
+    timeout: 60s
+    # 重试次数，最多执行retry+1次
+    retry: 2
 
 esDbConfig: "{\"mappings_config\":{\"index_name\":\"@indexName@\",\"mappings\":{\"properties\":{\"doc_id\":{\"type\":\"keyword\",\"index\":\"false\"},\"doc_content\":{\"type\":\"text\",\"index\":\"true\",\"analyzer\": \"my_ana\",\"similarity\": \"my_similarity\"},\"emb\":{\"type\":\"dense_vector\",\"dims\":4096,\"similarity\":\"cosine\"},\"data_split_id\":{\"type\":\"keyword\",\"index\":\"false\"}}},\"bm25_field\":\"doc_content\",\"emb_fields\":\"emb\"}}"

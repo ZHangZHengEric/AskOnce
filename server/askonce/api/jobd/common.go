@@ -5,6 +5,7 @@ import (
 	"askonce/conf"
 	"encoding/json"
 	"github.com/bytedance/sonic"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/http"
@@ -120,23 +121,26 @@ func doTaskProcessStream[K any, V any](entity *JobdApi, taskType string, input K
 		Encode:      entity.GetEncodeType(),
 	}
 	err = entity.Client.HttpPostStream(entity.GetCtx(), "/jobd/committer/DoTaskStream", reqOpts, func(data string) error {
-		if len(data) < 6 { // ignore blank line or wrong format
-			return nil
+		httpRes := flow.Res{}
+		// 解析数据
+		if err = jsoniter.Unmarshal([]byte(data), &httpRes); err != nil {
+			entity.LogErrorf("api error, api response unmarshal, data:%s, err:%+v", data, err.Error())
+			return errors.ErrorSystemError
 		}
-		if data[:6] == "data: " {
-			tmpData := data[6:]
-			jobdRes := JobdCommonRes{}
-			// 解析数据
-			if err = json.Unmarshal([]byte(tmpData), &jobdRes); err != nil {
-				entity.LogErrorf("api error, api response unmarshal, data:%s, err:%+v", tmpData, err.Error())
-				return errors.ErrorSystemError
-			}
-			if jobdRes.Status == STATUS_EXEC_FAILED || jobdRes.Status == STATUS_INPUT_MISMATCH {
-				err = components.ErrorJobdError
-				return err
-			}
-			return pf(jobdRes)
+		if httpRes.Code != 200 {
+			return errors.ErrorSystemError
 		}
+		jobdRes := JobdCommonRes{}
+		// 解析数据
+		if err = json.Unmarshal(httpRes.Data, &jobdRes); err != nil {
+			entity.LogErrorf("api error, api response unmarshal, data:%s, err:%+v", data, err.Error())
+			return errors.ErrorSystemError
+		}
+		if jobdRes.Status == STATUS_EXEC_FAILED || jobdRes.Status == STATUS_INPUT_MISMATCH {
+			err = components.ErrorJobdError
+			return err
+		}
+		return pf(jobdRes)
 		return nil
 	})
 	if err != nil {
