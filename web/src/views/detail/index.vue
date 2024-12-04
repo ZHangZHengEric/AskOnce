@@ -475,8 +475,8 @@ const search = async (question) => {
         jsonLine = line.substring(5);
         try {
           const value = JSON.parse(jsonLine)
-          if (value.errMsg) {
-            ElMessage.error(value.errMsg)
+          if (value.message && value.code !== 200) {
+            ElMessage.error(value.message)
             data.loading = false
             return
           }
@@ -510,7 +510,7 @@ const search = async (question) => {
               referList = value.text
               data.detail = setData(value.text, referText)
               break
-            //重新调用引用
+              //重新调用引用
             case "refreshSearch":
               loadRefer()
               break
