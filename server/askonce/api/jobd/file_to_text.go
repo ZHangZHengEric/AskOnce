@@ -35,7 +35,7 @@ func (entity *JobdApi) FileToText(path string) (res *FileToTextRes, err error) {
 		EndPage:       -1,
 		RemoveWrap:    true,
 	}
-	ress, err := doTaskProcess[[]FileToTextItem, []*FileToTextRes](entity, "convert_file_to_text", []FileToTextItem{inputReq}, 10000)
+	ress, err := doTaskProcess[[]FileToTextItem, []*FileToTextRes](entity, "convert_file_to_text", []FileToTextItem{inputReq}, 100000)
 	if err != nil {
 		return nil, err
 	}
