@@ -27,7 +27,7 @@ func API(engine *gin.Engine) {
 			// 新增
 			docGroup.POST("add", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
 			// 修改
-			docGroup.POST("addByZip", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
+			docGroup.POST("addByZip", flow.Use[dto_kdb_doc.AddZipReq](new(kdb.DocAddByZipController)))
 			// 删除
 			docGroup.POST("delete", flow.Use[dto_kdb_doc.DeleteReq](new(kdb.DocDeleteController)))
 			// 重做

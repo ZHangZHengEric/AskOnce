@@ -13,6 +13,11 @@ type AddReq struct {
 	Title string                `json:"title" form:"title"`
 }
 
+type AddZipReq struct {
+	KdbId  int64  `json:"kdbId" form:"kdbId" binding:"required"`
+	ZipUrl string `json:"zipUrl" form:"zipUrl" binding:"required"`
+}
+
 type ListReq struct {
 	KdbId       int64  `json:"kdbId" binding:"required"`
 	QueryName   string `json:"queryName"`
