@@ -18,12 +18,16 @@ func API(engine *gin.Engine) {
 		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController))) // 知识库修改
 		kdbGroup.GET("info", flow.Use[dto_kdb.InfoReq](new(kdb.InfoController)))        // 知识库详情
 		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))       // 知识库列表
+		// 删除
+		kdbGroup.POST("delete", flow.Use[dto_kdb.DeleteReq](new(kdb.DeleteController))) // 删除
 		docGroup := kdbGroup.Group("doc")
 		{
 			// 列表
 			docGroup.POST("list", flow.Use[dto_kdb_doc.ListReq](new(kdb.DocListController)))
 			// 新增
 			docGroup.POST("add", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
+			// 修改
+			docGroup.POST("addByZip", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
 			// 删除
 			docGroup.POST("delete", flow.Use[dto_kdb_doc.DeleteReq](new(kdb.DocDeleteController)))
 			// 重做
