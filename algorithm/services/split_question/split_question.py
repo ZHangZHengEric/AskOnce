@@ -28,6 +28,8 @@ def process(task_input,task_type,model,args,tm):
         start_time = time.time()
         result_all = {} 
         result_all['questions']= model.split_question(task_input.question)
+        print('输入问题：',task_input.question)
+        print('分解后问题：',result_all['questions'])
         end_time = time.time()
         print('回答','用时'+str(end_time-start_time))
         return result_all

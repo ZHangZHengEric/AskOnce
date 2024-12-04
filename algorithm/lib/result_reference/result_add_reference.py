@@ -22,7 +22,7 @@ class AddReference:
                 all_parts.append('\n')
             elif len(one_answer_part)>0:
                 para = one_answer_part
-                para = re.sub('([•。;；！？\?])([^”’])', r"\1\n\2", para)  # 单字符断句符
+                para = re.sub('([•。,，;；！？\?])([^”’])', r"\1\n\2", para)  # 单字符断句符
                 para = re.sub('(\.{6})([^”’])', r"\1\n\2", para)  # 英文省略号
                 para = re.sub('(\…{2})([^”’])', r"\1\n\2", para)  # 中文省略号
                 para = re.sub('([。！？\?][”’])([^，。！？\?])', r'\1\n\2', para)

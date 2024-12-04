@@ -28,6 +28,7 @@ def process(task_input,task_type,model,args,tm):
         start_time = time.time()
         result_all = {} 
         result_all['result']= model.judge_use_rag(task_input.question)
+        print(task_input.question,result_all['result'])
         end_time = time.time()
         print('判断是否需要互联网rag','用时'+str(end_time-start_time))
         return result_all
