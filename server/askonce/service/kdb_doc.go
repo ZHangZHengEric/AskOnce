@@ -87,6 +87,9 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 	needSplit := true
 	var file *models.File
 	if req.Type == "text" {
+		if len(req.Text) == 0 {
+			return nil, errors.NewError(10034, "文本内容为空！")
+		}
 		fileName := ""
 		if len(req.Title) > 0 {
 			fileName = fmt.Sprintf("%s.txt", req.Title)

@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/url"
+	"path"
 	"strings"
 )
 
@@ -52,7 +53,7 @@ func (f *FileData) ConvertFileToText(fileId string) (fileName string, output str
 }
 
 // 允许的格式
-var allowExtension = []string{"pdf", "doc", "docx", "txt", "ppt", "pptx", "xlsx", "xls", "json"}
+var allowExtension = []string{".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xlsx", ".xls", ".json"}
 
 func (f *FileData) UploadContent(userId string, fileName string, content string, source string) (add *models.File, err error) {
 	splitF := strings.Split(fileName, ".")
@@ -110,11 +111,12 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 		return
 	}
 	defer fileR.Close()
-	splitF := strings.Split(file.Filename, ".")
-	// 文件原始名称
-	fileOriginName := splitF[0]
+	pathN := path.Base(file.Filename)
 	// 文件原始格式
-	fileOriginExtension := splitF[1]
+	fileOriginExtension := path.Ext(pathN)
+	// 文件原始名称
+	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
+
 	if !slice.Contain(allowExtension, fileOriginExtension) {
 		return nil, components.ErrorFormatError
 	}
@@ -174,11 +176,11 @@ func (f *FileData) UploadByZip(userId string, file *zip.File, source string) (ad
 	} else {
 		fileName = file.Name
 	}
-	splitF := strings.Split(fileName, ".")
-	// 文件原始名称
-	fileOriginName := splitF[0]
+	pathN := path.Base(fileName)
 	// 文件原始格式
-	fileOriginExtension := splitF[1]
+	fileOriginExtension := path.Ext(pathN)
+	// 文件原始名称
+	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 	if !slice.Contain(allowExtension, fileOriginExtension) {
 		return nil, components.ErrorFormatError
 	}
