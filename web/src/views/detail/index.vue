@@ -477,6 +477,7 @@ const search = async (question) => {
           const value = JSON.parse(jsonLine)
           if (value.message && value.code !== 200) {
             ElMessage.error(value.message)
+            clearInterval(data.timer)
             data.loading = false
             return
           }
