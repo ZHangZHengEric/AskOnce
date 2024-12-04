@@ -24,6 +24,15 @@ func (entity *DocAddController) Action(req *dto_kdb_doc.AddReq) (interface{}, er
 	return s.DocAdd(req)
 }
 
+type DocAddByZipController struct {
+	flow.Controller
+}
+
+func (entity *DocAddByZipController) Action(req *dto_kdb_doc.AddZipReq) (interface{}, error) {
+	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
+	return s.DocAddZip(req)
+}
+
 type DocDeleteController struct {
 	flow.Controller
 }

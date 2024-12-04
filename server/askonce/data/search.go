@@ -10,12 +10,10 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/datatypes"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -23,6 +21,7 @@ import (
 type SearchData struct {
 	flow.Data
 	jobdApi          *jobd.JobdApi
+	webSearchApi     *web_search.WebSearchApi
 	askAttachDao     *models.AskAttachDao
 	askSubSearchDao  *models.AskSubSearchDao
 	kdbDocContentDao *models.KdbDocContentDao
@@ -34,6 +33,7 @@ type SearchData struct {
 
 func (entity *SearchData) OnCreate() {
 	entity.jobdApi = entity.Create(new(jobd.JobdApi)).(*jobd.JobdApi)
+	entity.webSearchApi = entity.Create(new(web_search.WebSearchApi)).(*web_search.WebSearchApi)
 	entity.askAttachDao = entity.Create(new(models.AskAttachDao)).(*models.AskAttachDao)
 	entity.askSubSearchDao = entity.Create(new(models.AskSubSearchDao)).(*models.AskSubSearchDao)
 	entity.kdbDocContentDao = entity.Create(new(models.KdbDocContentDao)).(*models.KdbDocContentDao)
@@ -46,7 +46,7 @@ func (entity *SearchData) OnCreate() {
 func (entity *SearchData) SearchFromWebOrKnowledge(sessionId, question string, kdbId int64, userId string) (results []dto_search.CommonSearchOutput, err error) {
 	results = make([]dto_search.CommonSearchOutput, 0)
 	if kdbId == 0 { // web搜索
-		searchList, err := web_search.BingSearch(entity.GetCtx(), question)
+		searchList, err := entity.webSearchApi.Search(question)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ type EsCommonSearch struct {
 }
 
 type EsCommonSearchResult struct {
-	Id          string
+	Id          int64
 	Title       string
 	Url         string
 	Content     string
@@ -126,16 +126,6 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	if len(recalls) == 0 {
 		return
 	}
-	recallResults := slice.FlatMap(recalls, func(index int, item jobd.ESSearchOutput) []string {
-		return []string{item.Source.DocContent}
-	})
-	rankScores, err := entity.jobdApi.Rerank(input.Query, recallResults)
-	if err != nil {
-		return
-	}
-	for i := range recalls {
-		recalls[i].Score = rankScores[i]
-	}
 	sort.Slice(recalls, func(i, j int) bool {
 		return recalls[i].Score > recalls[j].Score
 	})
@@ -143,16 +133,16 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	uniqueMap := make(map[string]int)
 	recalls2 := make([]jobd.ESSearchOutput, 0)
 	for _, recall := range recalls {
-		if _, ok := uniqueMap[recall.Source.DocId+recall.Source.DocContent]; !ok {
+		uniqueCode := fmt.Sprintf("%v%s", recall.Source.DocId, recall.Source.DocContent)
+		if _, ok := uniqueMap[uniqueCode]; !ok {
 			recalls2 = append(recalls2, recall)
-			uniqueMap[recall.Source.DocId+recall.Source.DocContent] = 1
+			uniqueMap[uniqueCode] = 1
 		}
 	}
 	var dataIds []int64
 	dataSearchMap := make(map[int]jobd.SearchOutputSource)
 	for i, result := range recalls2 {
-		dataIdInt, _ := strconv.ParseInt(result.Source.DocId, 10, 64)
-		dataIds = append(dataIds, dataIdInt)
+		dataIds = append(dataIds, result.Source.DocId)
 		dataSearchMap[i] = result.Source
 	}
 	dataContents, err := entity.kdbDocContentDao.GetByDataIds(dataIds)
@@ -182,7 +172,7 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 		filePathMap[file.Id] = file.Path
 	}
 	for i, result := range recalls2 {
-		dataIdInt, _ := strconv.ParseInt(result.Source.DocId, 10, 64)
+		dataIdInt := result.Source.DocId
 		ddd, ok := docMap[dataIdInt]
 		if !ok {
 			continue

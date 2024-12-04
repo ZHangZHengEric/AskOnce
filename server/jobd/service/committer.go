@@ -6,12 +6,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
-	"github.com/xiangtao94/golib/pkg/sse"
 	"jobd/components"
 	"jobd/components/defines"
 	"jobd/components/dto"
 	"jobd/data"
 	"jobd/helpers"
+	"net/http"
 	"time"
 )
 
@@ -106,7 +106,9 @@ func (entity *CommitterService) DoTaskStream(req *dto.DoTaskReq) (err error) {
 			resp.SessionId = req.SessionId
 			resp.TaskType = taskInfo.TaskType
 			str, _ := json.Marshal(resp)
-			sse.RenderStream(entity.GetCtx(), "", "", string(str))
+			flusher, _ := entity.GetCtx().Writer.(http.Flusher)
+			fmt.Fprintf(entity.GetCtx().Writer, "%s\n", str)
+			flusher.Flush()
 			if taskInfo.Status == defines.STATUS_FINISH || taskInfo.Status == defines.STATUS_CANCEL || taskInfo.Status == defines.STATUS_EXEC_FAILED {
 				break
 			}

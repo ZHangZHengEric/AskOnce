@@ -36,7 +36,7 @@
             </div>
             <div v-else class="text-size12 mt-2 text-normal" v-for="(tem,i) in activity.list" :key="i">
               <div v-if="i>0" class="flex">
-                <div>{{ $t('detail.step') }}{{ i }}:</div>
+                <div>{{ $t('detail.step') }}{{ index + 1 }}:</div>
                 <div class="ml-1 flex-1">
                   {{ tem.content }}
                 </div>

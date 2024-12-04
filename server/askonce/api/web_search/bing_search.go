@@ -1,10 +1,11 @@
 package web_search
 
 import (
+	"askonce/conf"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"io"
-	"net/http"
+	"github.com/minio/pkg/env"
+	"github.com/xiangtao94/golib/flow"
+	http2 "github.com/xiangtao94/golib/pkg/http"
 	"time"
 )
 
@@ -68,37 +69,33 @@ type BingSearchResp struct {
 	Url     string `json:"url"`
 	Content string `json:"content"`
 }
+type WebSearchReq struct {
+	Query string `json:"query"`
+}
+type WebSearchApi struct {
+	flow.Api
+}
 
-func BingSearch(ctx *gin.Context, question string) (out []BingSearchResp, err error) {
-	const endpoint = "https://api.bing.microsoft.com/v7.0/search"
-	token := "29613074456942c090da3dc819c52ef4"
-	// Declare a new GET request.
-	req, err := http.NewRequest("GET", endpoint, nil)
+func (a *WebSearchApi) OnCreate() {
+	a.Client = conf.WebConf.Api["bochaai"]
+}
+
+func (a *WebSearchApi) Search(question string) (out []BingSearchResp, err error) {
+	req := &WebSearchReq{
+		Query: question,
+	}
+	requestOpt := http2.HttpRequestOptions{
+		RequestBody: req,
+		Encode:      http2.EncodeJson,
+		Headers: map[string]string{"Content-Type": "application/json",
+			"Authorization": "Bearer " + env.Get("BACKEND_WEB_SEARCH_KEY", "")},
+	}
+	httpResult, err := a.ApiPostWithOpts("/v1/web-search", requestOpt)
 	if err != nil {
 		return nil, err
 	}
-	// Add the payload to the request.
-	param := req.URL.Query()
-	param.Add("q", question)
-	req.URL.RawQuery = param.Encode()
-	// Insert the request header.
-	req.Header.Add("Ocp-Apim-Subscription-Key", token)
-	// Create a new client.
-	client := http.Client{Timeout: 15 * time.Second}
-	// Send the request to Bing.
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	// Close the response.
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	// Create a new answer.
 	ans := new(BingAnswer)
-	err = json.Unmarshal(body, &ans)
+	err = json.Unmarshal(httpResult.Data, &ans)
 	if err != nil {
 		return nil, err
 	}

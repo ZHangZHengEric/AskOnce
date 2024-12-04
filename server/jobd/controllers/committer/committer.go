@@ -1,9 +1,13 @@
 package committer
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/xiangtao94/golib/flow"
+	"jobd/components/defines"
 	"jobd/components/dto"
 	"jobd/service"
+	"net/http"
 )
 
 type DoTaskCtl struct {
@@ -26,7 +30,18 @@ func (entity *DoTaskStreamCtl) ShouldRender() bool {
 func (entity *DoTaskStreamCtl) Action(req *dto.DoTaskReq) (res interface{}, err error) {
 	s := flow.Create(entity.GetCtx(), new(service.CommitterService))
 	err = s.DoTaskStream(req)
-	return nil, err
+	if err != nil {
+		resp := dto.DoTaskResp{}
+		resp.Output = err.Error()
+		resp.Status = defines.STATUS_EXEC_FAILED
+		resp.SessionId = req.SessionId
+		resp.TaskType = req.TaskType
+		str, _ := json.Marshal(resp)
+		flusher, _ := entity.GetCtx().Writer.(http.Flusher)
+		fmt.Fprintf(entity.GetCtx().Writer, "%s\n", str)
+		flusher.Flush()
+	}
+	return nil, nil
 }
 
 type CommitCtl struct {

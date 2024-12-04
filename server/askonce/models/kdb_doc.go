@@ -48,6 +48,13 @@ func (entity *KdbDocDao) Insert(add *KdbDoc) (err error) {
 	return entity.GetDB().Create(add).Error
 }
 
+func (entity *KdbDocDao) BatchInsert(add []*KdbDoc) (err error) {
+	if len(add) == 0 {
+		return nil
+	}
+	return entity.GetDB().Create(add).Error
+}
+
 // 更新
 func (entity *KdbDocDao) Update(id int64, update map[string]interface{}) error {
 	update["updated_at"] = time.Now()

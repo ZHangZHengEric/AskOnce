@@ -1,6 +1,7 @@
 package service
 
 import (
+	"archive/zip"
 	"askonce/components"
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
@@ -8,9 +9,13 @@ import (
 	"askonce/helpers"
 	"askonce/models"
 	"askonce/utils"
+	"bytes"
 	"fmt"
 	"github.com/xiangtao94/golib/flow"
+	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"io"
+	"net/http"
 	"time"
 )
 
@@ -221,4 +226,86 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 		return err
 	}
 	return
+}
+
+func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, err error) {
+	userInfo, _ := utils.LoginInfo(k.GetCtx())
+	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
+	if err != nil {
+		return
+	}
+	zipData, err := downloadZip(req.ZipUrl)
+	if err != nil {
+		return nil, err
+	}
+	reader, err := zip.NewReader(bytes.NewReader(zipData), int64(len(zipData)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to open zip reader: %w", err)
+	}
+	docs := make([]*models.KdbDoc, 0)
+	for _, zipFile := range reader.File {
+		file, err := k.fileData.UploadByZip(userInfo.UserId, zipFile, "knowledge")
+		if err != nil {
+			return nil, err
+		}
+		doc := &models.KdbDoc{
+			KdbId:      req.KdbId,
+			DocName:    file.OriginName,
+			DataSource: "file",
+			SourceId:   file.Id,
+			NeedSplit:  true,
+			Status:     models.KdbDocRunning,
+			UserId:     userInfo.UserId,
+			CrudModel: orm.CrudModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		}
+		docs = append(docs, doc)
+	}
+	err = k.kdbDocDao.BatchInsert(docs)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range docs {
+		doc := t
+		go func(k *KdbDocService) {
+			defer func() {
+				if r := recover(); r != nil {
+					k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, r)
+					_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+				}
+			}()
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
+			err = k.DocBuild(kdb, doc)
+			if err != nil {
+				k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
+				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+			} else {
+				k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
+				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
+			}
+		}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
+	}
+	return
+}
+
+// 下载 ZIP 文件到内存
+func downloadZip(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.NewError(500, fmt.Sprintf("failed to download zip: status %s", resp.Status))
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

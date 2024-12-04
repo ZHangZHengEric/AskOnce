@@ -232,7 +232,7 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 		if err != nil {
 			s.LogErrorf("NetRagAssessment err %s", err.Error())
 		} else {
-			if judgeRes.Result {
+			if !judgeRes.Result {
 				askDirect = true
 			}
 		}
