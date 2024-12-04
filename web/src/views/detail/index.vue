@@ -316,7 +316,6 @@ const setData = (resultRefers, result) => {
       arr.splice(item.number + index * 3 + 1, 0, aa.join(''));
       arr.splice(item.number + index * 3 + 2, 0, ']]');
     })
-    console.log(arr)
     resData = arr.join('')
   } else {
     return result

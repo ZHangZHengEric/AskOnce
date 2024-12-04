@@ -2,18 +2,24 @@
   <div class="pt-4">
     <div class="flex">
       <div class="text-size22 font-[900] text-default flex-1">{{ $t('history.history') }}</div>
-      <el-input class="w-60 rounded-xl mr-7" :placeholder="$t('app.placeholder')" v-model="data.queryName"
-                @keyup.enter="loadByKeyword">
+      <el-input
+          class="w-60 rounded-xl mr-7"
+          :placeholder="$t('app.placeholder')"
+          v-model="data.queryName"
+          @keyup.enter="loadByKeyword">
         <template #prefix>
           <el-icon class="el-input__icon text-themeBlue">
             <search/>
           </el-icon>
         </template>
       </el-input>
-      <el-radio-group style="--el-color-primary:#7269FB" v-model="data.queryType" @change="loadByKeyword">
-        <el-radio-button value="">{{ $t('knowledge.all') }}</el-radio-button>
-        <el-radio-button value="simple">{{ $t('home.simple') }}</el-radio-button>
-        <el-radio-button value="complex">{{ $t('home.complex') }}</el-radio-button>
+      <el-radio-group
+          style="--el-color-primary:#7269FB"
+          v-model="data.queryType"
+          @change="loadByKeyword">
+        <el-radio-button label="">{{ $t('knowledge.all') }}</el-radio-button>
+        <el-radio-button label="simple">{{ $t('home.simple') }}</el-radio-button>
+        <el-radio-button label="complex">{{ $t('home.complex') }}</el-radio-button>
       </el-radio-group>
     </div>
     <el-table
