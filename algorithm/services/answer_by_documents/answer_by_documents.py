@@ -87,16 +87,18 @@ if __name__ == '__main__':
     while (True):
         try:
             errcode, get_task_resp = tm.get_task_block(args.tasktype)
-            get_task_resp = get_task_resp['data']
-            print('收到任务',datetime.now(),errcode)
+            if 'data' in get_task_resp.keys():
+                get_task_resp = get_task_resp['data']
         except Exception as e:
             if 'value' not in str(e):
                 print('gettask',e)
             continue
         if errcode != 200:
             sleep(0.05)
+            print('空任务队列',datetime.now(),errcode)
             continue
         else:
+            print('收到任务',datetime.now())
             try:
                 one_task_type,task_input = unmarshal_task_input(get_task_resp)
             except Exception as e:
