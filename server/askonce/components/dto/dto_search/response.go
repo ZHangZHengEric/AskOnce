@@ -84,7 +84,7 @@ type ProcessItem struct {
 }
 
 type AskSyncRes struct {
-	Answer      string          `json:"answer"`
-	AnswerRefer []DoReferItem   `json:"answerRefer"`
-	References  []ReferenceItem `json:"references"`
+	Answer       string               `json:"answer"`
+	AnswerRefer  []DoReferItem        `json:"answerRefer"`
+	SearchResult []CommonSearchOutput `json:"searchResult"`
 }

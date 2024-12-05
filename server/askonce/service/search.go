@@ -1135,7 +1135,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 		UserId:     userInfo.UserId,
 	}
 	askContext.AnswerStyle = "simplify"
-	answer, answerRefer, err := s.AskSimpleSync(askContext)
+	answer, answerRefer, searchResult, err := s.AskSimpleSync(askContext)
 	if err != nil {
 		s.LogErrorf("问答报错, %s", err.Error())
 		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
@@ -1151,17 +1151,16 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 	refers := make([]dto_search.ReferenceItem, 0)
 	_ = json.Unmarshal(askAttach.Reference, &refers)
 	res = &dto_search.AskSyncRes{
-		Answer:      answer,
-		AnswerRefer: answerRefer,
-		References:  refers,
+		Answer:       answer,
+		AnswerRefer:  answerRefer,
+		SearchResult: searchResult,
 	}
 	return
 }
 
 // 简单搜索
-func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers []dto_search.DoReferItem, err error) {
+func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
 	s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
-	searchResult := make([]dto_search.CommonSearchOutput, 0)
 	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
 	if err != nil {
 		err = components.ErrorQueryError
@@ -1179,11 +1178,17 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 	}
 	s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
-	// 开始回答
-	answer, echoRefers, err = s.askByDocumentSync(req, req.AnswerStyle, searchResult)
+
+	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, searchResult)
 	if err != nil {
-		err = components.ErrorChatError
 		return
+	}
+	answer = answerRes.Answer
+	if len(searchResult) > 0 {
+		echoRefers, err = s.referDo(0, answer, searchResult)
+		if err != nil {
+			return "", nil, nil, err
+		}
 	}
 	s.saveRes(req.SessionId, "summary", "整理答案结束")
 	s.saveRes(req.SessionId, "finish", "回答完成")
@@ -1191,56 +1196,5 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 	go func(entity *SearchService) {
 		_ = entity.askRecordUpdate(req.DbData, []string{req.Question}, answer, echoRefers)
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-	return
-}
-
-func (s *SearchService) askByDocumentSync(req AskContext, answerStyle string, searchResult []dto_search.CommonSearchOutput) (answer string, echoRefers []dto_search.DoReferItem, err error) {
-	// 生成答案 + 引用
-	alreadyReferAnswer := ""
-	wg := sync.WaitGroup{}
-	lock := sync.Mutex{}
-	err = s.jobdApi.AnswerByDocuments(req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
-		chatAnswer := jobd.AnswerByDocumentsRes{}
-		_ = json.Unmarshal([]byte(jobdRes.Output), &chatAnswer)
-		currentAnswer := chatAnswer.Answer
-		// 对话展示逻辑
-		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && jobdRes.Status != "FINISH" {
-			return nil
-		}
-		answer = chatAnswer.Answer
-		if len(searchResult) > 0 {
-			// 引用判断逻辑
-			needReference, begin := IsCompleted(currentAnswer, jobdRes.Status, alreadyReferAnswer)
-			if len(needReference) > 0 {
-				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
-				wg.Add(1)
-				alreadyReferAnswer = alreadyReferAnswer + needReference
-				go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
-					defer wg.Done()
-					aa, errA := entity.referDo(begin, needRefer, searchResult)
-					if errA != nil {
-						return
-					}
-					if len(aa) == 0 {
-						return
-					}
-					lock.Lock()
-					echoRefers = append(echoRefers, aa...)
-					lock.Unlock()
-					sort.Slice(echoRefers, func(i, j int) bool {
-						return echoRefers[i].Start < echoRefers[j].Start
-					})
-					// 	合并一次
-					echoRefers = mergeItems(echoRefers)
-					if len(echoRefers) == 0 {
-						return
-					}
-				}(s.CopyWithCtx(s.GetCtx()).(*SearchService), begin, needReference, searchResult)
-			}
-		}
-		return nil
-	})
-	wg.Wait()
 	return
 }
