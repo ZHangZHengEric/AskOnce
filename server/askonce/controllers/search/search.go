@@ -45,6 +45,15 @@ func (entity *AskController) Action(req *dto_search.AskReq) (interface{}, error)
 	return nil, nil
 }
 
+type ChatAskSyncController struct {
+	flow.Controller
+}
+
+func (entity *ChatAskSyncController) Action(req *dto_search.ChatAskReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.AskSync(req)
+}
+
 type HisController struct {
 	flow.Controller
 }

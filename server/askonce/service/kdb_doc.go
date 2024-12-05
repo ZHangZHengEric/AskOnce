@@ -78,7 +78,7 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 	return
 }
 
-func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err error) {
+func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
 	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
 	if err != nil {
@@ -144,6 +144,9 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res interface{}, err er
 			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 		}
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
+	res = &dto_kdb_doc.AddRes{
+		KdbDataId: doc.Id,
+	}
 	return
 }
 

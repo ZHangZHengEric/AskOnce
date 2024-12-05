@@ -82,3 +82,9 @@ type ProcessItem struct {
 	Content   string `json:"content"`
 	Time      int64  `json:"time"`
 }
+
+type AskSyncRes struct {
+	Answer      string          `json:"answer"`
+	AnswerRefer []DoReferItem   `json:"answerRefer"`
+	References  []ReferenceItem `json:"references"`
+}

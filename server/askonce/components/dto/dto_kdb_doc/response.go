@@ -1,5 +1,8 @@
 package dto_kdb_doc
 
+type AddRes struct {
+	KdbDataId int64 `json:"kdbDataId"`
+}
 type ListResp struct {
 	List  []ListItem `json:"list"`
 	Total int64      `json:"total"`

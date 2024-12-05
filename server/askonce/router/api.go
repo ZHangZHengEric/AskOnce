@@ -3,7 +3,9 @@ package router
 import (
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
+	"askonce/components/dto/dto_search"
 	"askonce/controllers/kdb"
+	"askonce/controllers/search"
 	"askonce/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/flow"
@@ -32,6 +34,11 @@ func API(engine *gin.Engine) {
 			docGroup.POST("delete", flow.Use[dto_kdb_doc.DeleteReq](new(kdb.DocDeleteController)))
 			// 重做
 			docGroup.POST("redo", flow.Use[dto_kdb_doc.RedoReq](new(kdb.DocRedoController)))
+		}
+		searchGroup := router.Group("search")
+		{
+			// 智能搜索
+			searchGroup.POST("chatAskSync", flow.Use[dto_search.ChatAskReq](new(search.ChatAskSyncController)))
 		}
 	}
 
