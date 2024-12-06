@@ -103,9 +103,14 @@ sysctl -w vm.max_map_count=262144
 ```bash
 docker compose --profile all up -d
 ```
-#### **1. 启动对应服务**
+#### **2. 启动对应组服务**
 ```bash
 docker compose --profile llm up -d
+```
+
+#### **2. 启动指定服务**
+```bash
+docker compose askonce-es-dashboard up -d
 ```
 
 以上内容旨在帮助快速部署和启动 AskOnce 系统。如有问题，请参考官方文档或联系技术支持。
