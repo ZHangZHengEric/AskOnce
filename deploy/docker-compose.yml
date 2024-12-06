@@ -67,7 +67,7 @@ services:
   askonce_data_convert_0:
     extends:
       file: llm_services-docker-compose.yml
-      service: askonce_answer_by_documents_0
+      service: askonce_data_convert_0
     profiles: ["all", "llm"]
   askonce_result_add_reference_0:
     extends:
@@ -109,6 +109,11 @@ services:
       file: llm_services-docker-compose.yml
       service: askonce_net_rag_assessment_0
     profiles: [ "all", "llm" ]
+  askonce_generate_outlines_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_generate_outlines_0
+    profiles: ["all", "llm"]
 networks:
   default:
     driver: askonce-network
