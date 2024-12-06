@@ -51,3 +51,10 @@ type KdbListReq struct {
 	OrderType int    `json:"orderType"` // 0,1 创建时间倒序 2 创建时间正序 3 最近使用
 	dto.PageParam
 }
+
+type ChatAskReq struct {
+	SessionId string `json:"sessionId"`
+	Question  string `json:"question" binding:"required"` // 问题
+	Type      string `json:"type" `                       // simple complex research
+	KdbId     int64  `json:"kdbId"`                       // 为kdb时有值
+}

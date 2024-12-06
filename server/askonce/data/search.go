@@ -199,9 +199,8 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 }
 
 func (entity *SearchData) CreateSession(userId string) (add *models.AskInfo, err error) {
-	sessionIdMd5 := md5.Sum([]byte(helpers.GenIDStr()))
 	askInfoDao := entity.Create(new(models.AskInfoDao)).(*models.AskInfoDao)
-	sessionId := fmt.Sprintf("%x", sessionIdMd5)
+	sessionId := fmt.Sprintf("%x", md5.Sum([]byte(helpers.GenIDStr())))
 	add = &models.AskInfo{
 		SessionId: sessionId,
 		Question:  "",

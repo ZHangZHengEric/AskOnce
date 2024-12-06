@@ -99,6 +99,10 @@ const addData = () => {
   formData.append('kdbId', route.query.id)
   formData.append('text', data.text)
   formData.append('title', data.title)
+  if (!data.text || !data.title) {
+    ElMessage.error('标题内容不能为空')
+    return
+  }
   knowledgeDataAdd(formData, {
     headers: {'Content-Type': 'multipart/form-data'}
   }).then(res => {

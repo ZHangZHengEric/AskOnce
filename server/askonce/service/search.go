@@ -180,11 +180,6 @@ type AskContext struct {
 }
 
 func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
-	// 文本校验
-	green, _ := helpers.TextCheck(s.GetCtx(), req.Question)
-	if !green {
-		return components.ErrorTextCheckError
-	}
 	userInfo, _ := utils.LoginInfo(s.GetCtx())
 	// 校验知识库权限
 	if req.KdbId > 0 {
@@ -271,7 +266,7 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 func (s *SearchService) AskDirect(req AskContext) (err error) {
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 	// 开始回答
-	answer, echoRefers, err := s.askChat(req, req.AnswerStyle, nil)
+	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, nil)
 	if err != nil {
 		return components.ErrorChatError
 	}
@@ -334,7 +329,7 @@ func (s *SearchService) AskSimple(req AskContext) (err error) {
 	}
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 	// 开始回答
-	answer, echoRefers, err := s.askChat(req, req.AnswerStyle, searchResult)
+	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, searchResult)
 	if err != nil {
 		return components.ErrorChatError
 	}
@@ -462,7 +457,7 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 		subAnswerAll = append(subAnswerAll, subAnswerAllMap[i])
 	}
 	// 开始回答
-	answer, echoRefers, err := s.askChat(req, req.AnswerStyle, searchResultAll)
+	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, searchResultAll)
 	if err != nil {
 		return components.ErrorChatError
 	}
@@ -642,20 +637,7 @@ func IsCompleted(answer string, status string, doneAnswer string) (string, int) 
 	return matchText, begin
 }
 
-type DoReferItem struct {
-	Start       int                `json:"start"`
-	End         int                `json:"end"`
-	NumberIndex int                `json:"numberIndex"`
-	Refers      []DoReferReferItem `json:"refers"`
-}
-
-type DoReferReferItem struct {
-	Index      int `json:"index"`
-	ReferStart int `json:"referStart"`
-	ReferEnd   int `json:"referEnd"`
-}
-
-func (s *SearchService) referDo(begin int, needReference string, searchResult []dto_search.CommonSearchOutput) (output []DoReferItem, err error) {
+func (s *SearchService) referDo(begin int, needReference string, searchResult []dto_search.CommonSearchOutput) (output []dto_search.DoReferItem, err error) {
 
 	referStrList := []string{}
 	for _, o := range searchResult {
@@ -680,13 +662,13 @@ func (s *SearchService) referDo(begin int, needReference string, searchResult []
 			if length < referenceMap.IndexRange[1] {
 				length = referenceMap.IndexRange[1]
 			}
-			t := DoReferItem{
+			t := dto_search.DoReferItem{
 				Start:       begin + referenceMap.IndexRange[0],
 				End:         begin + referenceMap.IndexRange[1],
 				NumberIndex: begin + length,
 				Refers:      nil,
 			}
-			refers := []DoReferReferItem{}
+			refers := []dto_search.DoReferReferItem{}
 			if len(referenceMap.ReferenceList) == 0 {
 				continue
 			}
@@ -696,7 +678,7 @@ func (s *SearchService) referDo(begin int, needReference string, searchResult []
 					continue
 				}
 				if len(index2) == 2 {
-					refers = append(refers, DoReferReferItem{
+					refers = append(refers, dto_search.DoReferReferItem{
 						Index:      index,
 						ReferStart: index2[0],
 						ReferEnd:   index2[1],
@@ -812,7 +794,7 @@ func (s *SearchService) Unlike(req *dto_search.UnlikeReq) (res interface{}, err 
 	return
 }
 
-func (s *SearchService) askChat(req AskContext, answerStyle string, searchResult []dto_search.CommonSearchOutput) (answer string, echoRefers []DoReferItem, err error) {
+func (s *SearchService) askByDocument(req AskContext, answerStyle string, searchResult []dto_search.CommonSearchOutput) (answer string, echoRefers []dto_search.DoReferItem, err error) {
 	// 生成答案 + 引用
 	alreadyReferAnswer := ""
 	wg := sync.WaitGroup{}
@@ -872,7 +854,7 @@ func (s *SearchService) askChat(req AskContext, answerStyle string, searchResult
 	return
 }
 
-func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []DoReferItem) (answer string, echoRefers []DoReferItem, err error) {
+func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []dto_search.DoReferItem) (answer string, echoRefers []dto_search.DoReferItem, err error) {
 	echoRefers = append(echoRefers, echoReferAll...)
 	prompt := req.Question
 	var temperature float64
@@ -955,7 +937,7 @@ func (s *SearchService) askOutline(sessionId string, answer string) {
 	}
 }
 
-func (s *SearchService) askRecordUpdate(askInfo *models.AskInfo, questions []string, answer string, echoRefers []DoReferItem) (err error) {
+func (s *SearchService) askRecordUpdate(askInfo *models.AskInfo, questions []string, answer string, echoRefers []dto_search.DoReferItem) (err error) {
 	askInfo.SubQuestion = questions
 	resultMap := make(map[string]string)
 	resultMap["new"] = answer
@@ -1103,12 +1085,12 @@ func (s *SearchService) Recall(req *dto_kdb_doc.RecallReq) (res *dto_kdb_doc.Rec
 	return
 }
 
-func mergeItems(items []DoReferItem) []DoReferItem {
+func mergeItems(items []dto_search.DoReferItem) []dto_search.DoReferItem {
 	if len(items) == 0 {
 		return nil
 	}
 
-	mergedItems := make([]DoReferItem, 0)
+	mergedItems := make([]dto_search.DoReferItem, 0)
 	currentItem := items[0]
 
 	for i := 1; i < len(items); i++ {
@@ -1123,4 +1105,96 @@ func mergeItems(items []DoReferItem) []DoReferItem {
 	mergedItems = append(mergedItems, currentItem)
 
 	return mergedItems
+}
+
+func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.AskSyncRes, err error) {
+	userInfo, _ := utils.LoginInfo(s.GetCtx())
+	// 校验知识库权限
+	_, err = s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	askInfo, err := s.searchData.CreateSession(userInfo.UserId)
+	if err != nil {
+		return nil, err
+	}
+	user, _ := s.userDao.GetByUserId(userInfo.UserId)
+	config := user.Setting.Data()
+	modelType := config.ModelType
+	promptI18n := "\n 输出使用中文！！"
+	if config.Language == "en-us" {
+		promptI18n = "\n 输出使用英文！！"
+	}
+	askContext := AskContext{
+		ModelType:  modelType,
+		PromptI18n: promptI18n,
+		SessionId:  req.SessionId,
+		Question:   req.Question,
+		KdbId:      req.KdbId,
+		DbData:     askInfo,
+		UserId:     userInfo.UserId,
+	}
+	askContext.AnswerStyle = "simplify"
+	answer, answerRefer, searchResult, err := s.AskSimpleSync(askContext)
+	if err != nil {
+		s.LogErrorf("问答报错, %s", err.Error())
+		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
+		return
+	}
+	askAttach, err := s.askAttachDao.GetBySessionId(askInfo.SessionId)
+	if err != nil {
+		return
+	}
+	if askAttach == nil {
+		return
+	}
+	refers := make([]dto_search.ReferenceItem, 0)
+	_ = json.Unmarshal(askAttach.Reference, &refers)
+	res = &dto_search.AskSyncRes{
+		Answer:       answer,
+		AnswerRefer:  answerRefer,
+		SearchResult: searchResult,
+	}
+	return
+}
+
+// 简单搜索
+func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
+	s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
+	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
+	if err != nil {
+		err = components.ErrorQueryError
+		return
+	}
+	if len(searchResult) == 0 {
+		err = components.ErrorQueryEmpty
+		return
+	}
+	searchResultStr, _ := json.Marshal(searchResult)
+	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": searchResultStr})
+	if err != nil {
+		err = components.ErrorMysqlError
+		return
+	}
+	s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
+	s.saveRes(req.SessionId, "summary", "整理答案开始")
+
+	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, searchResult)
+	if err != nil {
+		return
+	}
+	answer = answerRes.Answer
+	if len(searchResult) > 0 {
+		echoRefers, err = s.referDo(0, answer, searchResult)
+		if err != nil {
+			return "", nil, nil, err
+		}
+	}
+	s.saveRes(req.SessionId, "summary", "整理答案结束")
+	s.saveRes(req.SessionId, "finish", "回答完成")
+	// 保存记录
+	go func(entity *SearchService) {
+		_ = entity.askRecordUpdate(req.DbData, []string{req.Question}, answer, echoRefers)
+	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+	return
 }

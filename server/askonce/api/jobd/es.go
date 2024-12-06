@@ -67,7 +67,7 @@ func (entity *JobdApi) EsSearch(emb any, query string, querySize int, mapValue s
 			},
 		},
 	}
-	return doTaskProcess[*ESSearchReq, []ESSearchOutput](entity, "search_engine_search", inputReq, 10000)
+	return doTaskProcess[*ESSearchReq, []ESSearchOutput](entity, "search_engine_search", inputReq, 100000)
 }
 
 type ESInsertReq struct {
@@ -78,7 +78,7 @@ type ESInsertReq struct {
 
 func (entity *JobdApi) EsInsert(inputReq ESInsertReq) (res any, err error) {
 	entity.Client.MaxReqBodyLen = -1
-	return doTaskProcessString[ESInsertReq](entity, "search_engine_insert", inputReq, 50000)
+	return doTaskProcessString[ESInsertReq](entity, "search_engine_insert", inputReq, 100000)
 }
 
 type ESDeleteReq struct {
@@ -93,5 +93,5 @@ type ESDeleteRes struct {
 }
 
 func (entity *JobdApi) EsDelete(inputReq *ESDeleteReq) (res ESDeleteRes, err error) {
-	return doTaskProcess[*ESDeleteReq, ESDeleteRes](entity, "search_engine_delete", inputReq, 10000)
+	return doTaskProcess[*ESDeleteReq, ESDeleteRes](entity, "search_engine_delete", inputReq, 100000)
 }

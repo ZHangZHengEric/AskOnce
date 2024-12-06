@@ -25,7 +25,7 @@ func (entity *JobdApi) AnswerByDocuments(question string, answerStyle string, se
 		SearchResult: searchResult,
 		IsStream:     true,
 	}
-	return doTaskProcessStream[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 10000, f)
+	return doTaskProcessStream[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 1000000, f)
 }
 
 func (entity *JobdApi) AnswerByDocumentsSync(question string, answerStyle string, searchResult []dto_search.CommonSearchOutput) (out AnswerByDocumentsRes, err error) {
@@ -39,5 +39,5 @@ func (entity *JobdApi) AnswerByDocumentsSync(question string, answerStyle string
 		SearchResult: searchResult,
 		IsStream:     false,
 	}
-	return doTaskProcess[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 10000)
+	return doTaskProcess[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 1000000)
 }
