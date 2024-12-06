@@ -56,11 +56,11 @@ func (f *FileData) ConvertFileToText(fileId string) (fileName string, output str
 var allowExtension = []string{".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xlsx", ".xls", ".json"}
 
 func (f *FileData) UploadContent(userId string, fileName string, content string, source string) (add *models.File, err error) {
-	splitF := strings.Split(fileName, ".")
-	// 文件原始名称
-	fileOriginName := splitF[0]
+	pathN := path.Base(fileName)
 	// 文件原始格式
-	fileOriginExtension := splitF[1]
+	fileOriginExtension := path.Ext(pathN)
+	// 文件原始名称
+	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 	if !slice.Contain(allowExtension, fileOriginExtension) {
 		return nil, components.ErrorFormatError
 	}
