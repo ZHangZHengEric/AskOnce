@@ -243,8 +243,13 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 			askContext.AnswerStyle = "detailed"
 			err = s.AskComplex(askContext)
 		case "research":
-			askContext.AnswerStyle = "askProfessional"
-			err = s.AskProfessional(askContext)
+			if req.KdbId > 0 {
+				askContext.AnswerStyle = "detailed"
+				err = s.AskComplex(askContext)
+			} else {
+				askContext.AnswerStyle = "askProfessional"
+				err = s.AskProfessional(askContext)
+			}
 		default:
 			return errors.ErrorParamInvalid
 		}

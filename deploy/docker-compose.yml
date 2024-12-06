@@ -46,3 +46,43 @@ services:
     extends:
       file: es-docker-compose.yml
       service: askonce-es-dashboard
+  askonce_answer_by_documents_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_answer_by_documents_0
+  askonce_data_convert_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_answer_by_documents_0
+  askonce_result_add_reference_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_result_add_reference_0
+  askonce_split_question_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_split_question_0
+  askonce_search_engine_insert_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_search_engine_insert_0
+  askonce_search_engine_delete_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_search_engine_delete_0
+  askonce_search_engine_search_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_search_engine_search_0
+  askonce_document_split_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_document_split_0
+  askonce_question_rewrite_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_question_rewrite_0
+  askonce_net_rag_assessment_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_net_rag_assessment_0
