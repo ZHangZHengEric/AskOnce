@@ -247,7 +247,7 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 				askContext.AnswerStyle = "detailed"
 				err = s.AskComplex(askContext)
 			} else {
-				askContext.AnswerStyle = "askProfessional"
+				askContext.AnswerStyle = "professional"
 				err = s.AskProfessional(askContext)
 			}
 		default:
