@@ -6,7 +6,7 @@ import argparse
 import os,sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))))
 from AskOnce.algorithm.services.task_manager.task_manager import TaskManager,http_post_json
-from AskOnce.algorithm.lib.llm_api.split_question import QuestionSplit
+from AskOnce.algorithm.lib.llm_api.question_process import QuestionProcess
 import time
 from datetime import datetime
 import traceback
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # log_txt = args.log_file_path[:-3]+'input_log' 
     tm = TaskManager(jobdurl=args.jobdurl)
-    model = QuestionSplit(api_key=args.api_key,platform_api_url=args.platform_api_url,model_name= args.model_name)    
+    model = QuestionProcess(api_key=args.api_key,platform_api_url=args.platform_api_url,model_name= args.model_name)    
     for one_task_type in args.tasktype:
         # 
         tm.add_task_type_info(one_task_type,10000,args.worker_name)
