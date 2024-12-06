@@ -117,5 +117,5 @@ services:
 
 # 为所有服务定义一个默认的网络
 networks:
-  default:
-    driver: bridge  # 使用默认的桥接网络
+  askonce_network:
+    driver: bridge
