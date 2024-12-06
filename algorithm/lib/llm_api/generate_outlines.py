@@ -69,3 +69,42 @@ class GenerateOutlines (LLMBaseAPI):
                 continue
         print(paper_outline_out)
         return paper_outline_out
+    
+    def generate_outlines_by_question_and_search_result(self,question,search_result):
+        
+        all_search_result = self.select_search_result(search_result)
+        if len(all_search_result)==0:
+            print('搜索结果都过滤掉了')
+            prompt = '''你现在是一个专业的问题解答专家，将用户的输入请求，生成一个回答的目录大纲，目录大纲要对针对用户的回答范围广泛，满足用户对输入请求信息的全面了解，大纲的格式要严格按照如下规定，不要有其他的格式：
+1. 一级内容使用<h1></h1>包围，不超过15个字，例如<h1>一级内容</h1>
+2. 二级内容使用<h2></h2>包围，不超过15个字，例如<h2>二级内容</h2>
+
+用户请求：{answer}
+
+目录大纲：'''
+            prompt_ok = prompt.format(question=question)
+        else:
+            
+            prompt='''你现在是一个专业的问题解答专家，将用户的输入请求以及根据输入请求搜索到的相关结果，生成一个回答的目录大纲，目录大纲要对针对用户的回答范围广泛，满足用户对输入请求信息的全面了解，大纲的格式要严格按照如下规定，不要有其他的格式：
+1. 一级内容使用<h1></h1>包围，不超过15个字，例如<h1>一级内容</h1>
+2. 二级内容使用<h2></h2>包围，不超过15个字，例如<h2>二级内容</h2>
+
+搜索结果：{search_result}
+
+用户请求：{answer}
+
+目录大纲：
+'''
+            answers = []
+            for item in all_search_result:
+                answers.append('标题：'+item['title']+'\n部分内容：'+item['answer_for_question'].strip())
+            prompt_ok = prompt.format(question=question,answers='\n'.join(answers))
+        return_result = {
+            'prompt' :prompt_ok,
+            'temperature':0.1,
+            'presence_penalty':1.2,
+            'max_tokens':2048
+        }
+        result =  self.ask_llm(**return_result)
+        directory_outlines = self.paper_outline(result)
+        return directory_outlines

@@ -15,12 +15,13 @@ class LLMBaseAPI:
             api_key: str ,
             model_name: str 
         ):
+        self.platform_api_url = platform_api_url
+        self.api_key  =api_key
+        self.model_name = model_name
         self.client = OpenAI(
             api_key=api_key,
             base_url=platform_api_url
-        )
-        self.model_name = model_name
-    
+        )    
     def search_internet(self,queston):
         pass
     

@@ -43,6 +43,8 @@ def process(task_input,task_type,model,args,tm):
             result = model.detailed_answer(task_input.question,task_input.search_result,task_input.is_stream)
         elif task_input.answer_style == 'detailed_no_chapter':
             result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
+        elif task_input.answer_style == 'professional”':
+            result = model.professional_answer(task_input.question,task_input.search_result,task_input.is_stream)
         else:
             result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
         

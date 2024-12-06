@@ -48,21 +48,44 @@ class QuestionProcess (LLMBaseAPI):
         return quesiton_after_rewrite
 
     def judge_use_rag(self,question):
-        prompt = '''针对用户提出的问题，我将根据以下逻辑来判断是否需要进行互联网搜索以增强大模型的知识。请直接给出“是”或“否”的结果。
-逻辑如下：
-1. 如果问题属于如下类别回答否，否则回答是：
-- 文章写作
-- 代码调试
-- 逻辑推理
-- 数学计算问题
+        prompt = '''判断用户的请求或者描述是否属于以下类别：文章写作、代码调试、逻辑推理、数学计算问题。如果输入请回答是，不属于请回答否，只用回答是或者否一个字。
 
-用户问题: {question}
-最终回答：
+用户请求: {question}
+回答：
 '''
         use_rag = self.ask_llm(prompt=prompt.format(question=question),temperature=0.3)
+        print(use_rag)
         if '是' in use_rag:
-            return True
+            return False
         if '不' in use_rag:
-            return False
+            return True
         else:
-            return False
+            return True
+        
+    def generate_more_related_question(self,quesiton,answer,nums=3):
+        prompt = '''根据用户的问题和回答，生成与该问题相关的问题或者话题，要求如下：
+1. 生成的问题或话题的相关答案或描述，没有在回答中出现。
+2. 生成的问题或话题更多的是帮助增加用户相关事情的了解和学习。
+3. 生成的问题或话题要是用户基于当前上文可能会接下来想问的。
+4. 生成每个问题或话题在单独一行
+
+示例如下
+用户问题：一句话介绍一下奥卡姆剃刀
+
+回答：奥卡姆剃刀是一种由 14 世纪英国哲学家奥卡姆的威廉提出的原理，即 “如无必要，勿增实体”，简单来说就是在多种解释或假设中，应该优先选择最简单的那个。例如，在解释行星运动时，日心说相对地心说在模型上更简洁，就体现了奥卡姆剃刀的思维理念，它在科学、哲学等诸多领域被广泛用于筛选和评估理论。
+
+生成{number}个相关的问题或话题：
+奥卡姆剃刀原理的提出背景是什么？
+有哪些科学理论的发展体现了奥卡姆剃刀原理？
+在实际生活中如何运用奥卡姆剃刀原理？
+
+真实任务
+用户问题: {question}
+
+回答：{answer}
+
+生成{number}个相关的问题或话题：
+'''     
+        more_question_or_topic = self.ask_llm(prompt=prompt.format(question=question,answer=answer,number=nums),temperature=0.3)
+        more_question_or_topic_list= more_question_or_topic.split('\n')
+        return more_question_or_topic_list
