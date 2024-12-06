@@ -7,6 +7,7 @@ services:
     depends_on:
       - mysql
       - redis
+    profiles: ["all", "backend"]
   backend:
     extends:
       file: backend-docker-compose.yml
@@ -14,75 +15,100 @@ services:
     depends_on:
       - mysql
       - redis
+    profiles: ["all", "backend"]
+
   askonce-nginx:
     extends:
       file: web-docker-compose.yml
       service: askonce-nginx
+    profiles: ["all", "nginx"]
+
   mysql:
     extends:
       file: db-docker-compose.yml
       service: mysql
+    profiles: ["all", "db"]
   redis:
     extends:
       file: db-docker-compose.yml
       service: redis
+    profiles: ["all", "db"]
+
   minio:
     extends:
       file: db-docker-compose.yml
       service: minio
+    profiles: ["all", "db"]
   askonce-es1:
     extends:
       file: es-docker-compose.yml
       service: askonce-es1
+    profiles: ["all", "db"]
   askonce-es2:
     extends:
       file: es-docker-compose.yml
       service: askonce-es2
+    profiles: ["all", "db"]
   askonce-es3:
     extends:
       file: es-docker-compose.yml
       service: askonce-es3
+    profiles: ["all", "db"]
   askonce-es-dashboard:
     extends:
       file: es-docker-compose.yml
       service: askonce-es-dashboard
+    profiles: ["all", "db"]
   askonce_answer_by_documents_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_answer_by_documents_0
+    profiles: ["all", "llm"]
   askonce_data_convert_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_answer_by_documents_0
+    profiles: ["all", "llm"]
   askonce_result_add_reference_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_result_add_reference_0
+    profiles: ["all", "llm"]
   askonce_split_question_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_split_question_0
+    profiles: ["all", "llm"]
   askonce_search_engine_insert_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_search_engine_insert_0
+    profiles: ["all", "llm"]
   askonce_search_engine_delete_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_search_engine_delete_0
+    profiles: ["all", "llm"]
   askonce_search_engine_search_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_search_engine_search_0
+    profiles: [ "all", "llm" ]
   askonce_document_split_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_document_split_0
+    profiles: [ "all", "llm" ]
   askonce_question_rewrite_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_question_rewrite_0
+    profiles: [ "all", "llm" ]
   askonce_net_rag_assessment_0:
     extends:
       file: llm_services-docker-compose.yml
       service: askonce_net_rag_assessment_0
+    profiles: [ "all", "llm" ]
+networks:
+  default:
+    driver: askonce-network
