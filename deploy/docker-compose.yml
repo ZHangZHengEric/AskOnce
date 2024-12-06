@@ -114,6 +114,8 @@ services:
       file: llm_services-docker-compose.yml
       service: askonce_generate_outlines_0
     profiles: ["all", "llm"]
+
+# 为所有服务定义一个默认的网络
 networks:
   default:
-    driver: askonce-network
+    driver: bridge  # 使用默认的桥接网络
