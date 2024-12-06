@@ -242,14 +242,9 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 		case "complex":
 			askContext.AnswerStyle = "detailed"
 			err = s.AskComplex(askContext)
-		//case "research":
-		//	if req.KdbId > 0 {
-		//		askContext.AnswerStyle = "detailed"
-		//		err = s.AskComplex(askContext)
-		//	} else {
-		//		askContext.AnswerStyle = "detailed_no_chapter"
-		//		err = s.AskResearch(askContext)
-		//	}
+		case "research":
+			askContext.AnswerStyle = "askProfessional"
+			err = s.AskProfessional(askContext)
 		default:
 			return errors.ErrorParamInvalid
 		}
@@ -346,6 +341,134 @@ func (s *SearchService) AskSimple(req AskContext) (err error) {
 }
 
 func (s *SearchService) AskComplex(req AskContext) (err error) {
+	s.EchoRes("analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
+	s.saveRes(req.SessionId, "analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
+	splitRes, err := s.jobdApi.SplitQuestion(req.Question)
+	if err != nil {
+		return components.ErrorJobdError
+	}
+	if len(splitRes.Questions) == 0 {
+		s.EchoRes("analyze", fmt.Sprintf("分析问题为: %s", req.Question))
+		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s", req.Question))
+	} else {
+		s.EchoRes("analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.Questions, ";")))
+		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.Questions, ";")))
+	}
+	if len(splitRes.Questions) <= 1 {
+		return s.AskSimple(req)
+	}
+	s.EchoRes("search", "")
+	if req.KdbId == 0 {
+		s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
+	} else {
+		s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
+	}
+	searchResultAll := make([]dto_search.CommonSearchOutput, 0)
+	searchResultAllMap := make(map[string][]dto_search.CommonSearchOutput)
+	// 处理拆分问题的单个回答
+	eg0, _ := errgroup.WithContext(s.GetCtx())
+	lock0 := sync.Mutex{}
+	for i, subQ := range splitRes.Questions {
+		tmpQ := subQ
+		tmpSearchContent := splitRes.Questions[i]
+		eg0.Go(func() (err error) {
+			searchResult, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, tmpSearchContent, req.KdbId, req.UserId)
+			if err != nil {
+				return err
+			}
+			lock0.Lock()
+			searchResultAllMap[tmpQ] = searchResult
+			lock0.Unlock()
+			return nil
+		})
+	}
+	if err = eg0.Wait(); err != nil {
+		return components.ErrorQueryError
+	}
+	// 合并答案
+	searchResultUnique := make(map[string]bool)
+	for _, outputs := range searchResultAllMap {
+		for _, output := range outputs {
+			unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
+			if searchResultUnique[unique] {
+				continue
+			}
+			searchResultAll = append(searchResultAll, output)
+			searchResultUnique[unique] = true
+		}
+	}
+	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResultAll)))
+	if req.KdbId == 0 {
+		s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResultAll)))
+	} else {
+		s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResultAll)))
+	}
+	oreferenceStr, _ := json.Marshal(searchResultAll)
+	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": oreferenceStr})
+	if err != nil {
+		return
+	}
+	go func(entity *SearchService) {
+		//first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResultAll)
+		//if err != nil {
+		//	entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
+		//}
+		//second, err := entity.jobdApi.DeduplicationRelateInfo(first)
+		//if err != nil {
+		//	entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
+		//}
+		//relateStr, _ := json.Marshal(second)
+		//err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
+		//if err != nil {
+		//	return
+		//}
+		entity.EchoRes("relation", "done")
+	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+
+	subAnswerAllMap := make(map[int]string)
+	eg1, _ := errgroup.WithContext(s.GetCtx())
+	lock1 := sync.Mutex{}
+	for i, subQ := range splitRes.Questions {
+		tmpQ := subQ
+		tmpSearchResult := searchResultAllMap[tmpQ]
+		tmpIndex := i
+		eg1.Go(func() (err error) {
+			subAnswer, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, tmpSearchResult)
+			if err != nil {
+				return
+			}
+			lock1.Lock()
+			subAnswerAllMap[tmpIndex] = subAnswer.Answer
+			lock1.Unlock()
+			return nil
+		})
+	}
+	if err = eg1.Wait(); err != nil {
+		return components.ErrorChatError
+	}
+	s.saveRes(req.SessionId, "summary", "整理答案开始")
+	var subAnswerAll []string
+	for i := range splitRes.Questions {
+		subAnswerAll = append(subAnswerAll, subAnswerAllMap[i])
+	}
+	// 开始回答
+	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, searchResultAll)
+	if err != nil {
+		return components.ErrorChatError
+	}
+	s.saveRes(req.SessionId, "summary", "整理答案结束")
+	// 保存记录
+	go func(entity *SearchService) {
+		_ = entity.askRecordUpdate(req.DbData, splitRes.Questions, answer, echoRefers)
+	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+	// 生成大纲
+	s.askOutline(req.SessionId, answer)
+	s.EchoRes("outline", "done")
+
+	return
+}
+
+func (s *SearchService) AskProfessional(req AskContext) (err error) {
 	s.EchoRes("analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
 	s.saveRes(req.SessionId, "analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
 	splitRes, err := s.jobdApi.SplitQuestion(req.Question)
