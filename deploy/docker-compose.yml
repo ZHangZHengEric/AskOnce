@@ -4,17 +4,11 @@ services:
     extends:
       file: backend-docker-compose.yml
       service: jobd
-    depends_on:
-      - mysql
-      - redis
     profiles: ["all", "backend"]
   backend:
     extends:
       file: backend-docker-compose.yml
       service: backend
-    depends_on:
-      - mysql
-      - redis
     profiles: ["all", "backend"]
 
   askonce-nginx:
