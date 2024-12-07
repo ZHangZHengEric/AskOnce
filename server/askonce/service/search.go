@@ -880,6 +880,7 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 	wg := sync.WaitGroup{}
 	lock := sync.Mutex{}
 	first := true
+	currentAnswer := ""
 	err = s.jobdApi.AnswerByDocuments(req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
 		if first {
 			s.EchoRes("generate", "")
@@ -887,12 +888,9 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 		}
 		chatAnswer := jobd.AnswerByDocumentsRes{}
 		_ = json.Unmarshal([]byte(jobdRes.Output), &chatAnswer)
-		currentAnswer := chatAnswer.Answer
 		// 对话展示逻辑
-		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && jobdRes.Status != "FINISH" {
-			return nil
-		}
+		echoAnswer := chatAnswer.Answer
+		currentAnswer = currentAnswer + echoAnswer
 		s.EchoRes("appendText", echoAnswer)
 		answer = chatAnswer.Answer
 		if len(searchResult) > 0 {
