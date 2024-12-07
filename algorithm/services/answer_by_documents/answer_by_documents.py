@@ -43,7 +43,7 @@ def process(task_input,task_type,model,args,tm):
             result = model.detailed_answer(task_input.question,task_input.search_result,task_input.is_stream)
         elif task_input.answer_style == 'detailed_no_chapter':
             result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
-        elif task_input.answer_style == 'askProfessional':
+        elif task_input.answer_style == 'professional':
             result = model.professional_answer(task_input.question,task_input.search_result,task_input.is_stream)
         else:
             result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
@@ -117,11 +117,10 @@ if __name__ == '__main__':
                 print(info)
                 tm.update_info(task_info={"task_id": get_task_resp["task_id"],"output": 'error',"status" : TaskManager.STATUS_EXEC_FAILED})
                 continue
-            tm.update_info(task_info={"task_id": get_task_resp["task_id"],"output": json.dumps(taskOutput,ensure_ascii=False),"status" : TaskManager.STATUS_FINISH})
-       
-    
-        
-        
-    
-        
-        
+            try:
+                tm.update_info(task_info={"task_id": get_task_resp["task_id"],"output": json.dumps(taskOutput,ensure_ascii=False),"status" : TaskManager.STATUS_FINISH})
+            except Exception as e:
+                traceback.print_exc()
+                print(taskOutput)
+                tm.update_info(task_info={"task_id": get_task_resp["task_id"],"output": 'error',"status" : TaskManager.STATUS_EXEC_FAILED})
+                continue

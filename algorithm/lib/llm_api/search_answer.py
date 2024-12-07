@@ -39,7 +39,6 @@ class SearchAnswer (LLMBaseAPI):
         return_result = {
             'prompt' :prompt_ok,
             'temperature':0.1,
-            'presence_penalty':1.2,
             'max_tokens':2048
         }
         if stream:
@@ -57,7 +56,7 @@ class SearchAnswer (LLMBaseAPI):
             print('搜索结果都过滤掉了')
             prompt = '''你现在是一个AI智能助手，对用户输入的问题进行回答，要求：
 1. 回答内容丰富详细，字数多，只需要回答问题关注的信息，不要做过多的解释。
-2. 使用markdown格式，回答部分进行章节划分，每个段落的文字要内容丰富，字数多。
+2. 使用markdown格式，回答部分进行章节划分，不要用一级标题，每个段落的文字要内容丰富，字数多。
 
 问题：{question}'''
             prompt_ok = prompt.format(question=question)
@@ -66,7 +65,7 @@ class SearchAnswer (LLMBaseAPI):
 1. 回答内容丰富详细，字数多，只需要回答问题关注的信息，不要做过多的解释。
 2. 只使用相关内容的信息，使用第三人称的表达方法。
 3. 不要输出参考资料，不要输出相关信息的来源，例如标题等，也不要输出“根据已知信息”相关的表述。
-4. 使用markdown格式，回答部分进行章节划分，每个段落的文字要内容丰富，字数多。
+4. 使用markdown格式，回答部分进行章节划分，不要用一级标题，每个段落的文字要内容丰富，字数多。
 
 相关内容：{answers}
 
@@ -77,7 +76,6 @@ class SearchAnswer (LLMBaseAPI):
         return_result = {
             'prompt' :prompt_ok,
             'temperature':0.3,
-            'presence_penalty':1.0,
             'max_tokens':2048
         }
         if stream:
@@ -117,7 +115,6 @@ class SearchAnswer (LLMBaseAPI):
         return_result = {
             'prompt' :prompt_ok,
             'temperature':0.3,
-            'presence_penalty':1.0,
             'max_tokens':2048
         }
         if stream:
@@ -175,12 +172,11 @@ class SearchAnswer (LLMBaseAPI):
 
 回答内容：
 '''         
-            prompt_ok = prompt.format(question=question,directory_str=directory_str,chapter=chapter,search_result_str='\n'.join(answer))
+            prompt_ok = prompt.format(question=question,directory_str=directory_str,chapter=chapter,search_result_str='\n'.join(answers))
         
         return_result = {
             'prompt' :prompt_ok,
             'temperature':0.4,
-            'presence_penalty':1.0,
             'max_tokens':2048
         }
         if stream:
@@ -195,7 +191,7 @@ class SearchAnswer (LLMBaseAPI):
         outlines_model  =  GenerateOutlines(platform_api_url = self.platform_api_url,
                                             api_key  =self.api_key,
                                             model_name = self.model_name)
-        directory = outlines_model.generate_outlines_by_question_and_search_result(quesiton,search_result)
+        directory = outlines_model.generate_outlines_by_question_and_search_result(question,search_result)
         all_result = ''
         if len(directory) ==0 :
             detailed_answer_result = self.detailed_answer(question,search_result,stream)
@@ -209,18 +205,18 @@ class SearchAnswer (LLMBaseAPI):
                 all_result+=detailed_answer_result+'\n'
                 yield detailed_answer_result
 
-        directory_str = '\n'.join([ item[0]+'# '+item[1] for item in directory ])
+        directory_str = '\n'.join([ item['title_level']+'# '+item['content'] for item in directory ])
         print('大纲：\n',directory_str)
         # 根据大纲逐步生成回答
         for index,directory_item in enumerate(directory):
             
             if index < len(directory)-1:
-                if len(directory[index]) < len(directory[index+1]):
-                    all_result += directory_item[-1][0]+'# '+directory_item[-1][1]+'\n'
-                    yield directory_item[-1][0]+'# '+directory_item[-1][1]+'\n'
+                all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
+                yield directory_item['title_level']+'# '+directory_item['content']+'\n'
+                if len(directory[index]['title_level']) < len(directory[index+1]['title_level']):
                     continue
-            
-            one_chapter_result = self.professional_answer_one_chapter(quesiton,directory_item[-1][1],directory_str,search_result,stream)
+                    
+            one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,search_result,stream)
             if stream:
                 for item in one_chapter_result:
                     all_result+=item
@@ -237,9 +233,9 @@ class SearchAnswer (LLMBaseAPI):
         question_process_model = QuestionProcess(platform_api_url = self.platform_api_url,
                                             api_key  =self.api_key,
                                             model_name = self.model_name)
-        more_question_or_topic_list = question_process_model.generate_more_related_question(quesiton,all_result)
+        more_question_or_topic_list = question_process_model.generate_more_related_question(question,all_result)
         # 对额外的问题生成回答
-        
+        print('额外的问题',more_question_or_topic_list)
         yield '\n---\n'
         
         for more_question in more_question_or_topic_list:

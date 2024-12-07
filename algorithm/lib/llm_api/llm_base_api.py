@@ -30,8 +30,8 @@ class LLMBaseAPI:
             self, 
             prompt: str | list, 
             temperature: float = 0.01, 
-            presence_penalty: float = 1.2, 
-            frequency_penalty: float = 1.2,
+            presence_penalty: float = 0, 
+            frequency_penalty: float = 0,
             max_tokens: int = 1024, 
         ):
         if isinstance(prompt, str):
@@ -47,7 +47,8 @@ class LLMBaseAPI:
             temperature=temperature,
             presence_penalty=presence_penalty,
             frequency_penalty=frequency_penalty,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            stream=False
         ) 
         return_content = completion.choices[0].message.content
         print('使用模型', self.model_name, '推理耗时', f'{time.time() - start_time:.4f} 秒')
@@ -57,8 +58,8 @@ class LLMBaseAPI:
             self, 
             prompt: str | list, 
             temperature: float = 0.01, 
-            presence_penalty: float = 1.2, 
-            frequency_penalty: float = 1.2,
+            presence_penalty: float = 0, 
+            frequency_penalty: float = 0,
             max_tokens: int = 1024, 
         ):
         if isinstance(prompt, str):

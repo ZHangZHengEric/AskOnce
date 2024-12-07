@@ -40,7 +40,7 @@ class GenerateOutlines (LLMBaseAPI):
             one_item=paper_outline_list[i]
             one_item = one_item.strip()
             if one_item.startswith('<h1>'):
-                layer = {'level': 'h1', 'content': one_item[len('<h1>'):-len('</h1>')].strip()}
+                layer = {'level': 'h1','title_level':'#', 'content': one_item[len('<h1>'):-len('</h1>')].strip()}
                 if len(paper_outline_fir)!=0 and layer['content'] in paper_outline_fir[-1]:
                     paper_outline_sec=None
                     paper_outline_third=None
@@ -50,7 +50,7 @@ class GenerateOutlines (LLMBaseAPI):
                     paper_outline_out.append(layer)
                     paper_outline_sec=[]
             elif paper_outline_sec!=None and one_item.startswith('<h2>'):
-                layer = {'level': 'h2', 'content': one_item[len('<h2>'):-len('</h2>')].strip()}
+                layer = {'level': 'h2','title_level':'##', 'content': one_item[len('<h2>'):-len('</h2>')].strip()}
                 if len(paper_outline_sec)!=0 and layer['content'] in paper_outline_sec:
                     paper_outline_third=None
                     continue
@@ -59,7 +59,7 @@ class GenerateOutlines (LLMBaseAPI):
                     paper_outline_out.append(layer)
                     paper_outline_third=[]
             elif paper_outline_third!=None and one_item.startswith('<h3>'):
-                layer = {'level': 'h3', 'content': one_item[len('<h3>'):-len('</h3>')].strip()}
+                layer = {'level': 'h3','title_level':'##', 'content': one_item[len('<h3>'):-len('</h3>')].strip()}
                 if len(paper_outline_third)!=0 and layer['content'] in paper_outline_third:
                     continue
                 else:
@@ -68,6 +68,8 @@ class GenerateOutlines (LLMBaseAPI):
             else:
                 continue
         print(paper_outline_out)
+        paper_outline_out = [item for item in paper_outline_out if len(item['content'])>0]
+        
         return paper_outline_out
     
     def generate_outlines_by_question_and_search_result(self,question,search_result):
@@ -79,7 +81,7 @@ class GenerateOutlines (LLMBaseAPI):
 1. 一级内容使用<h1></h1>包围，不超过15个字，例如<h1>一级内容</h1>
 2. 二级内容使用<h2></h2>包围，不超过15个字，例如<h2>二级内容</h2>
 
-用户请求：{answer}
+用户请求：{question}
 
 目录大纲：'''
             prompt_ok = prompt.format(question=question)
@@ -91,20 +93,19 @@ class GenerateOutlines (LLMBaseAPI):
 
 搜索结果：{search_result}
 
-用户请求：{answer}
+用户请求：{question}
 
 目录大纲：
 '''
             answers = []
             for item in all_search_result:
                 answers.append('标题：'+item['title']+'\n部分内容：'+item['answer_for_question'].strip())
-            prompt_ok = prompt.format(question=question,answers='\n'.join(answers))
+            prompt_ok = prompt.format(question=question,search_result='\n'.join(answers))
         return_result = {
             'prompt' :prompt_ok,
-            'temperature':0.1,
-            'presence_penalty':1.2,
+            'temperature':0.3,
             'max_tokens':2048
         }
         result =  self.ask_llm(**return_result)
-        directory_outlines = self.paper_outline(result)
+        directory_outlines = self.parser_outline(result)
         return directory_outlines

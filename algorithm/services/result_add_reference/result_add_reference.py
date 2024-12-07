@@ -32,8 +32,9 @@ def process(task_input,task_type,model,args,tm):
         reference_map,reference_list_accept_index_range = model.get_answer_with_reference_map(task_input.result,task_input.reference_list,task_input.threshold)
         result_all['reference_map'] = reference_map
         result_all['reference_list_select_index'] = reference_list_accept_index_range
+        print(result_all)
         end_time = time.time()
-        print('回答','用时'+str(end_time-start_time))
+        print('匹配引用','用时'+str(end_time-start_time))
         return result_all
     
 if __name__ == '__main__':

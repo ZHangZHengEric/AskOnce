@@ -62,7 +62,7 @@ class QuestionProcess (LLMBaseAPI):
         else:
             return True
         
-    def generate_more_related_question(self,quesiton,answer,nums=3):
+    def generate_more_related_question(self,question,answer,nums=3):
         prompt = '''根据用户的问题和回答，生成与该问题相关的问题或者话题，要求如下：
 1. 生成的问题或话题的相关答案或描述，没有在回答中出现。
 2. 生成的问题或话题更多的是帮助增加用户相关事情的了解和学习。
