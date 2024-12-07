@@ -892,7 +892,7 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 		echoAnswer := chatAnswer.Answer
 		currentAnswer = currentAnswer + echoAnswer
 		s.EchoRes("appendText", echoAnswer)
-		answer = chatAnswer.Answer
+		answer = currentAnswer
 		if len(searchResult) > 0 {
 			// 引用判断逻辑
 			needReference, begin := IsCompleted(currentAnswer, jobdRes.Status, alreadyReferAnswer)
