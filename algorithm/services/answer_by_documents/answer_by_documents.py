@@ -17,36 +17,34 @@ class QAnswerInput:
         self.answer_style = json_data['answer_style'] if 'answer_style' in json_data.keys() else 'simplify'
         self.search_result = json_data['search_result'] if 'search_result' in json_data.keys() else []
         self.is_stream = json_data['is_stream'] if 'is_stream' in json_data.keys() else False
+        self.search_code = json_data['search_code'] if 'search_code' in json_data.keys() else None
+        self.history_messages = json_data['history_messages'] if 'history_messages' in json_data.keys() else []
         self.task_id = task_id
 
-# 将输入字符串解析到输入结构体中
 def unmarshal_task_input(GetTaskResp : dict):
-    # log_f = open(log_txt, 'a')
     task_type = GetTaskResp['task_type']
-    # try:
-    #     log_f.write(task_type+'\t'+str(time.strftime('%Y-%m-%d %H:%M:%S' ,time.localtime(time.time()))  )+'\t'+GetTaskResp["input"]+'\n')
-    # except:
-    #     pass
-    # log_f.close()
     input_json = json.loads(GetTaskResp["input"])
     if task_type ==args.tasktype[0]:
         return  task_type,QAnswerInput(json_data=input_json, task_id=GetTaskResp["task_id"]) 
-# 执行任务
+
 def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
         result_all = {'answer':''} 
-        print(task_input.answer_style)
-        if task_input.answer_style =='simplify':
-            result  = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
-        elif task_input.answer_style == 'detailed':
-            result = model.detailed_answer(task_input.question,task_input.search_result,task_input.is_stream)
-        elif task_input.answer_style == 'detailed_no_chapter':
-            result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
-        elif task_input.answer_style == 'professional':
-            result = model.professional_answer(task_input.question,task_input.search_result,task_input.is_stream)
+        if len(task_input.history_messages)>0:
+            result = model.answer_with_history_messages(task_input.question,task_input.search_result,task_input.history_messages,task_input.is_stream)
         else:
-            result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
+            print(task_input.answer_style,task_input.question)
+            if task_input.answer_style =='simplify':
+                result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
+            elif task_input.answer_style == 'detailed':
+                result = model.detailed_answer(task_input.question,task_input.search_result,task_input.is_stream)
+            elif task_input.answer_style == 'detailed_no_chapter':
+                result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
+            elif task_input.answer_style == 'professional':
+                result = model.professional_answer(task_input.question,task_input.search_result,task_input.is_stream)
+            else:
+                result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
         
         if task_input.is_stream:
             is_update = 0
@@ -60,6 +58,7 @@ def process(task_input,task_type,model,args,tm):
                         # end_start_time = time.time()
                         # update_time += (end_start_time-up_start_time)
                         is_update=0
+                        result_all['answer'] = ''
                     is_update+=1
                 except:
                     print(traceback.format_exc())

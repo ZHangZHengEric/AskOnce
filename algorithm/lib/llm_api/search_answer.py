@@ -7,15 +7,7 @@ class SearchAnswer (LLMBaseAPI):
         print('对问题进行简答:',question)
         print('搜索结果长度',len(search_result))
         all_search_result = self.select_search_result(search_result)
-        prompt = '''你现在是一个AI智能搜索引擎，根据相关内容（根据问题搜索出来的相关内容），对用户输入的问题进行回答，要求：
-1. 回答内容简洁全面，只需要回答问题关注的信息，不要做过多的解释。
-2. 只使用相关内容的信息，使用第三人称的表达方法。
-3. 不要输出相关信息的来源，例如标题等，也不要输出“根据已知信息”相关的表述。
-
-相关内容：{answers}
-
-问题：{question}'''
-        answers = []
+        
         if len(all_search_result)==0:
             print('搜索结果都过滤掉了')
             prompt = '''你现在是一个AI智能助手，对用户输入的问题进行回答，要求：
@@ -24,7 +16,6 @@ class SearchAnswer (LLMBaseAPI):
 问题：{question}'''
             prompt_ok = prompt.format(question=question)
         else:
-            
             prompt = '''你现在是一个AI智能搜索引擎，根据相关内容（根据问题搜索出来的相关内容），对用户输入的问题进行回答，要求：
 1. 回答内容简洁全面，只需要回答问题关注的信息，不要做过多的解释。
 2. 只使用相关内容的信息，使用第三人称的表达方法。
@@ -33,12 +24,36 @@ class SearchAnswer (LLMBaseAPI):
 相关内容：{answers}
 
 问题：{question}'''
+            answers = []
             for item in all_search_result:
                 answers.append('标题：'+item['title']+'\n部分内容：'+item['answer_for_question'].strip())
             prompt_ok = prompt.format(question=question,answers='\n'.join(answers))
         return_result = {
             'prompt' :prompt_ok,
             'temperature':0.1,
+            'max_tokens':2048
+        }
+        if stream:
+            return self.ask_llm_stream(**return_result)
+        else:
+            return self.ask_llm(**return_result)
+    
+    def answer_with_history_messages(self,question,search_result,history_messages,stream=False):
+        print('追问',question)
+        print('搜索结果长度',len(search_result))
+        all_search_result = self.select_search_result(search_result,max_search_content_length=3000,max_chars=3000)
+        if len(all_search_result)==0:
+            prompt = '''
+'''
+        else:
+            prompt = '''
+'''
+        
+        prompt_ok  = ''
+        history_messages.append({'role':'user','content':prompt_ok})
+        return_result = {
+            'prompt' :history_messages,
+            'temperature':0.3,
             'max_tokens':2048
         }
         if stream:
@@ -215,6 +230,10 @@ class SearchAnswer (LLMBaseAPI):
                 yield directory_item['title_level']+'# '+directory_item['content']+'\n'
                 if len(directory[index]['title_level']) < len(directory[index+1]['title_level']):
                     continue
+            else:
+                all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
+                yield directory_item['title_level']+'# '+directory_item['content']+'\n'
+                
                     
             one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,search_result,stream)
             if stream:
