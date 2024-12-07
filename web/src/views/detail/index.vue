@@ -50,17 +50,10 @@
                 <img src="@/assets/img/detail/web_deep.png" class="w-4 h-4 mt-1">
                 <div class="ml-2">{{ $t('home.complex') }}</div>
               </div>
-              <el-tooltip
-                  class="box-item"
-                  effect="dark"
-                  v-if="data.type==='complex'"
-                  content="研发中..."
-                  placement="bottom">
-                <div class="flex ml-4 cursor-pointer">
-                  <img src="@/assets/img/detail/web_deep.png" class="w-4 h-4 mt-1">
-                  <div class="ml-2">{{ $t('home.research') }}</div>
-                </div>
-              </el-tooltip>
+              <div  v-if="data.type==='complex'" class="flex ml-4 cursor-pointer" @click="toResearch">
+                <img src="@/assets/img/detail/web_deep.png" class="w-4 h-4 mt-1">
+                <div class="ml-2">{{ $t('home.research') }}</div>
+              </div>
               <div class="flex ml-4 cursor-pointer" @click="exportPdf">
                 <img src="@/assets/img/detail/web_export.png" class="w-4 h-4 mt-1">
                 <div class="ml-2">{{ $t('detail.export') }}</div>
@@ -394,6 +387,22 @@ const toSearch = async () => {
     query: {
       question: data.question,
       type: 'complex',
+      kdbName: data.kdbName,
+      kdbId: data.kdbId,
+      searchEngine: route.query.searchEngine,
+    }
+  })
+}
+
+const toResearch = async () => {
+  const res = await aiSearchSession({
+    question: data.inputValue
+  })
+  router.push({
+    path: `/detail/${res.data.sessionId}`,
+    query: {
+      question: data.question,
+      type: 'research',
       kdbName: data.kdbName,
       kdbId: data.kdbId,
       searchEngine: route.query.searchEngine,
