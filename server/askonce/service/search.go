@@ -430,32 +430,8 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 		entity.EchoRes("relation", "done")
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 
-	subAnswerAllMap := make(map[int]string)
-	eg1, _ := errgroup.WithContext(s.GetCtx())
-	lock1 := sync.Mutex{}
-	for i, subQ := range splitRes.Questions {
-		tmpQ := subQ
-		tmpSearchResult := searchResultAllMap[tmpQ]
-		tmpIndex := i
-		eg1.Go(func() (err error) {
-			subAnswer, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, tmpSearchResult)
-			if err != nil {
-				return
-			}
-			lock1.Lock()
-			subAnswerAllMap[tmpIndex] = subAnswer.Answer
-			lock1.Unlock()
-			return nil
-		})
-	}
-	if err = eg1.Wait(); err != nil {
-		return components.ErrorChatError
-	}
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
-	var subAnswerAll []string
-	for i := range splitRes.Questions {
-		subAnswerAll = append(subAnswerAll, subAnswerAllMap[i])
-	}
+
 	// 开始回答
 	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, searchResultAll)
 	if err != nil {
@@ -558,32 +534,8 @@ func (s *SearchService) AskProfessional(req AskContext) (err error) {
 		entity.EchoRes("relation", "done")
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 
-	subAnswerAllMap := make(map[int]string)
-	eg1, _ := errgroup.WithContext(s.GetCtx())
-	lock1 := sync.Mutex{}
-	for i, subQ := range splitRes.Questions {
-		tmpQ := subQ
-		tmpSearchResult := searchResultAllMap[tmpQ]
-		tmpIndex := i
-		eg1.Go(func() (err error) {
-			subAnswer, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, tmpSearchResult)
-			if err != nil {
-				return
-			}
-			lock1.Lock()
-			subAnswerAllMap[tmpIndex] = subAnswer.Answer
-			lock1.Unlock()
-			return nil
-		})
-	}
-	if err = eg1.Wait(); err != nil {
-		return components.ErrorChatError
-	}
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
-	var subAnswerAll []string
-	for i := range splitRes.Questions {
-		subAnswerAll = append(subAnswerAll, subAnswerAllMap[i])
-	}
+
 	// 开始回答
 	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, searchResultAll)
 	if err != nil {
@@ -928,6 +880,7 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 	wg := sync.WaitGroup{}
 	lock := sync.Mutex{}
 	first := true
+	currentAnswer := ""
 	err = s.jobdApi.AnswerByDocuments(req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
 		if first {
 			s.EchoRes("generate", "")
@@ -935,14 +888,11 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 		}
 		chatAnswer := jobd.AnswerByDocumentsRes{}
 		_ = json.Unmarshal([]byte(jobdRes.Output), &chatAnswer)
-		currentAnswer := chatAnswer.Answer
 		// 对话展示逻辑
-		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && jobdRes.Status != "FINISH" {
-			return nil
-		}
+		echoAnswer := chatAnswer.Answer
+		currentAnswer = currentAnswer + echoAnswer
 		s.EchoRes("appendText", echoAnswer)
-		answer = chatAnswer.Answer
+		answer = currentAnswer
 		if len(searchResult) > 0 {
 			// 引用判断逻辑
 			needReference, begin := IsCompleted(currentAnswer, jobdRes.Status, alreadyReferAnswer)

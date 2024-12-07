@@ -1,5 +1,5 @@
 <template>
-  <div class="ml-20 border border-[#F5F5F5] border-solid bg-white rounded-xl" id="right_tree">
+  <div class="ml-20 border border-[#F5F5F5] border-solid backdrop-blur-l bg-white/30	 rounded-xl" id="right_tree">
     <div class="flex bg-[#F5F5F5] rounded-t-xl pt-4 lg:pl-3 pr-3 pb-4">
       <div>{{ $t('detail.outline') }}</div>
       <svg-icon icon-class="detail_tree" class="w-4 h-4 mt-1 ml-10 cursor-pointer" @click="showTree(false)"></svg-icon>

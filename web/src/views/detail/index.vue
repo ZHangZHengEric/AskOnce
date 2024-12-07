@@ -55,7 +55,7 @@
                 <img src="@/assets/img/detail/web_deep.png" class="w-4 h-4 mt-1">
                 <div class="ml-2">{{ $t('home.complex') }}</div>
               </div>
-              <div  v-if="data.type==='complex'" class="flex ml-4 cursor-pointer" @click="toResearch">
+              <div v-if="data.type==='complex'" class="flex ml-4 cursor-pointer" @click="toResearch">
                 <img src="@/assets/img/detail/web_deep.png" class="w-4 h-4 mt-1">
                 <div class="ml-2">{{ $t('home.research') }}</div>
               </div>
@@ -310,7 +310,12 @@ const setData = (resultRefers, result) => {
       const aa = item.refers.map(tem => {
         return `<span><a target="_blank" ${getHref(tem.index)}>${tem.index + 1}<span>${getContent(tem)}</span></a></span>`
       })
-      arr.splice(item.start + index * 3, 0, '[[')
+      // 列表调整
+      if (arr[item.start + index * 3 - 1] === '-') {
+        arr.splice(item.start + index * 3 + 1, 0, '[[')
+      } else {
+        arr.splice(item.start + index * 3, 0, '[[')
+      }
       arr.splice(item.number + index * 3 + 1, 0, aa.join(''));
       arr.splice(item.number + index * 3 + 2, 0, ']]');
     })
@@ -325,7 +330,7 @@ const getContent = (tem) => {
   return data.referList[tem.index].content
       .substring(tem.referStart, tem.referEnd)
       .replace(/\n/g, "")
-      .replace(/\r/g, "")
+      .replace(/\r/g, "");
 }
 
 function extractMarkdownSymbols(text) {
