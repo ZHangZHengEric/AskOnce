@@ -86,10 +86,17 @@ module.exports = defineConfig({
 					"^/serverApi": "/serverApi",
 				},
 				changeOrigin: true,
-				onProxyRes(proxyRes) {
-					// 设置响应头，允许接收流数据
-					proxyRes.headers["transfer-encoding"] = "chunked";
-					proxyRes.headers["content-type"] = "application/octet-stream";
+				onProxyRes(proxyRes,req) {
+					console.log(req.url,req.url.indexOf("/search/ask")>0);
+					if (req.url.indexOf("/search/ask")>0) {
+						// 只为流式接口设置头部
+						proxyRes.headers["transfer-encoding"] = "chunked";
+						proxyRes.headers["content-type"] = "application/octet-stream";
+					} else {
+						// 确保非流式接口的响应头不受影响
+						delete proxyRes.headers["transfer-encoding"];
+						proxyRes.headers["content-type"] = "application/json"; // 假设非流式接口返回 JSON
+					}
 				},
 			},
 		},
