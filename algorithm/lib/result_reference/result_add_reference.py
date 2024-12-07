@@ -22,15 +22,14 @@ class AddReference:
                 all_parts.append('\n')
             elif len(one_answer_part)>0:
                 para = one_answer_part
-                para = re.sub('([•。,，;；！？\?])([^”’])', r"\1\n\2", para)  # 单字符断句符
+                para = re.sub('([•。;；！？\?])([^”’])', r"\1\n\2", para)  # 单字符断句符
                 para = re.sub('(\.{6})([^”’])', r"\1\n\2", para)  # 英文省略号
                 para = re.sub('(\…{2})([^”’])', r"\1\n\2", para)  # 中文省略号
-                para = re.sub('([。！？\?][”’])([^，。！？\?])', r'\1\n\2', para)
+                para = re.sub('([，,。！？\?][”’])([^，,。！？\?])', r'\1\n\2', para)
                 # 如果双引号前有终止符，那么双引号才是句子的终点，把分句符\n放到双引号后，注意前面的几句都小心保留了双引号
                 # para = para.rstrip()  # 段尾如果有多余的\n就去掉它
                 # 很多规则中会考虑分号;，但是这里我把它忽略不计，破折号、英文双引号等同样忽略，需要的再做些简单调整即可。
                 all_parts.extend(para.split("\n"))
-        # return tokenizer.sent_tokenize(answer,language='chinese')
         return all_parts
 
 
@@ -75,6 +74,8 @@ class AddReference:
     def max_sub_sentence_for_reference(self,sentence,reference_item):
         if len(reference_item)<5:
             return 0
+        if len(sentence)<5:
+            return 0
         seg_list,seg_list_not_stop_word,seg_list_not_stop_word_length = self.remove_stop_words_length(reference_item)
         
         s = difflib.SequenceMatcher(None, sentence, reference_item)
@@ -99,7 +100,7 @@ class AddReference:
         reference_list_item_index = []
         for reference_list_index , reference_list_item in enumerate(reference_list):
             ratio = self.max_sub_sentence(sentence,reference_list_item)
-            print(ratio,sentence,reference_list_item) 
+            print(ratio,sentence,'||||',reference_list_item) 
             if ratio > self.threshold:
                 reference_list_item_index.append(reference_list_index)
         return reference_list_item_index
