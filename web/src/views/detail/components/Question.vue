@@ -1,10 +1,5 @@
 <template>
   <div class="relative">
-    <div class="fixed top-2" v-if="scrollTop>60">
-      <div class="text-size32 text-default font-[500]" :class="{'mr-10':processList.length}">
-        {{ question }}
-      </div>
-    </div>
     <div class="text-size32 text-default font-[500]" :class="{'mr-10':processList.length}">
       {{ question }}
       <img @click="showEditQuestion"

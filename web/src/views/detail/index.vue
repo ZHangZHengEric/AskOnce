@@ -2,6 +2,11 @@
   <div class="relative h-full ">
     <div class="h-full overflow-y-scroll scrollbar-hidden" ref="refScroll">
       <div class="w-full flex m-auto relative">
+        <div class="fixed top-2" v-if="data.scrollTop>60">
+          <div class="text-size32 text-default font-[500]" :class="{'mr-10':data.processList.length}">
+            {{ data.question }}
+          </div>
+        </div>
         <div class="pl-3 w-3/5 pdf" id="pdf"
              :class="{'w-full':!data.showRight}">
           <question
