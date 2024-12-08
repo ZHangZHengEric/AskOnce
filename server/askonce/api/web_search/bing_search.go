@@ -33,6 +33,7 @@ type BingAnswer struct {
 			About []struct {
 				Name string `json:"name"`
 			} `json:"about,omitempty"`
+			Summary string `json:"summary"`
 		} `json:"value"`
 	} `json:"webPages"`
 	RelatedSearches struct {
@@ -70,7 +71,8 @@ type BingSearchResp struct {
 	Content string `json:"content"`
 }
 type WebSearchReq struct {
-	Query string `json:"query"`
+	Query   string `json:"query"`
+	Summary bool   `json:"summary"`
 }
 type WebSearchApi struct {
 	flow.Api
@@ -82,7 +84,8 @@ func (a *WebSearchApi) OnCreate() {
 
 func (a *WebSearchApi) Search(question string) (out []BingSearchResp, err error) {
 	req := &WebSearchReq{
-		Query: question,
+		Query:   question,
+		Summary: true,
 	}
 	requestOpt := http2.HttpRequestOptions{
 		RequestBody: req,
@@ -103,7 +106,7 @@ func (a *WebSearchApi) Search(question string) (out []BingSearchResp, err error)
 		out = append(out, BingSearchResp{
 			Title:   result.Name,
 			Url:     result.URL,
-			Content: result.Snippet,
+			Content: result.Summary,
 		})
 	}
 	return
