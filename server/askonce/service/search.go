@@ -1294,7 +1294,18 @@ func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}
 	if askAttach != nil {
 		refers := make([]dto_search.CommonSearchOutput, 0)
 		_ = json.Unmarshal(askAttach.Reference, &refers)
-		refers = append(refers, searchResult...)
+		searchResultMap := make(map[string]dto_search.CommonSearchOutput)
+		for _, output := range searchResult {
+			searchResultMap[output.Title+output.Url] = output
+		}
+		for _, refer := range refers {
+			if _, ok := searchResultMap[refer.Title+refer.Url]; ok {
+				delete(searchResultMap, refer.Title+refer.Url)
+			}
+		}
+		for _, output := range searchResultMap {
+			refers = append(refers, output)
+		}
 		refersAfterStr, _ := json.Marshal(refers)
 		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": refersAfterStr})
 		if err != nil {
