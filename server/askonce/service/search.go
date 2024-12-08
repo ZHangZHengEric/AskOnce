@@ -897,6 +897,14 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 			// 引用判断逻辑
 			needReference, begin := IsCompleted(currentAnswer, jobdRes.Status, alreadyReferAnswer)
 			if len(needReference) > 0 {
+				// 重新查一次数据库对引用
+				attach, err := s.askAttachDao.GetBySessionId(req.SessionId)
+				if err != nil {
+					return err
+				}
+				if attach != nil {
+					_ = json.Unmarshal(attach.Reference, &searchResult)
+				}
 				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
 				wg.Add(1)
 				alreadyReferAnswer = alreadyReferAnswer + needReference
