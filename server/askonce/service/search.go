@@ -1278,7 +1278,28 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 }
 
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
-	return s.searchData.SearchFromWeb(req.SessionId, req.Question)
+	searchResult, err := s.searchData.SearchFromWeb(req.SessionId, req.Question)
+	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
+	if err != nil {
+		return nil, err
+	}
+	if askAttach != nil {
+		refers := make([]dto_search.ReferenceItem, 0)
+		_ = json.Unmarshal(askAttach.Reference, &refers)
+		for _, output := range searchResult {
+			refers = append(refers, dto_search.ReferenceItem{
+				Title:   output.Title,
+				Url:     output.Url,
+				Content: output.Content,
+			})
+		}
+		refersAfterStr, _ := json.Marshal(refers)
+		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": refersAfterStr})
+		if err != nil {
+			return
+		}
+	}
+	return searchResult, nil
 }
 
 func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search.KdbSearchRes, err error) {
