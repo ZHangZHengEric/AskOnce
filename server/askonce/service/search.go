@@ -811,7 +811,7 @@ func (s *SearchService) Reference(req *dto_search.ReferReq) (res *dto_search.Ref
 		return
 	}
 	res = &dto_search.ReferenceRes{
-		List: make([]dto_search.ReferenceItem, 0),
+		List: make([]dto_search.CommonSearchOutput, 0),
 	}
 	if askInfo == nil {
 		return
@@ -825,7 +825,7 @@ func (s *SearchService) Reference(req *dto_search.ReferReq) (res *dto_search.Ref
 	if askAttach == nil {
 		return
 	}
-	refers := make([]dto_search.ReferenceItem, 0)
+	refers := make([]dto_search.CommonSearchOutput, 0)
 	_ = json.Unmarshal(askAttach.Reference, &refers)
 	res.List = refers
 	return
@@ -1226,7 +1226,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 	if askAttach == nil {
 		return
 	}
-	refers := make([]dto_search.ReferenceItem, 0)
+	refers := make([]dto_search.CommonSearchOutput, 0)
 	_ = json.Unmarshal(askAttach.Reference, &refers)
 	res = &dto_search.AskSyncRes{
 		Answer:       answer,
@@ -1284,15 +1284,9 @@ func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}
 		return nil, err
 	}
 	if askAttach != nil {
-		refers := make([]dto_search.ReferenceItem, 0)
+		refers := make([]dto_search.CommonSearchOutput, 0)
 		_ = json.Unmarshal(askAttach.Reference, &refers)
-		for _, output := range searchResult {
-			refers = append(refers, dto_search.ReferenceItem{
-				Title:   output.Title,
-				Url:     output.Url,
-				Content: output.Content,
-			})
-		}
+		refers = append(refers, searchResult...)
 		refersAfterStr, _ := json.Marshal(refers)
 		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": refersAfterStr})
 		if err != nil {
