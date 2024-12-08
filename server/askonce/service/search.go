@@ -1276,3 +1276,7 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 	return
 }
+
+func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
+	return s.searchData.SearchFromWeb(req.SessionId, req.Question)
+}

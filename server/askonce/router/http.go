@@ -111,6 +111,8 @@ func Http(engine *gin.Engine) {
 		searchGroup.POST("relation", flow.Use[dto_search.RelationReq](new(search.RelationController)))
 		// 智能搜索 进度
 		searchGroup.POST("process", flow.Use[dto_search.ProcessReq](new(search.ProcessController)))
+		// 智能搜索 网页直搜
+		searchGroup.POST("web", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
 	}
 	historyGroup := router.Group("history", middleware.NLIGetLoginInfo)
 	{

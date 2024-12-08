@@ -58,3 +58,8 @@ type ChatAskReq struct {
 	Type      string `json:"type" `                       // simple complex research
 	KdbId     int64  `json:"kdbId"`                       // 为kdb时有值
 }
+
+type WebSearchReq struct {
+	SessionId string `json:"sessionId"  binding:"required"`
+	Question  string `json:"question" binding:"required"`
+}

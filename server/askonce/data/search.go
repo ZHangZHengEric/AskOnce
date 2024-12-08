@@ -224,6 +224,37 @@ func (entity *SearchData) CreateSession(userId string) (add *models.AskInfo, err
 	return
 }
 
+func (entity *SearchData) SearchFromWeb(sessionId string, question string) (results []dto_search.CommonSearchOutput, err error) {
+	searchList, err := entity.webSearchApi.Search(question)
+	if err != nil {
+		return nil, err
+	}
+	if len(searchList) >= 10 {
+		searchList = searchList[:10]
+	}
+	for _, resp := range searchList {
+		results = append(results, dto_search.CommonSearchOutput{
+			Title:   resp.Title,
+			Url:     resp.Url,
+			Content: resp.Content,
+		})
+	}
+	if len(results) > 0 {
+		now := time.Now()
+		searchResultStr, _ := json.Marshal(results)
+		err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
+			SessionId:    sessionId,
+			SubQuestion:  question,
+			SearchResult: searchResultStr,
+			CrudModel: orm.CrudModel{
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		})
+	}
+	return results, nil
+}
+
 func appendText(source jobd.SearchOutputSource, fullContent string) string {
 	prefixIndex := source.Start
 	suffixIndex := source.End
