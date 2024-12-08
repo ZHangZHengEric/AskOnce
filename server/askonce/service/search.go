@@ -881,7 +881,7 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 	lock := sync.Mutex{}
 	first := true
 	currentAnswer := ""
-	err = s.jobdApi.AnswerByDocuments(req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
+	err = s.jobdApi.AnswerByDocuments(req.SessionId, req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
 		if first {
 			s.EchoRes("generate", "")
 			first = false

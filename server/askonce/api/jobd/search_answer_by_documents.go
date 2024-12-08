@@ -8,13 +8,14 @@ type AnswerByDocumentsReq struct {
 	AnswerStyle  string                          `json:"answer_style"`
 	SearchResult []dto_search.CommonSearchOutput `json:"search_result"`
 	IsStream     bool                            `json:"is_stream"`
+	SearchCode   string                          `json:"search_code"`
 }
 
 type AnswerByDocumentsRes struct {
 	Answer string `json:"answer"`
 }
 
-func (entity *JobdApi) AnswerByDocuments(question string, answerStyle string, searchResult []dto_search.CommonSearchOutput, f func(data JobdCommonRes) error) (err error) {
+func (entity *JobdApi) AnswerByDocuments(sessionId string, question string, answerStyle string, searchResult []dto_search.CommonSearchOutput, f func(data JobdCommonRes) error) (err error) {
 	if len(searchResult) == 0 {
 		searchResult = make([]dto_search.CommonSearchOutput, 0)
 	}
@@ -22,6 +23,7 @@ func (entity *JobdApi) AnswerByDocuments(question string, answerStyle string, se
 		Id:           "",
 		AnswerStyle:  answerStyle,
 		Question:     question,
+		SearchCode:   sessionId,
 		SearchResult: searchResult,
 		IsStream:     true,
 	}
