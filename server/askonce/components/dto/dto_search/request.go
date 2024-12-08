@@ -63,3 +63,8 @@ type WebSearchReq struct {
 	SessionId string `json:"sessionId"  binding:"required"`
 	Question  string `json:"question" binding:"required"`
 }
+
+type KdbSearchReq struct {
+	KdbName  string `json:"kdbName"  binding:"required"`
+	Question string `json:"question" binding:"required"`
+}

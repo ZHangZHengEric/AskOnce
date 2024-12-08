@@ -88,3 +88,7 @@ type AskSyncRes struct {
 	AnswerRefer  []DoReferItem        `json:"answerRefer"`
 	SearchResult []CommonSearchOutput `json:"searchResult"`
 }
+
+type KdbSearchRes struct {
+	SearchResult []CommonSearchOutput `json:"searchResult"`
+}

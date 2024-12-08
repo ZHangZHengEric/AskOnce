@@ -28,7 +28,7 @@ func (k *KdbService) OnCreate() {
 
 func (k *KdbService) Add(req *dto_kdb.AddReq) (res *dto_kdb.AddRes, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
-	exist, err := k.kdbData.CheckKdbSameName(req.Name, userInfo.UserId)
+	exist, err := k.kdbData.CheckKdbSameName(req.Name, userInfo.Account)
 	if err != nil {
 		return
 	}

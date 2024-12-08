@@ -39,8 +39,8 @@ func (k *KdbData) OnCreate() {
 }
 
 // 校验同一个用户下是否有同名知识库
-func (k *KdbData) CheckKdbSameName(kdbName string, userId string) (bool, error) {
-	kdb, err := k.kdbDao.GetByNameAndUserId(kdbName, userId)
+func (k *KdbData) CheckKdbSameName(kdbName string, userName string) (bool, error) {
+	kdb, err := k.kdbDao.GetByNameAndCreator(kdbName, userName)
 	if err != nil {
 		return false, err
 	}
@@ -73,6 +73,45 @@ func (k *KdbData) CheckKdbAuth(kdbId int64, userId string, authCode int) (*model
 		return nil, components.ErrorKdbNoOperate
 	}
 	return kdb, nil
+}
+
+func (k *KdbData) CheckKdbAuthByName(kdbName string, user dto.LoginInfoSession, authCode int) (*models.Kdb, error) {
+	kdb, err := k.kdbDao.GetByNameAndCreator(kdbName, user.Account)
+	if err != nil {
+		return nil, err
+	}
+	if kdb == nil {
+		return nil, components.ErrorKdbNoOperate
+	}
+
+	r, err := k.kdbUserDao.GetByKdbIdAndUserId(kdb.Id, user.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if r == nil {
+		return nil, components.ErrorKdbNoOperate
+	}
+	if r.AuthType < authCode { // 用户操作权限判断
+		return nil, components.ErrorKdbNoOperate
+	}
+	return kdb, nil
+}
+
+func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAutoCreate bool) (kdb *models.Kdb, err error) {
+	kdb, err = k.kdbDao.GetByNameAndCreator(kdbName, user.Account)
+	if err != nil {
+		return nil, err
+	}
+	if kdb == nil && kdbAutoCreate {
+		kdb, err = k.AddKdb(kdbName, "", user)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if kdb == nil {
+		return nil, components.ErrorKdbNoOperate
+	}
+	return
 }
 
 func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {

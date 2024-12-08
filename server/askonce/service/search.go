@@ -1280,3 +1280,35 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
 	return s.searchData.SearchFromWeb(req.SessionId, req.Question)
 }
+
+func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search.KdbSearchRes, err error) {
+	userInfo, err := utils.LoginInfo(s.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := s.kdbData.CheckKdbAuthByName(req.KdbName, userInfo, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_search.KdbSearchRes{
+		SearchResult: make([]dto_search.CommonSearchOutput, 0),
+	}
+
+	// es搜索的片段
+	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
+		IndexName: kdb.GetIndexName(),
+		Query:     req.Question,
+	})
+	if err != nil {
+		return nil, components.ErrorQueryEmpty
+	}
+	for _, result := range esSearchResult {
+		res.SearchResult = append(res.SearchResult, dto_search.CommonSearchOutput{
+			Title:   result.Title,
+			Url:     result.Url,
+			Content: result.Content,
+		})
+	}
+	return
+
+}

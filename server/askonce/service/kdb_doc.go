@@ -296,6 +296,73 @@ func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, 
 	return
 }
 
+func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (res interface{}, err error) {
+	userInfo, err := utils.LoginInfo(k.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := k.kdbData.GetKdbByName(req.KdbName, userInfo, req.AutoCreate)
+	if err != nil {
+		return nil, err
+	}
+	docs := make([]*models.KdbDoc, 0)
+	for _, doc := range req.Docs {
+		if len(doc.Text) == 0 {
+			return nil, errors.NewError(10034, "文本内容为空！")
+		}
+		fileName := ""
+		if len(doc.Title) > 0 {
+			fileName = fmt.Sprintf("%s.txt", doc.Title)
+		} else {
+			fileName = fmt.Sprintf("%v.txt", helpers.GenID())
+		}
+
+		file, err := k.fileData.UploadContent(userInfo.UserId, fileName, doc.Text, "knowledge")
+		if err != nil {
+			return nil, err
+		}
+		doc := &models.KdbDoc{
+			KdbId:      kdb.Id,
+			DocName:    file.OriginName,
+			DataSource: "file",
+			SourceId:   file.Id,
+			NeedSplit:  true,
+			Status:     models.KdbDocRunning,
+			UserId:     userInfo.UserId,
+			CrudModel: orm.CrudModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		}
+		docs = append(docs, doc)
+	}
+	err = k.kdbDocDao.BatchInsert(docs)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range docs {
+		doc := t
+		go func(k *KdbDocService) {
+			defer func() {
+				if r := recover(); r != nil {
+					k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, r)
+					_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+				}
+			}()
+			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
+			err = k.DocBuild(kdb, doc)
+			if err != nil {
+				k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
+				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+			} else {
+				k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
+				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
+			}
+		}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
+	}
+	return
+}
+
 // 下载 ZIP 文件到内存
 func downloadZip(url string) ([]byte, error) {
 	resp, err := http.Get(url)

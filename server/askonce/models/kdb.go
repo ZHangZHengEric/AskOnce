@@ -76,11 +76,11 @@ func (entity *KdbDao) GetById(id int64) (res *Kdb, err error) {
 	return
 }
 
-func (entity *KdbDao) GetByNameAndUserId(name string, userId string) (res *Kdb, err error) {
+func (entity *KdbDao) GetByNameAndCreator(name string, creator string) (res *Kdb, err error) {
 	res = &Kdb{}
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
-	err = db.Where("name = ? and creator = ? ", name, userId).First(&res).Error
+	err = db.Where("name = ? and creator = ? ", name, creator).First(&res).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
