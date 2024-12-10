@@ -84,6 +84,7 @@ func (k *KdbService) List(req *dto_kdb.ListReq) (res *dto_kdb.ListResp, err erro
 			DefaultColor: false,
 			Creator:      kdb.Creator,
 			Type:         typeNum,
+			Intro:        kdb.Intro,
 		}
 		if kdb.Setting.Data().KdbAttach.CoverId != 0 {
 			cover, _ := k.kdbCoverDao.GetById(kdb.Setting.Data().KdbAttach.CoverId)
