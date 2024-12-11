@@ -8,7 +8,6 @@ import (
 	"jobd/components/defines"
 	"jobd/components/dto"
 	"jobd/helpers"
-	"strings"
 	"time"
 )
 
@@ -97,14 +96,6 @@ func (entity *TaskCache) PopInputTask(taskType string, timeOut int64) (taskInfo 
 	return taskInfo, err
 }
 
-func (entity *TaskCache) ClearInputTask(taskType string) (err error) {
-	_, err = helpers.RedisClient.Del(entity.GetCtx(), entity.FormatCacheKey("%s:%s", TaskInputKey, taskType))
-	if err != nil {
-		return nil
-	}
-	return
-}
-
 func (entity *TaskCache) PopOutputTask(taskId string, timeOut int64) (ret *dto.TaskInfo, err error) {
 	out, err := helpers.RedisClient.BRPop(entity.FormatCacheKey("%s:%s", TaskOutputKey, taskId), timeOut)
 	if err != nil {
@@ -132,25 +123,6 @@ func (entity *TaskCache) GetTodoTaskNum(taskType string) (length int, err error)
 	length, err = helpers.RedisClient.LLen(entity.FormatCacheKey("%s:%s", TaskInputKey, taskType))
 	if err != nil {
 		return 0, errors.New(err.Error())
-	}
-	return
-}
-
-func (entity *TaskCache) ClearTodoTask(taskType string) error {
-	_, err := helpers.RedisClient.Del(entity.GetCtx(), entity.FormatCacheKey("%s:%s", TaskInputKey, taskType))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (entity *TaskCache) GetAllUnFinishedTask() (res []string, err error) {
-	_, keys, err := helpers.RedisClient.SScan(entity.FormatCacheKey("%s", TaskInfoKey), 0, "*", 0)
-	if err != nil {
-		return nil, err
-	}
-	for _, key := range keys {
-		res = append(res, strings.Replace(key, TaskInfoKey+":", "", -1))
 	}
 	return
 }
