@@ -53,3 +53,10 @@ func (entity *FileDao) GetByIds(ids []string) (res []*File, err error) {
 	err = entity.GetDB().Where("id in ?", ids).Find(&res).Error
 	return
 }
+
+func (entity *FileDao) BatchInsert(files []*File) error {
+	if len(files) == 0 {
+		return nil
+	}
+	return entity.GetDB().CreateInBatches(files, 2000).Error
+}

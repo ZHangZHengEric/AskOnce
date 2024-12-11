@@ -4,6 +4,7 @@ import (
 	"askonce/components"
 	"askonce/components/dto"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/pkg/errors"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
@@ -92,6 +93,7 @@ func (entity *KdbDao) GetByIds(ids []int64) (res []*Kdb, err error) {
 	if len(ids) == 0 {
 		return
 	}
+	ids = slice.Unique(ids)
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
 	err = db.Where("id in ?", ids).Find(&res).Error

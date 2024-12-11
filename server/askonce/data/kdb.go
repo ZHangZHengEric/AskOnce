@@ -396,6 +396,10 @@ func (k *KdbData) GetKdbShareCode(shareCode string) (kdb *models.Kdb, kdbShare *
 	return
 }
 
+func (k *KdbData) GetKdbByIds(kdbIds []int64) (kdbs []*models.Kdb, err error) {
+	return k.kdbDao.GetByIds(kdbIds)
+}
+
 func randStr(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	bytes := []byte(str)

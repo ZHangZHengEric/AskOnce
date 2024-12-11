@@ -52,7 +52,7 @@ func (entity *KdbDocDao) BatchInsert(add []*KdbDoc) (err error) {
 	if len(add) == 0 {
 		return nil
 	}
-	return entity.GetDB().Create(add).Error
+	return entity.GetDB().CreateInBatches(add, 2000).Error
 }
 
 // 更新
@@ -97,6 +97,13 @@ func (entity *KdbDocDao) GetByIds(ids []int64) (res []*KdbDoc, err error) {
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
 	err = db.Where("id in ?", ids).Find(&res).Error
+	return
+}
+func (entity *KdbDocDao) GetListByStatus(status int) (res []*KdbDoc, err error) {
+	res = []*KdbDoc{}
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable())
+	err = db.Where("status = ?", status).Limit(100).Find(&res).Error
 	return
 }
 

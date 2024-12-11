@@ -25,6 +25,8 @@ func main() {
 	golib.Bootstraps(engine, conf.WebConf)
 	// 3 初始化资源
 	helpers.InitResource()
+	// 初始化任务
+	router.Tasks(engine)
 	// 4.初始化http服务路由
 	router.Http(engine)
 	router.API(engine)
