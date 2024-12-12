@@ -25,8 +25,6 @@ func main() {
 	golib.Bootstraps(engine, conf.WebConf)
 	// 3 初始化资源
 	helpers.InitResource()
-	// 初始化任务
-	router.Tasks(engine)
 	// 4.初始化http服务路由
 	router.Http(engine)
 	router.API(engine)
@@ -34,6 +32,8 @@ func main() {
 	flow.Start(engine, conf.WebConf, func(engine *gin.Engine) (err error) {
 		flow.SetDefaultDBClient(helpers.MysqlClient)
 		flow.SetDefaultRedisClient(helpers.RedisClient)
+		// 初始化任务
+		router.Tasks(engine)
 		return nil
 	})
 }
