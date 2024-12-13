@@ -1,4 +1,4 @@
-package components
+package core
 
 type OpenAIError struct {
 	Code    any    `json:"code"`

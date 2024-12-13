@@ -4,7 +4,6 @@ import (
 	"askonce/api/jobd"
 	"askonce/components"
 	"askonce/components/dto"
-	"askonce/components/dto/dto_gpt"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/components/dto/dto_search"
 	"askonce/data"
@@ -41,7 +40,6 @@ type SearchService struct {
 	askAttachDao *models.AskAttachDao
 	processDao   *models.AskProcessDao
 	userDao      *models.UserDao
-	chatData     *data.GptData
 }
 
 func (s *SearchService) OnCreate() {
@@ -52,7 +50,6 @@ func (s *SearchService) OnCreate() {
 	s.processDao = s.Create(new(models.AskProcessDao)).(*models.AskProcessDao)
 	s.searchData = s.Create(new(data.SearchData)).(*data.SearchData)
 	s.kdbData = s.Create(new(data.KdbData)).(*data.KdbData)
-	s.chatData = s.Create(new(data.GptData)).(*data.GptData)
 }
 
 func (s *SearchService) EchoRes(stage, text string) {
@@ -940,73 +937,73 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 	return
 }
 
-func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []dto_search.DoReferItem) (answer string, echoRefers []dto_search.DoReferItem, err error) {
-	echoRefers = append(echoRefers, echoReferAll...)
-	prompt := req.Question
-	var temperature float64
-	var maxNewTokens int
-	chatReq := &dto_gpt.ChatCompletionReq{
-		Messages: []dto_gpt.ChatCompletionMessage{
-			{
-				Role:    "Human",
-				Content: prompt + req.PromptI18n,
-			},
-		},
-		Temperature: temperature,
-		MaxTokens:   maxNewTokens,
-	}
-	// 生成答案 + 引用
-	alreadyReferAnswer := ""
-	wg := sync.WaitGroup{}
-	lock := sync.Mutex{}
-	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
-		currentAnswer := chatAnswer.Answer
-		// 对话展示逻辑
-		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
-			return nil
-		}
-		s.EchoRes("appendText", echoAnswer)
-		answer = chatAnswer.Answer
-		if len(searchResult) > 0 {
-			// 引用判断逻辑
-			needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
-			begin = begin + startIndex
-			if len(needReference) > 0 {
-				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
-				wg.Add(1)
-				alreadyReferAnswer = alreadyReferAnswer + needReference
-				go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
-					defer wg.Done()
-					aa, errA := entity.referDo(begin, needRefer, searchResult)
-					if errA != nil {
-						return
-					}
-					if len(aa) == 0 {
-						return
-					}
-					lock.Lock()
-					echoRefers = append(echoRefers, aa...)
-					lock.Unlock()
-					sort.Slice(echoRefers, func(i, j int) bool {
-						return echoRefers[i].Start < echoRefers[j].Start
-					})
-					// 	合并一次
-					echoRefers = mergeItems(echoRefers)
-					if len(echoRefers) == 0 {
-						return
-					}
-					aaStr, _ := json.Marshal(echoRefers)
-					entity.EchoRes("refer", string(aaStr))
-				}(s.CopyWithCtx(s.GetCtx()).(*SearchService), begin, needReference, searchResult)
-			}
-		}
-		return nil
-	})
-	wg.Wait()
-
-	return
-}
+//	func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []dto_search.DoReferItem) (answer string, echoRefers []dto_search.DoReferItem, err error) {
+//		echoRefers = append(echoRefers, echoReferAll...)
+//		prompt := req.Question
+//		var temperature float64
+//		var maxNewTokens int
+//		chatReq := &gpt.ChatCompletionReq{
+//			Messages: []gpt.ChatCompletionMessage{
+//				{
+//					Role:    "Human",
+//					Content: prompt + req.PromptI18n,
+//				},
+//			},
+//			Temperature: temperature,
+//			MaxTokens:   maxNewTokens,
+//		}
+//		// 生成答案 + 引用
+//		alreadyReferAnswer := ""
+//		wg := sync.WaitGroup{}
+//		lock := sync.Mutex{}
+//		err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
+//			currentAnswer := chatAnswer.Answer
+//			// 对话展示逻辑
+//			echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
+//			if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
+//				return nil
+//			}
+//			s.EchoRes("appendText", echoAnswer)
+//			answer = chatAnswer.Answer
+//			if len(searchResult) > 0 {
+//				// 引用判断逻辑
+//				needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
+//				begin = begin + startIndex
+//				if len(needReference) > 0 {
+//					s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
+//					wg.Add(1)
+//					alreadyReferAnswer = alreadyReferAnswer + needReference
+//					go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
+//						defer wg.Done()
+//						aa, errA := entity.referDo(begin, needRefer, searchResult)
+//						if errA != nil {
+//							return
+//						}
+//						if len(aa) == 0 {
+//							return
+//						}
+//						lock.Lock()
+//						echoRefers = append(echoRefers, aa...)
+//						lock.Unlock()
+//						sort.Slice(echoRefers, func(i, j int) bool {
+//							return echoRefers[i].Start < echoRefers[j].Start
+//						})
+//						// 	合并一次
+//						echoRefers = mergeItems(echoRefers)
+//						if len(echoRefers) == 0 {
+//							return
+//						}
+//						aaStr, _ := json.Marshal(echoRefers)
+//						entity.EchoRes("refer", string(aaStr))
+//					}(s.CopyWithCtx(s.GetCtx()).(*SearchService), begin, needReference, searchResult)
+//				}
+//			}
+//			return nil
+//		})
+//		wg.Wait()
+//
+//		return
+//	}
 func (s *SearchService) askOutline(sessionId string, answer string) {
 	if answer == "" {
 		return

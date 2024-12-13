@@ -2,6 +2,10 @@ package data
 
 import (
 	"askonce/api/jobd"
+	"askonce/conf"
+	gpt2 "askonce/gpt"
+	"askonce/gpt/client"
+	"askonce/gpt/core"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"golang.org/x/sync/errgroup"
@@ -15,12 +19,10 @@ import (
 type DocumentData struct {
 	flow.Layer
 	jobdApi *jobd.JobdApi
-	gptData *GptData
 }
 
 func (d *DocumentData) OnCreate() {
 	d.jobdApi = flow.Create(d.GetCtx(), new(jobd.JobdApi))
-	d.gptData = flow.Create(d.GetCtx(), new(GptData))
 }
 
 // 文本切分
@@ -45,7 +47,7 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 		tmp := ss
 		index := i
 		eg2.Go(func() error {
-			embRes, errA := d.gptData.Embedding(tmp)
+			embRes, errA := d.Embedding(tmp)
 			if errA != nil {
 				return errA
 			}
@@ -64,11 +66,25 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 	return
 }
 
-// 批量文本转向量
-func (d *DocumentData) QueryEmbedding(text string) (emb []float32, err error) {
-	embRes, err := d.gptData.Embedding([]string{text})
+func (d *DocumentData) Embedding(texts []string) (output [][]float32, err error) {
+	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeChat)]
+	channel, err := gpt2.CreatChannel(d.GetCtx(), embeddingModel)
 	if err != nil {
-		return emb, err
+		return
 	}
-	return embRes[0], nil
+	resp, err := channel.Embedding(&core.EmbeddingReq{
+		Model: embeddingModel.Model,
+		Input: texts,
+	})
+	if err != nil {
+		return
+	}
+	if resp.Error != nil {
+		return nil, resp.Error
+	}
+	output = make([][]float32, 0)
+	for _, bb := range resp.Data {
+		output = append(output, bb.Embedding)
+	}
+	return output, nil
 }

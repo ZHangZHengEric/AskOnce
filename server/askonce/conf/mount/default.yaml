@@ -24,14 +24,21 @@ minioConf:
   sk: ${BACKEND_MINIO_SK}
 
 
-esConf:
+elastic:
   addr: ${BACKEND_ES_ADDR}
 
-embeddingModelConf:
-  source: skylark
-  addr: https://ark.cn-beijing.volces.com
-  ak: ${BACKEND_EMBEDDING_MODEL_AK}
-  model: ep-20241202225908-h99mn
+channel:
+  chat:
+    source: ${BACKEND_CHANNEL_CHAT_SOURCE}
+    addr: ${BACKEND_CHANNEL_CHAT_ADDR}
+    ak: ${BACKEND_CHANNEL_CHAT_AK}
+    model: ${BACKEND_CHANNEL_CHAT_MODEL}
+  embedding:
+    source: ${BACKEND_CHANNEL_EMBEDDING_SOURCE}
+    addr: ${BACKEND_CHANNEL_EMBEDDING_ADDR}
+    ak: ${BACKEND_CHANNEL_EMBEDDING_AK}
+    model: ${BACKEND_CHANNEL_EMBEDDING_MODEL}
+
 
 api:
   jobd:
