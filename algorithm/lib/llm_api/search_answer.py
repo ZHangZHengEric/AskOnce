@@ -261,14 +261,11 @@ class SearchAnswer (LLMBaseAPI):
             yield '> ## '+more_question+'\n'
             new_search_result = self.search_internet(more_question,search_session_id)
             more_question_answer = self.detailed_no_chapter_answer(more_question,new_search_result,stream)
-            yield '> '
             if stream:
                 for item in more_question_answer:
-                    if item =='\n':
-                        item += '\n> '
                     yield item
             else:
-                yield '> '+more_question_answer+'\n'
+                yield more_question_answer+'\n'
             yield '\n'
         
     

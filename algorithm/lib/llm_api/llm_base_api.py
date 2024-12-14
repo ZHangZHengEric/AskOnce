@@ -32,7 +32,7 @@ class LLMBaseAPI:
             }
             try:
                 response = requests.post(url, headers=headers, json=data)
-                return response.json()["data"]['data']
+                return response.json()["data"]
             except:
                 traceback.print_exc()
                 print('检查askonce 网络搜索引擎服务')
