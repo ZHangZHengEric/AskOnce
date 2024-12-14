@@ -70,6 +70,7 @@ func (u *UserData) LoginUserByAccount(account string, password string) (session 
 	domain := utils.GetCookieDomain(u.GetCtx().Request.Host)
 	u.LogInfof("set cookie domain:%+v", domain)
 	u.GetCtx().SetCookie(defines.COOKIE_KEY, userSessionKey, defines.COOKIE_DEFAULT_AGE, defines.COOKIE_PATH, domain, false, false)
+	session.Session = userSessionKey
 	return
 }
 
