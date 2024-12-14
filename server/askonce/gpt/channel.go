@@ -45,6 +45,8 @@ func (c *Channel) Embedding(req *core.EmbeddingReq) (resp *core.EmbeddingResp, e
 		Encode:      http2.EncodeJson,
 		Headers:     header,
 	}
+
+	c.gptClient.GetClient().MaxRespBodyLen = -1
 	httpResult, err := c.gptClient.GetClient().HttpPost(c.ctx, path, requestOpt)
 	if err != nil {
 		return nil, core.NewOpenAiError("do_request_failed", err.Error())
