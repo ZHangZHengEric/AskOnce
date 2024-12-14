@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"askonce/gpt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/xiangtao94/golib/pkg/env"
@@ -23,10 +24,10 @@ type SWebConf struct {
 	ElasticSearch SElasticConf               `yaml:"elastic"`
 	MongoDb       map[string]SMongoDBConf    `yaml:"mongodb"`
 
-	Api                map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
-	MinioConf          SMinioConf                      `yaml:"minioConf"`
-	EmbeddingModelConf SEmbeddingModelConf             `yaml:"embeddingModelConf"`
-	EsDbConfig         string                          `yaml:"esDbConfig"`
+	Api        map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
+	MinioConf  SMinioConf                      `yaml:"minioConf"`
+	Channel    map[string]gpt.ChannelConf      `yaml:"channel"`
+	EsDbConfig string                          `yaml:"esDbConfig"`
 }
 
 type SMongoDBConf struct {
@@ -46,13 +47,6 @@ type SMinioConf struct {
 	AK   string `yaml:"ak"`
 	SK   string `yaml:"sk"`
 	Addr string `yaml:"addr"`
-}
-
-type SEmbeddingModelConf struct {
-	Source string `yaml:"source"` // 渠道
-	Addr   string `yaml:"addr"`
-	AK     string `yaml:"ak"`
-	Model  string `yaml:"model"`
 }
 
 var WebConf *SWebConf

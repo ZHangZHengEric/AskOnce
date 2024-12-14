@@ -32,6 +32,8 @@ func main() {
 	flow.Start(engine, conf.WebConf, func(engine *gin.Engine) (err error) {
 		flow.SetDefaultDBClient(helpers.MysqlClient)
 		flow.SetDefaultRedisClient(helpers.RedisClient)
+		// 初始化任务
+		router.Tasks(engine)
 		return nil
 	})
 }

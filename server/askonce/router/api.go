@@ -28,8 +28,10 @@ func API(engine *gin.Engine) {
 			docGroup.POST("list", flow.Use[dto_kdb_doc.ListReq](new(kdb.DocListController)))
 			// 新增
 			docGroup.POST("add", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
-			// 修改
+			// zip包新增
 			docGroup.POST("addByZip", flow.Use[dto_kdb_doc.AddZipReq](new(kdb.DocAddByZipController)))
+			// 批量文本新增
+			docGroup.POST("addByBatchText", flow.Use[dto_kdb_doc.AddByBatchTextReq](new(kdb.DocAddByBatchTextController)))
 			// 删除
 			docGroup.POST("delete", flow.Use[dto_kdb_doc.DeleteReq](new(kdb.DocDeleteController)))
 			// 重做
@@ -37,6 +39,9 @@ func API(engine *gin.Engine) {
 		}
 		searchGroup := router.Group("search")
 		{
+			//  网页直搜
+			searchGroup.POST("web", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
+			searchGroup.POST("kdb", flow.Use[dto_search.KdbSearchReq](new(search.KdbSearchController)))
 			// 智能搜索
 			searchGroup.POST("chatAskSync", flow.Use[dto_search.ChatAskReq](new(search.ChatAskSyncController)))
 		}

@@ -5,6 +5,9 @@ import (
 	"askonce/api/web_search"
 	"askonce/components/dto/dto_search"
 	"askonce/conf"
+	gpt2 "askonce/gpt"
+	"askonce/gpt/client"
+	"askonce/gpt/core"
 	"askonce/helpers"
 	"askonce/models"
 	"crypto/md5"
@@ -28,7 +31,6 @@ type SearchData struct {
 	kdbDocDao        *models.KdbDocDao
 	fileDao          *models.FileDao
 	kdbData          *KdbData
-	gptData          *GptData
 }
 
 func (entity *SearchData) OnCreate() {
@@ -40,7 +42,6 @@ func (entity *SearchData) OnCreate() {
 	entity.kdbDocDao = entity.Create(new(models.KdbDocDao)).(*models.KdbDocDao)
 	entity.fileDao = entity.Create(new(models.FileDao)).(*models.FileDao)
 	entity.kdbData = entity.Create(new(KdbData)).(*KdbData)
-	entity.gptData = entity.Create(new(GptData)).(*GptData)
 }
 
 func (entity *SearchData) SearchFromWebOrKnowledge(sessionId, question string, kdbId int64, userId string) (results []dto_search.CommonSearchOutput, err error) {
@@ -113,13 +114,13 @@ type EsCommonSearchResult struct {
 }
 
 func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonSearchResult, err error) {
-	embRes, err := entity.gptData.Embedding([]string{input.Query})
+	embRes, err := entity.QueryEmbedding(input.Query)
 	if err != nil {
 		return
 	}
 	querySize := 10
 	esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "@indexName@", input.IndexName, 1)
-	recalls, err := entity.jobdApi.EsSearch(embRes[0], input.Query, querySize, esDbConfigStr)
+	recalls, err := entity.jobdApi.EsSearch(embRes, input.Query, querySize, esDbConfigStr)
 	if err != nil {
 		return
 	}
@@ -224,6 +225,37 @@ func (entity *SearchData) CreateSession(userId string) (add *models.AskInfo, err
 	return
 }
 
+func (entity *SearchData) SearchFromWeb(sessionId string, question string) (results []dto_search.CommonSearchOutput, err error) {
+	searchList, err := entity.webSearchApi.Search(question)
+	if err != nil {
+		return nil, err
+	}
+	if len(searchList) >= 10 {
+		searchList = searchList[:10]
+	}
+	for _, resp := range searchList {
+		results = append(results, dto_search.CommonSearchOutput{
+			Title:   resp.Title,
+			Url:     resp.Url,
+			Content: resp.Content,
+		})
+	}
+	if len(results) > 0 {
+		now := time.Now()
+		searchResultStr, _ := json.Marshal(results)
+		err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
+			SessionId:    sessionId,
+			SubQuestion:  question,
+			SearchResult: searchResultStr,
+			CrudModel: orm.CrudModel{
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		})
+	}
+	return results, nil
+}
+
 func appendText(source jobd.SearchOutputSource, fullContent string) string {
 	prefixIndex := source.Start
 	suffixIndex := source.End
@@ -240,4 +272,24 @@ func appendText(source jobd.SearchOutputSource, fullContent string) string {
 		suffixIndex = prefixIndex
 	}
 	return string(full[prefixIndex:suffixIndex])
+}
+
+func (d *SearchData) QueryEmbedding(text string) (output []float32, err error) {
+	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeChat)]
+	channel, err := gpt2.CreatChannel(d.GetCtx(), embeddingModel)
+	if err != nil {
+		return
+	}
+	resp, err := channel.Embedding(&core.EmbeddingReq{
+		Model: embeddingModel.Model,
+		Input: []string{text},
+	})
+	if err != nil {
+		return
+	}
+	if resp.Error != nil {
+		return nil, resp.Error
+	}
+	output = resp.Data[0].Embedding
+	return output, nil
 }

@@ -4,7 +4,6 @@ import (
 	"askonce/api/jobd"
 	"askonce/components"
 	"askonce/components/dto"
-	"askonce/components/dto/dto_gpt"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/components/dto/dto_search"
 	"askonce/data"
@@ -41,7 +40,6 @@ type SearchService struct {
 	askAttachDao *models.AskAttachDao
 	processDao   *models.AskProcessDao
 	userDao      *models.UserDao
-	chatData     *data.GptData
 }
 
 func (s *SearchService) OnCreate() {
@@ -52,7 +50,6 @@ func (s *SearchService) OnCreate() {
 	s.processDao = s.Create(new(models.AskProcessDao)).(*models.AskProcessDao)
 	s.searchData = s.Create(new(data.SearchData)).(*data.SearchData)
 	s.kdbData = s.Create(new(data.KdbData)).(*data.KdbData)
-	s.chatData = s.Create(new(data.GptData)).(*data.GptData)
 }
 
 func (s *SearchService) EchoRes(stage, text string) {
@@ -811,7 +808,7 @@ func (s *SearchService) Reference(req *dto_search.ReferReq) (res *dto_search.Ref
 		return
 	}
 	res = &dto_search.ReferenceRes{
-		List: make([]dto_search.ReferenceItem, 0),
+		List: make([]dto_search.CommonSearchOutput, 0),
 	}
 	if askInfo == nil {
 		return
@@ -825,7 +822,7 @@ func (s *SearchService) Reference(req *dto_search.ReferReq) (res *dto_search.Ref
 	if askAttach == nil {
 		return
 	}
-	refers := make([]dto_search.ReferenceItem, 0)
+	refers := make([]dto_search.CommonSearchOutput, 0)
 	_ = json.Unmarshal(askAttach.Reference, &refers)
 	res.List = refers
 	return
@@ -881,7 +878,7 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 	lock := sync.Mutex{}
 	first := true
 	currentAnswer := ""
-	err = s.jobdApi.AnswerByDocuments(req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
+	err = s.jobdApi.AnswerByDocuments(req.SessionId, req.Question, answerStyle, searchResult, func(jobdRes jobd.JobdCommonRes) error {
 		if first {
 			s.EchoRes("generate", "")
 			first = false
@@ -897,6 +894,14 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 			// 引用判断逻辑
 			needReference, begin := IsCompleted(currentAnswer, jobdRes.Status, alreadyReferAnswer)
 			if len(needReference) > 0 {
+				// 重新查一次数据库对引用
+				attach, err := s.askAttachDao.GetBySessionId(req.SessionId)
+				if err != nil {
+					return err
+				}
+				if attach != nil {
+					_ = json.Unmarshal(attach.Reference, &searchResult)
+				}
 				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
 				wg.Add(1)
 				alreadyReferAnswer = alreadyReferAnswer + needReference
@@ -932,73 +937,73 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 	return
 }
 
-func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []dto_search.DoReferItem) (answer string, echoRefers []dto_search.DoReferItem, err error) {
-	echoRefers = append(echoRefers, echoReferAll...)
-	prompt := req.Question
-	var temperature float64
-	var maxNewTokens int
-	chatReq := &dto_gpt.ChatCompletionReq{
-		Messages: []dto_gpt.ChatCompletionMessage{
-			{
-				Role:    "Human",
-				Content: prompt + req.PromptI18n,
-			},
-		},
-		Temperature: temperature,
-		MaxTokens:   maxNewTokens,
-	}
-	// 生成答案 + 引用
-	alreadyReferAnswer := ""
-	wg := sync.WaitGroup{}
-	lock := sync.Mutex{}
-	err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
-		currentAnswer := chatAnswer.Answer
-		// 对话展示逻辑
-		echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
-		if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
-			return nil
-		}
-		s.EchoRes("appendText", echoAnswer)
-		answer = chatAnswer.Answer
-		if len(searchResult) > 0 {
-			// 引用判断逻辑
-			needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
-			begin = begin + startIndex
-			if len(needReference) > 0 {
-				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
-				wg.Add(1)
-				alreadyReferAnswer = alreadyReferAnswer + needReference
-				go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
-					defer wg.Done()
-					aa, errA := entity.referDo(begin, needRefer, searchResult)
-					if errA != nil {
-						return
-					}
-					if len(aa) == 0 {
-						return
-					}
-					lock.Lock()
-					echoRefers = append(echoRefers, aa...)
-					lock.Unlock()
-					sort.Slice(echoRefers, func(i, j int) bool {
-						return echoRefers[i].Start < echoRefers[j].Start
-					})
-					// 	合并一次
-					echoRefers = mergeItems(echoRefers)
-					if len(echoRefers) == 0 {
-						return
-					}
-					aaStr, _ := json.Marshal(echoRefers)
-					entity.EchoRes("refer", string(aaStr))
-				}(s.CopyWithCtx(s.GetCtx()).(*SearchService), begin, needReference, searchResult)
-			}
-		}
-		return nil
-	})
-	wg.Wait()
-
-	return
-}
+//	func (s *SearchService) askChatForResearch(req AskContext, searchResult []dto_search.CommonSearchOutput, startIndex int, echoReferAll []dto_search.DoReferItem) (answer string, echoRefers []dto_search.DoReferItem, err error) {
+//		echoRefers = append(echoRefers, echoReferAll...)
+//		prompt := req.Question
+//		var temperature float64
+//		var maxNewTokens int
+//		chatReq := &gpt.ChatCompletionReq{
+//			Messages: []gpt.ChatCompletionMessage{
+//				{
+//					Role:    "Human",
+//					Content: prompt + req.PromptI18n,
+//				},
+//			},
+//			Temperature: temperature,
+//			MaxTokens:   maxNewTokens,
+//		}
+//		// 生成答案 + 引用
+//		alreadyReferAnswer := ""
+//		wg := sync.WaitGroup{}
+//		lock := sync.Mutex{}
+//		err = s.chatData.Chat(req.ModelType, req.UserId, chatReq, func(offset int, chatAnswer data.ChatAnswer) error {
+//			currentAnswer := chatAnswer.Answer
+//			// 对话展示逻辑
+//			echoAnswer := strings.Replace(currentAnswer, answer, "", 1)
+//			if len([]rune(echoAnswer)) <= 10 && chatAnswer.Status != "FINISH" {
+//				return nil
+//			}
+//			s.EchoRes("appendText", echoAnswer)
+//			answer = chatAnswer.Answer
+//			if len(searchResult) > 0 {
+//				// 引用判断逻辑
+//				needReference, begin := IsCompleted(currentAnswer, chatAnswer.Status, alreadyReferAnswer)
+//				begin = begin + startIndex
+//				if len(needReference) > 0 {
+//					s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
+//					wg.Add(1)
+//					alreadyReferAnswer = alreadyReferAnswer + needReference
+//					go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
+//						defer wg.Done()
+//						aa, errA := entity.referDo(begin, needRefer, searchResult)
+//						if errA != nil {
+//							return
+//						}
+//						if len(aa) == 0 {
+//							return
+//						}
+//						lock.Lock()
+//						echoRefers = append(echoRefers, aa...)
+//						lock.Unlock()
+//						sort.Slice(echoRefers, func(i, j int) bool {
+//							return echoRefers[i].Start < echoRefers[j].Start
+//						})
+//						// 	合并一次
+//						echoRefers = mergeItems(echoRefers)
+//						if len(echoRefers) == 0 {
+//							return
+//						}
+//						aaStr, _ := json.Marshal(echoRefers)
+//						entity.EchoRes("refer", string(aaStr))
+//					}(s.CopyWithCtx(s.GetCtx()).(*SearchService), begin, needReference, searchResult)
+//				}
+//			}
+//			return nil
+//		})
+//		wg.Wait()
+//
+//		return
+//	}
 func (s *SearchService) askOutline(sessionId string, answer string) {
 	if answer == "" {
 		return
@@ -1226,7 +1231,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 	if askAttach == nil {
 		return
 	}
-	refers := make([]dto_search.ReferenceItem, 0)
+	refers := make([]dto_search.CommonSearchOutput, 0)
 	_ = json.Unmarshal(askAttach.Reference, &refers)
 	res = &dto_search.AskSyncRes{
 		Answer:       answer,
@@ -1275,4 +1280,66 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 		_ = entity.askRecordUpdate(req.DbData, []string{req.Question}, answer, echoRefers)
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 	return
+}
+
+func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
+	searchResult, err := s.searchData.SearchFromWeb(req.SessionId, req.Question)
+	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
+	if err != nil {
+		return nil, err
+	}
+	if askAttach != nil {
+		refers := make([]dto_search.CommonSearchOutput, 0)
+		_ = json.Unmarshal(askAttach.Reference, &refers)
+		searchResultMap := make(map[string]dto_search.CommonSearchOutput)
+		for _, output := range searchResult {
+			searchResultMap[output.Title+output.Url] = output
+		}
+		for _, refer := range refers {
+			if _, ok := searchResultMap[refer.Title+refer.Url]; ok {
+				delete(searchResultMap, refer.Title+refer.Url)
+			}
+		}
+		for _, output := range searchResultMap {
+			refers = append(refers, output)
+		}
+		refersAfterStr, _ := json.Marshal(refers)
+		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": refersAfterStr})
+		if err != nil {
+			return
+		}
+	}
+	return searchResult, nil
+}
+
+func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search.KdbSearchRes, err error) {
+	userInfo, err := utils.LoginInfo(s.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := s.kdbData.CheckKdbAuthByName(req.KdbName, userInfo, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_search.KdbSearchRes{
+		SearchResult: make([]dto_search.CommonSearchOutput, 0),
+	}
+
+	// es搜索的片段
+	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
+		IndexName: kdb.GetIndexName(),
+		Query:     req.Question,
+	})
+	if err != nil {
+		return nil, components.ErrorQueryEmpty
+	}
+	for _, result := range esSearchResult {
+		res.SearchResult = append(res.SearchResult, dto_search.CommonSearchOutput{
+			Title:   result.Title,
+			Url:     result.Url,
+			Content: result.Content,
+		})
+	}
+	return
+
 }

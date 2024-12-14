@@ -32,13 +32,7 @@ type HisRes struct {
 }
 
 type ReferenceRes struct {
-	List []ReferenceItem `json:"list"`
-}
-
-type ReferenceItem struct {
-	Title   string `json:"title"`
-	Url     string `json:"url"`
-	Content string `json:"content"`
+	List []CommonSearchOutput `json:"list"`
 }
 
 type OutlineRes struct {
@@ -86,5 +80,9 @@ type ProcessItem struct {
 type AskSyncRes struct {
 	Answer       string               `json:"answer"`
 	AnswerRefer  []DoReferItem        `json:"answerRefer"`
+	SearchResult []CommonSearchOutput `json:"searchResult"`
+}
+
+type KdbSearchRes struct {
 	SearchResult []CommonSearchOutput `json:"searchResult"`
 }

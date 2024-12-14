@@ -4,6 +4,7 @@ import (
 	"askonce/components"
 	"askonce/components/dto"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/pkg/errors"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
@@ -76,11 +77,11 @@ func (entity *KdbDao) GetById(id int64) (res *Kdb, err error) {
 	return
 }
 
-func (entity *KdbDao) GetByNameAndUserId(name string, userId string) (res *Kdb, err error) {
+func (entity *KdbDao) GetByNameAndCreator(name string, creator string) (res *Kdb, err error) {
 	res = &Kdb{}
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
-	err = db.Where("name = ? and creator = ? ", name, userId).First(&res).Error
+	err = db.Where("name = ? and creator = ? ", name, creator).First(&res).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -92,6 +93,7 @@ func (entity *KdbDao) GetByIds(ids []int64) (res []*Kdb, err error) {
 	if len(ids) == 0 {
 		return
 	}
+	ids = slice.Unique(ids)
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
 	err = db.Where("id in ?", ids).Find(&res).Error

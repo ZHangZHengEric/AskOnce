@@ -22,7 +22,8 @@ type ListItem struct {
 	Cover        string `json:"cover"`
 	DefaultColor bool   `json:"defaultColor"`
 	Creator      string `json:"creator"`
-	Type         int    `json:"type"` // 1 公共数据
+	Type         int    `json:"type"`  // 1 公共数据
+	Intro        string `json:"intro"` // 介绍
 }
 
 type DataListResp struct {

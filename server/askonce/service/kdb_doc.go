@@ -1,7 +1,6 @@
 package service
 
 import (
-	"archive/zip"
 	"askonce/components"
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
@@ -9,13 +8,11 @@ import (
 	"askonce/helpers"
 	"askonce/models"
 	"askonce/utils"
-	"bytes"
 	"fmt"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/orm"
-	"io"
-	"net/http"
+	"sync"
 	"time"
 )
 
@@ -46,7 +43,7 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 		List:  make([]dto_kdb.DataListItem, 0),
 		Total: 0,
 	}
-	docs, cnt, err := k.kdbDocDao.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
+	docs, cnt, err := k.kdbDocData.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +106,6 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 			return nil, err
 		}
 	}
-
 	doc := &models.KdbDoc{
 		KdbId:      kdb.Id,
 		DocName:    file.OriginName,
@@ -123,26 +119,9 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 			UpdatedAt: time.Now(),
 		},
 	}
-	err = k.kdbDocDao.Insert(doc)
-	if err != nil {
-		return nil, err
-	}
+	k.kdbDocData.AddDoc(doc)
 	go func(k *KdbDocService) {
-		defer func() {
-			if r := recover(); r != nil {
-				k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, r)
-				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
-			}
-		}()
-		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
-		err = k.DocBuild(kdb, doc)
-		if err != nil {
-			k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
-			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
-		} else {
-			k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
-			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
-		}
+		_ = k.DocBuild(kdb, doc)
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
 	res = &dto_kdb_doc.AddRes{
 		KdbDataId: doc.Id,
@@ -169,33 +148,139 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 	if err != nil {
 		return
 	}
+	doc, err := k.kdbDocDao.GetById(req.DocId)
+	if err != nil {
+		return
+	}
 	go func(k *KdbDocService) {
-		defer func() {
-			if r := recover(); r != nil {
-				k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, r)
-				_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocFail)
-			}
-		}()
-		_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocRunning)
-		doc, err := k.kdbDocDao.GetById(req.DocId)
-		if err != nil {
-			return
-		}
-		_ = k.kdbDocDao.UpdateStatus(req.DocId, models.KdbDocSuccess)
-		err = k.DocBuild(kdb, doc)
-		if err != nil {
-			k.LogErrorf("文档【%v】构建内存数据库失败 %s", req.DocId, err.Error())
-			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
-		} else {
-			k.LogInfof("文档【%v】构建内存数据库成功", req.DocId)
-			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
-		}
+		_ = k.DocBuild(kdb, doc)
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
 	return
 }
 
-// 文档构建到内存数据库
+func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, err error) {
+	userInfo, _ := utils.LoginInfo(k.GetCtx())
+	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
+	if err != nil {
+		return
+	}
+	files, err := k.fileData.UploadByZip(userInfo.UserId, req.ZipUrl, "knowledge")
+	if err != nil {
+		return
+	}
+	docs := make([]*models.KdbDoc, 0)
+	for _, file := range files {
+		doc := &models.KdbDoc{
+			KdbId:      kdb.Id,
+			DocName:    file.OriginName,
+			DataSource: "file",
+			SourceId:   file.Id,
+			NeedSplit:  true,
+			Status:     models.KdbDocWaiting,
+			UserId:     userInfo.UserId,
+			CrudModel: orm.CrudModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		}
+		docs = append(docs, doc)
+	}
+	err = k.kdbDocDao.BatchInsert(docs)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (res interface{}, err error) {
+	userInfo, err := utils.LoginInfo(k.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := k.kdbData.GetKdbByName(req.KdbName, userInfo, req.AutoCreate)
+	if err != nil {
+		return nil, err
+	}
+	docs := make([]*models.KdbDoc, 0)
+	for _, doc := range req.Docs {
+		if len(doc.Text) == 0 {
+			return nil, errors.NewError(10034, "文本内容为空！")
+		}
+		fileName := ""
+		if len(doc.Title) > 0 {
+			fileName = fmt.Sprintf("%s.txt", doc.Title)
+		} else {
+			fileName = fmt.Sprintf("%v.txt", helpers.GenID())
+		}
+
+		file, err := k.fileData.UploadContent(userInfo.UserId, fileName, doc.Text, "knowledge")
+		if err != nil {
+			return nil, err
+		}
+		doc := &models.KdbDoc{
+			KdbId:      kdb.Id,
+			DocName:    file.OriginName,
+			DataSource: "file",
+			SourceId:   file.Id,
+			NeedSplit:  true,
+			Status:     models.KdbDocWaiting,
+			UserId:     userInfo.UserId,
+			CrudModel: orm.CrudModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		}
+		docs = append(docs, doc)
+	}
+	err = k.kdbDocDao.BatchInsert(docs)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+func (k *KdbDocService) BuildWaitingDoc() (err error) {
+	docs, err := k.kdbDocDao.GetListByStatus(models.KdbDocWaiting)
+	if err != nil {
+		return
+	}
+	kdbIds := make([]int64, 0)
+	for _, doc := range docs {
+		kdbIds = append(kdbIds, doc.KdbId)
+	}
+	kdbs, err := k.kdbData.GetKdbByIds(kdbIds)
+	kdbMap := make(map[int64]*models.Kdb)
+	for _, kdb := range kdbs {
+		kdbMap[kdb.Id] = kdb
+	}
+	wg := sync.WaitGroup{}
+	for _, doc := range docs {
+		wg.Add(1)
+		kdb := kdbMap[doc.KdbId]
+		go func(k *KdbDocService) {
+			defer wg.Done()
+			_ = k.DocBuild(kdb, doc)
+		}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
+	}
+	wg.Wait()
+	return
+}
+
 func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+	_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
+	err = k.docBuildDo(kdb, doc)
+	if err != nil {
+		k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
+		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+	} else {
+		k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
+		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
+	}
+	return
+}
+
+// 文档构建到内存数据库
+func (k *KdbDocService) docBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
 	//2. 文件解析文本段
 	k.LogInfof("开始文件解析文本，docId %v", doc.Id)
 	_, content, err := k.fileData.ConvertFileToText(doc.SourceId)
@@ -232,86 +317,4 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 		return err
 	}
 	return
-}
-
-func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, err error) {
-	userInfo, _ := utils.LoginInfo(k.GetCtx())
-	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
-	if err != nil {
-		return
-	}
-	zipData, err := downloadZip(req.ZipUrl)
-	if err != nil {
-		return nil, err
-	}
-	reader, err := zip.NewReader(bytes.NewReader(zipData), int64(len(zipData)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to open zip reader: %w", err)
-	}
-	docs := make([]*models.KdbDoc, 0)
-	for _, zipFile := range reader.File {
-		file, err := k.fileData.UploadByZip(userInfo.UserId, zipFile, "knowledge")
-		if err != nil {
-			return nil, err
-		}
-		doc := &models.KdbDoc{
-			KdbId:      req.KdbId,
-			DocName:    file.OriginName,
-			DataSource: "file",
-			SourceId:   file.Id,
-			NeedSplit:  true,
-			Status:     models.KdbDocRunning,
-			UserId:     userInfo.UserId,
-			CrudModel: orm.CrudModel{
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		}
-		docs = append(docs, doc)
-	}
-	err = k.kdbDocDao.BatchInsert(docs)
-	if err != nil {
-		return nil, err
-	}
-	for _, t := range docs {
-		doc := t
-		go func(k *KdbDocService) {
-			defer func() {
-				if r := recover(); r != nil {
-					k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, r)
-					_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
-				}
-			}()
-			_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
-			err = k.DocBuild(kdb, doc)
-			if err != nil {
-				k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
-				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
-			} else {
-				k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
-				_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
-			}
-		}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
-	}
-	return
-}
-
-// 下载 ZIP 文件到内存
-func downloadZip(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.NewError(500, fmt.Sprintf("failed to download zip: status %s", resp.Status))
-	}
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }

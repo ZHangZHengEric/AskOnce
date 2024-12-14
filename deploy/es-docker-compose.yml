@@ -21,7 +21,7 @@ services:
         hard: -1
     volumes:
       - ${ES_DATA_DIR}/node1:/usr/share/elasticsearch/data
-      - ${ES_CONF_DIR}plugins:/usr/share/elasticsearch/plugins
+      - ${ES_CONF_DIR}/plugins:/usr/share/elasticsearch/plugins
       - ${ES_CONF_DIR}/stopwords:/usr/share/elasticsearch/config/stopwords
   askonce-es2:
     restart: always

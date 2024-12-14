@@ -18,6 +18,17 @@ type AddZipReq struct {
 	ZipUrl string `json:"zipUrl" form:"zipUrl" binding:"required"`
 }
 
+type AddByBatchTextReq struct {
+	KdbName    string       `json:"kdbName"`
+	AutoCreate bool         `json:"autoCreate"`
+	Docs       []ImportText `json:"docs"`
+}
+
+type ImportText struct {
+	Title string `json:"title"`
+	Text  string `json:"text"`
+}
+
 type ListReq struct {
 	KdbId       int64  `json:"kdbId" binding:"required"`
 	QueryName   string `json:"queryName"`

@@ -2,6 +2,7 @@ package data
 
 import (
 	"askonce/api/jobd"
+	"askonce/components/dto"
 	"askonce/conf"
 	"askonce/helpers"
 	"askonce/models"
@@ -154,6 +155,18 @@ func (k *KdbDocData) saveEs(kdb *models.Kdb, doc *models.KdbDoc, corpus []map[st
 			DocIds:            []string{strconv.FormatInt(doc.Id, 10)},
 			MapperValueOrPath: json.RawMessage(esDbConfigStr),
 		})
+		return err
+	}
+	return
+}
+
+func (k *KdbDocData) GetList(kdbId int64, queryName string, queryStatus []int, param dto.PageParam) (list []*models.KdbDoc, cnt int64, err error) {
+	return k.kdbDocDao.GetList(kdbId, queryName, queryStatus, param)
+}
+
+func (k *KdbDocData) AddDoc(doc *models.KdbDoc) (err error) {
+	err = k.kdbDocDao.Insert(doc)
+	if err != nil {
 		return err
 	}
 	return

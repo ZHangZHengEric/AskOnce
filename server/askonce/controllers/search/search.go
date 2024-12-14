@@ -116,3 +116,21 @@ func (entity *KdbListController) Action(req *dto_search.KdbListReq) (interface{}
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.KdbList(req)
 }
+
+type WebSearchController struct {
+	flow.Controller
+}
+
+func (entity *WebSearchController) Action(req *dto_search.WebSearchReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.WebSearch(req)
+}
+
+type KdbSearchController struct {
+	flow.Controller
+}
+
+func (entity *KdbSearchController) Action(req *dto_search.KdbSearchReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.KdbSearch(req)
+}

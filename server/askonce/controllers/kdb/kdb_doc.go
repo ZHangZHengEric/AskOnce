@@ -33,6 +33,15 @@ func (entity *DocAddByZipController) Action(req *dto_kdb_doc.AddZipReq) (interfa
 	return s.DocAddZip(req)
 }
 
+type DocAddByBatchTextController struct {
+	flow.Controller
+}
+
+func (entity *DocAddByBatchTextController) Action(req *dto_kdb_doc.AddByBatchTextReq) (interface{}, error) {
+	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
+	return s.DocAddByBatchText(req)
+}
+
 type DocDeleteController struct {
 	flow.Controller
 }
