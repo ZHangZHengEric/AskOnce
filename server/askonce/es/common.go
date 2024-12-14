@@ -138,6 +138,7 @@ func CommonDocumentSearch(ctx *gin.Context, indexName string, docContent string,
 	wg, _ := errgroup.WithContext(ctx)
 	lock := sync.RWMutex{}
 	wg.Go(func() error {
+		explain := true
 		candidates := 1000
 		knnSearch := types.KnnSearch{
 			Field:         "emb",
@@ -149,8 +150,9 @@ func CommonDocumentSearch(ctx *gin.Context, indexName string, docContent string,
 			Source_: types.SourceFilter{
 				Excludes: []string{"emb"},
 			},
-			Knn:  []types.KnnSearch{knnSearch},
-			Size: &size,
+			Knn:     []types.KnnSearch{knnSearch},
+			Size:    &size,
+			Explain: &explain,
 		}
 		searchRes, err := helpers.EsClient.Search(ctx, indexName, req)
 		if err != nil {

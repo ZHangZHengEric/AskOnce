@@ -126,6 +126,11 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	if len(recalls) == 0 {
 		return
 	}
+	recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(input.Query, recalls)
+	if err != nil {
+		return
+	}
+	recalls = recallsParsedRes.SearchResult
 	sort.Slice(recalls, func(i, j int) bool {
 		return recalls[i].Score > recalls[j].Score
 	})

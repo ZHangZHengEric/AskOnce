@@ -15,7 +15,7 @@ import (
 
 func Tasks(engine *gin.Engine) {
 	// 定时任务
-	startCycle(engine)
+	//startCycle(engine)
 }
 
 func startCycle(engine *gin.Engine) {
