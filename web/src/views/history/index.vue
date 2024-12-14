@@ -20,6 +20,7 @@
         <el-radio-button label="">{{ $t('knowledge.all') }}</el-radio-button>
         <el-radio-button label="simple">{{ $t('home.simple') }}</el-radio-button>
         <el-radio-button label="complex">{{ $t('home.complex') }}</el-radio-button>
+        <el-radio-button label="research">{{ $t('home.research') }}</el-radio-button>
       </el-radio-group>
     </div>
     <el-table
