@@ -8,7 +8,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python answer_by_documents/answer_by_documents.py --jobdurl ${JOBD_ADDR} --tasktype answer_by_documents --worker_name answer_by_documents_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL} "
+    command: /bin/bash -c "python answer_by_documents/answer_by_documents.py --jobdurl ${JOBD_ADDR} --tasktype answer_by_documents --worker_name answer_by_documents_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL} --search_url ${SEARCH_URL}"
     tty: true
     environment:
       - LANG=C.UTF-8

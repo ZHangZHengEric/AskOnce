@@ -1,29 +1,43 @@
-#!/usr/bin/env python
-# -*-coding:utf-8 -*-
-# @author: zhangjikang 
-# 文本处理的基类, 其他几个文本生成类都继承自这个类
 import time
 from typing import Any
 
 from openai import OpenAI
-
-
+import requests
+import traceback
 class LLMBaseAPI:
     def __init__(
             self, 
             platform_api_url: str , 
             api_key: str ,
-            model_name: str 
+            model_name: str ,
+            search_url: str = None
         ):
         self.platform_api_url = platform_api_url
         self.api_key  =api_key
         self.model_name = model_name
+        self.search_url = search_url
         self.client = OpenAI(
             api_key=api_key,
             base_url=platform_api_url
         )    
-    def search_internet(self,queston):
-        pass
+        
+    
+    def search_internet(self,queston,search_session_id):
+        if self.search_url is not None:
+            url = self.search_url+'/askonce/api/v1/search/web'
+            headers = {'Content-Type': 'application/json'}
+            data = {
+                "sessionId":search_session_id,
+                "question" : queston,
+            }
+            try:
+                response = requests.post(url, headers=headers, json=data)
+                return response.json()["data"]['data']
+            except:
+                traceback.print_exc()
+                print('检查askonce 网络搜索引擎服务')
+        else:
+            raise ValueError('set the search url first')
     
     
     def ask_llm(
@@ -138,3 +152,7 @@ class LLMBaseAPI:
 
     def __call__(self, content):
         return self.process_text(content)
+
+    
+    def log(self, message: str, title: str = "Info"):
+        print(f"{title}: {message}")

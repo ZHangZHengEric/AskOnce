@@ -199,7 +199,7 @@ class SearchAnswer (LLMBaseAPI):
         else:
             return self.ask_llm(**return_result)
             
-    def professional_answer(self,question,search_result,stream=False):
+    def professional_answer(self,question,search_result,search_session_id='',stream=False):
         print('对问题进行专业回答:',question)
         print('搜索结果长度',len(search_result))
         # 先生成回答的大纲
@@ -234,8 +234,8 @@ class SearchAnswer (LLMBaseAPI):
                 all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
                 yield directory_item['title_level']+'# '+directory_item['content']+'\n'
                 
-                    
-            one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,search_result,stream)
+            new_search_result = self.search_internet(question+directory_item['content'],search_session_id)
+            one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,new_search_result,stream)
             if stream:
                 for item in one_chapter_result:
                     all_result+=item
@@ -259,7 +259,8 @@ class SearchAnswer (LLMBaseAPI):
         
         for more_question in more_question_or_topic_list:
             yield '> ## '+more_question+'\n'
-            more_question_answer = self.detailed_no_chapter_answer(more_question,search_result,stream)
+            new_search_result = self.search_internet(more_question,search_session_id)
+            more_question_answer = self.detailed_no_chapter_answer(more_question,new_search_result,stream)
             yield '> '
             if stream:
                 for item in more_question_answer:

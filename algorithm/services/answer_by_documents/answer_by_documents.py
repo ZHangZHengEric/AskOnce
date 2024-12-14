@@ -42,7 +42,7 @@ def process(task_input,task_type,model,args,tm):
             elif task_input.answer_style == 'detailed_no_chapter':
                 result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
             elif task_input.answer_style == 'professional':
-                result = model.professional_answer(task_input.question,task_input.search_result,task_input.is_stream)
+                result = model.professional_answer(task_input.question,task_input.search_result,task_input.search_code ,task_input.is_stream)
             else:
                 result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
         
@@ -75,13 +75,14 @@ if __name__ == '__main__':
     parser.add_argument("--tasktype", type=str, nargs='+', default=[], help="task_type")
     parser.add_argument("--worker_name", type=str, default='', help="worker_name")
     parser.add_argument("--api_key", type=str, help="api_key")
+    parser.add_argument("--search_url", type=str, help="search_url")
     parser.add_argument("--model_name", type=str, help="model_name")
     parser.add_argument("--platform_api_url", type=str, help="platform_api_url")
     # parser.add_argument("--log_file_path", type=str, default="/data1/zhangzheng/online_log/entity_normalization.log")
     args = parser.parse_args()
     # log_txt = args.log_file_path[:-3]+'input_log' 
     tm = TaskManager(jobdurl=args.jobdurl)
-    model = SearchAnswer(api_key=args.api_key,platform_api_url=args.platform_api_url,model_name= args.model_name)    
+    model = SearchAnswer(api_key=args.api_key,platform_api_url=args.platform_api_url,model_name= args.model_name,search_url=args.search_url)    
     for one_task_type in args.tasktype:
         tm.add_task_type_info(one_task_type,10000,args.worker_name)
 

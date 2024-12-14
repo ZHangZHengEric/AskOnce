@@ -53,6 +53,7 @@ services:
       file: es-docker-compose.yml
       service: askonce-es-dashboard
     profiles: ["all", "db"]
+
   askonce_answer_by_documents_0:
     extends:
       file: llm_services-docker-compose.yml
