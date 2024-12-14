@@ -24,10 +24,9 @@ type SWebConf struct {
 	ElasticSearch SElasticConf               `yaml:"elastic"`
 	MongoDb       map[string]SMongoDBConf    `yaml:"mongodb"`
 
-	Api        map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
-	MinioConf  SMinioConf                      `yaml:"minioConf"`
-	Channel    map[string]gpt.ChannelConf      `yaml:"channel"`
-	EsDbConfig string                          `yaml:"esDbConfig"`
+	Api       map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
+	MinioConf SMinioConf                      `yaml:"minioConf"`
+	Channel   map[string]gpt.ChannelConf      `yaml:"channel"`
 }
 
 type SMongoDBConf struct {

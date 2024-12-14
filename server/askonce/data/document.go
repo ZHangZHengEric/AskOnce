@@ -3,7 +3,7 @@ package data
 import (
 	"askonce/api/jobd"
 	"askonce/conf"
-	gpt2 "askonce/gpt"
+	"askonce/gpt"
 	"askonce/gpt/client"
 	"askonce/gpt/core"
 	"github.com/duke-git/lancet/v2/slice"
@@ -67,8 +67,8 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 }
 
 func (d *DocumentData) Embedding(texts []string) (output [][]float32, err error) {
-	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeChat)]
-	channel, err := gpt2.CreatChannel(d.GetCtx(), embeddingModel)
+	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeEmbedding)]
+	channel, err := gpt.CreatChannel(d.GetCtx(), embeddingModel)
 	if err != nil {
 		return
 	}
@@ -78,9 +78,6 @@ func (d *DocumentData) Embedding(texts []string) (output [][]float32, err error)
 	})
 	if err != nil {
 		return
-	}
-	if resp.Error != nil {
-		return nil, resp.Error
 	}
 	output = make([][]float32, 0)
 	for _, bb := range resp.Data {

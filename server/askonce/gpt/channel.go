@@ -56,6 +56,9 @@ func (c *Channel) Embedding(req *core.EmbeddingReq) (resp *core.EmbeddingResp, e
 	if err != nil {
 		return nil, core.NewOpenAiError("handle_response_failed", err.Error())
 	}
+	if resp.Error != nil {
+		return nil, resp.Error
+	}
 	return
 }
 
@@ -84,6 +87,9 @@ func (c *Channel) ChatCompletion(req *core.ChatCompletionReq) (resp *core.ChatCo
 				if err != nil {
 					return err
 				}
+				if resp.Error != nil {
+					return resp.Error
+				}
 			}
 			return nil
 		})
@@ -102,6 +108,9 @@ func (c *Channel) ChatCompletion(req *core.ChatCompletionReq) (resp *core.ChatCo
 	resp, err = c.gptClient.HandleChatResponse(httpResult.Response)
 	if err != nil {
 		return nil, core.NewOpenAiError("handle_response_failed", err.Error())
+	}
+	if resp.Error != nil {
+		return nil, resp.Error
 	}
 	return
 }

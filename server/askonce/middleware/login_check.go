@@ -29,7 +29,7 @@ func SessionCheckLogin(ctx *gin.Context) (err error) {
 		err = components.ErrorNotLogin
 		return
 	}
-	entity := flow.Create(ctx, new(data.SessionCache))
+	entity := flow.Create(ctx, new(data.UserData))
 	userInfo, err := entity.GetSession(sessionKey)
 	if err != nil {
 		return

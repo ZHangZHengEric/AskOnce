@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// This struct formats the answers provided by the Bing Web Search API.
+// This struct formats the answers provided by the Bing Web KnnSearch API.
 type BingAnswer struct {
 	Type         string `json:"_type"`
 	QueryContext struct {

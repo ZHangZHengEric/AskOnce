@@ -51,8 +51,10 @@ type IClient interface {
 func CreateGptClient(source string, addr, ak string) (IClient, error) {
 	var gptClient IClient
 	switch GPTSource(source) {
-	case GPTSourceOpenAI, GPTSourceKimi, GPTSourceBaiChuan, GPTSourceQwen, GPTSourceDeepInfra:
+	case GPTSourceOpenAI, GPTSourceKimi, GPTSourceBaiChuan, GPTSourceQwen:
 		gptClient = new(CommonGPT)
+	case GPTSourceDeepInfra:
+		gptClient = new(DeepInfraGPT)
 	case GPTSourceAzure:
 		gptClient = new(AzureGPT)
 	case GPTSourceGlm:
@@ -62,7 +64,7 @@ func CreateGptClient(source string, addr, ak string) (IClient, error) {
 	case GPTSourceSkylark:
 		gptClient = new(SkylarkGPT)
 	default:
-		return nil, errors.NewError(errors.SYSTEM_ERROR, "GPT来源不支持")
+		return nil, core.NewOpenAiError(errors.SYSTEM_ERROR, "GPT来源不支持")
 	}
 	gptClient.init(addr, ak)
 	return gptClient, nil
@@ -113,9 +115,6 @@ func (g *CommonGPT) HandleChatResponse(responseByte []byte) (resp *core.ChatComp
 	if err != nil {
 		return nil, err
 	}
-	if resp.Error != nil {
-		return nil, resp.Error
-	}
 	return resp, nil
 }
 
@@ -123,9 +122,6 @@ func (g *CommonGPT) HandleEmbeddingResponse(responseByte []byte) (resp *core.Emb
 	err = json.Unmarshal(responseByte, &resp)
 	if err != nil {
 		return nil, err
-	}
-	if resp.Error != nil {
-		return nil, resp.Error
 	}
 	return resp, nil
 }
@@ -187,7 +183,7 @@ func (gpt *MiniMaxGPT) HandleChatResponse(responseByte []byte) (resp *core.ChatC
 		return nil, err
 	}
 	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
-		return nil, errors.NewError(resp.BaseResp.StatusCode, resp.BaseResp.StatusMsg)
+		return nil, core.NewOpenAiError(resp.BaseResp.StatusCode, resp.BaseResp.StatusMsg)
 	}
 	return resp, nil
 }
@@ -198,7 +194,7 @@ func (gpt *MiniMaxGPT) HandleEmbeddingResponse(responseByte []byte) (resp *core.
 		return nil, err
 	}
 	if resp.BaseResp != nil && resp.BaseResp.StatusCode != 0 {
-		return nil, errors.NewError(resp.BaseResp.StatusCode, resp.BaseResp.StatusMsg)
+		return nil, core.NewOpenAiError(resp.BaseResp.StatusCode, resp.BaseResp.StatusMsg)
 	}
 	return resp, nil
 }
@@ -213,6 +209,21 @@ func (gpt *SkylarkGPT) GetPath(methodType GPTMethodType, model string) string {
 		return "/api/v3/embeddings"
 	case MethodTypeChat:
 		return "/api/v3/chat/completions"
+	default:
+		return ""
+	}
+}
+
+type DeepInfraGPT struct {
+	CommonGPT
+}
+
+func (gpt *DeepInfraGPT) GetPath(methodType GPTMethodType, model string) string {
+	switch methodType {
+	case MethodTypeEmbedding:
+		return "/v1/openai/embeddings"
+	case MethodTypeChat:
+		return "/v1/openai/chat/completions"
 	default:
 		return ""
 	}

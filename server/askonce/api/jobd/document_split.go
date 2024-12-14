@@ -24,7 +24,7 @@ func (entity *JobdApi) DocumentSplit(content string) (res DocumentSplitResp, err
 	inputReq := DocumentSplitInput{
 		Text:               content,
 		Id:                 1,
-		TextCuttingVersion: "punc_cutting",
+		TextCuttingVersion: "move_window_cutting",
 	}
 	inputReq.WindowSize = 256
 	inputReq.Stride = 170

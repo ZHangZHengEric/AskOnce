@@ -5,7 +5,8 @@ import (
 	"askonce/api/web_search"
 	"askonce/components/dto/dto_search"
 	"askonce/conf"
-	gpt2 "askonce/gpt"
+	"askonce/es"
+	"askonce/gpt"
 	"askonce/gpt/client"
 	"askonce/gpt/core"
 	"askonce/helpers"
@@ -17,7 +18,6 @@ import (
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/datatypes"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -110,7 +110,7 @@ type EsCommonSearchResult struct {
 	Url         string
 	Content     string
 	FullContent string
-	Score       float32
+	Score       float64
 }
 
 func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonSearchResult, err error) {
@@ -118,9 +118,8 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	if err != nil {
 		return
 	}
-	querySize := 10
-	esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "@indexName@", input.IndexName, 1)
-	recalls, err := entity.jobdApi.EsSearch(embRes, input.Query, querySize, esDbConfigStr)
+	querySize := 20
+	recalls, err := es.CommonDocumentSearch(entity.GetCtx(), input.IndexName, input.Query, embRes, querySize)
 	if err != nil {
 		return
 	}
@@ -130,21 +129,11 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	sort.Slice(recalls, func(i, j int) bool {
 		return recalls[i].Score > recalls[j].Score
 	})
-	// 去重一次
-	uniqueMap := make(map[string]int)
-	recalls2 := make([]jobd.ESSearchOutput, 0)
-	for _, recall := range recalls {
-		uniqueCode := fmt.Sprintf("%v%s", recall.Source.DocId, recall.Source.DocContent)
-		if _, ok := uniqueMap[uniqueCode]; !ok {
-			recalls2 = append(recalls2, recall)
-			uniqueMap[uniqueCode] = 1
-		}
-	}
 	var dataIds []int64
-	dataSearchMap := make(map[int]jobd.SearchOutputSource)
-	for i, result := range recalls2 {
-		dataIds = append(dataIds, result.Source.DocId)
-		dataSearchMap[i] = result.Source
+	dataSearchMap := make(map[int]*es.CommonDocument)
+	for i, result := range recalls {
+		dataIds = append(dataIds, result.DocId)
+		dataSearchMap[i] = result
 	}
 	dataContents, err := entity.kdbDocContentDao.GetByDataIds(dataIds)
 	if err != nil {
@@ -172,18 +161,17 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 	for _, file := range files {
 		filePathMap[file.Id] = file.Path
 	}
-	for i, result := range recalls2 {
-		dataIdInt := result.Source.DocId
-		ddd, ok := docMap[dataIdInt]
+	for i, result := range recalls {
+		ddd, ok := docMap[result.DocId]
 		if !ok {
 			continue
 		}
 		out := &EsCommonSearchResult{}
-		out.Id = result.Source.DocId
+		out.Id = result.DocId
 		out.Title = ddd.DocName
 		out.Url = filePathMap[ddd.SourceId]
-		out.Content = appendText(dataSearchMap[i], dataContentMap[dataIdInt])
-		out.FullContent = dataContentMap[dataIdInt]
+		out.Content = appendText(dataSearchMap[i], dataContentMap[result.DocId])
+		out.FullContent = dataContentMap[result.DocId]
 		out.Score = result.Score
 		res = append(res, out)
 	}
@@ -256,7 +244,7 @@ func (entity *SearchData) SearchFromWeb(sessionId string, question string) (resu
 	return results, nil
 }
 
-func appendText(source jobd.SearchOutputSource, fullContent string) string {
+func appendText(source *es.CommonDocument, fullContent string) string {
 	prefixIndex := source.Start
 	suffixIndex := source.End
 	full := []rune(fullContent)
@@ -275,8 +263,8 @@ func appendText(source jobd.SearchOutputSource, fullContent string) string {
 }
 
 func (d *SearchData) QueryEmbedding(text string) (output []float32, err error) {
-	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeChat)]
-	channel, err := gpt2.CreatChannel(d.GetCtx(), embeddingModel)
+	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeEmbedding)]
+	channel, err := gpt.CreatChannel(d.GetCtx(), embeddingModel)
 	if err != nil {
 		return
 	}
@@ -286,9 +274,6 @@ func (d *SearchData) QueryEmbedding(text string) (output []float32, err error) {
 	})
 	if err != nil {
 		return
-	}
-	if resp.Error != nil {
-		return nil, resp.Error
 	}
 	output = resp.Data[0].Embedding
 	return output, nil
