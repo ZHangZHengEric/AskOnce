@@ -25,7 +25,7 @@ class LLMBaseAPI:
     def search_internet(self,queston,search_session_id):
         if self.search_url is not None:
             url = self.search_url+'/askonce/api/v1/search/web'
-            headers = {'Content-Type': 'application/json'}
+            headers = {'Content-Type': 'application/json','User-Source':'admin'}
             data = {
                 "sessionId":search_session_id,
                 "question" : queston,
