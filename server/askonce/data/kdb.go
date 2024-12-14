@@ -3,6 +3,7 @@ package data
 import (
 	"askonce/components"
 	"askonce/components/dto"
+	"askonce/es"
 	"askonce/helpers"
 	"askonce/models"
 	"encoding/json"
@@ -240,6 +241,7 @@ func (k *KdbData) DeleteKdb(userId string, kdb *models.Kdb) (err error) {
 		return
 	}
 	err = tx.Commit().Error
+	_ = es.CommonIndexDelete(k.GetCtx(), kdb.GetIndexName())
 	return
 }
 
