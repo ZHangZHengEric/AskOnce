@@ -23,12 +23,13 @@ func InitElastic() {
 		panic("init elastic failed, err:" + err.Error())
 	}
 	cfg := elasticsearch.Config{
+
 		Addresses: []string{endpointUrl.String()},
 		Username:  config.Username,
 		Password:  config.Password,
 		Logger: &elastictransport.JSONLogger{
 			Output:             os.Stdout,
-			EnableRequestBody:  true,
+			EnableRequestBody:  false,
 			EnableResponseBody: true,
 		},
 	}
