@@ -587,7 +587,6 @@ const toShare = () => {
 
 const exportPdf = () => {
   ElMessage.success('导出中，请稍后...')
-  console.log(document.querySelector('#pdf'))
   getPdf(data.question, document.querySelector('#pdf'))
 }
 
