@@ -26,7 +26,8 @@ def unmarshal_task_input(GetTaskResp : dict):
 def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
-        result_all = {'search_result':task_input.search_result} 
+        result = model.proceess(task_input.search_result)
+        result_all = {'search_result':result}
         end_time = time.time()
         print('后处理搜索结果','用时'+str(end_time-start_time))
         return result_all
