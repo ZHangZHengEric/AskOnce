@@ -230,6 +230,18 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 		}
 	}
 	if askDirect {
+		switch req.Type {
+		case "simple":
+			askContext.AnswerStyle = "simplify"
+		case "complex":
+			askContext.AnswerStyle = "detailed"
+		case "research":
+			if req.KdbId > 0 {
+				askContext.AnswerStyle = "detailed"
+			} else {
+				askContext.AnswerStyle = "professional"
+			}
+		}
 		err = s.AskDirect(askContext)
 	} else {
 		switch req.Type {

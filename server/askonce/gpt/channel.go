@@ -45,6 +45,8 @@ func (c *Channel) Embedding(req *core.EmbeddingReq) (resp *core.EmbeddingResp, e
 		Encode:      http2.EncodeJson,
 		Headers:     header,
 	}
+
+	c.gptClient.GetClient().MaxRespBodyLen = -1
 	httpResult, err := c.gptClient.GetClient().HttpPost(c.ctx, path, requestOpt)
 	if err != nil {
 		return nil, core.NewOpenAiError("do_request_failed", err.Error())
@@ -55,6 +57,9 @@ func (c *Channel) Embedding(req *core.EmbeddingReq) (resp *core.EmbeddingResp, e
 	resp, err = c.gptClient.HandleEmbeddingResponse(httpResult.Response)
 	if err != nil {
 		return nil, core.NewOpenAiError("handle_response_failed", err.Error())
+	}
+	if resp.Error != nil {
+		return nil, resp.Error
 	}
 	return
 }
@@ -84,6 +89,9 @@ func (c *Channel) ChatCompletion(req *core.ChatCompletionReq) (resp *core.ChatCo
 				if err != nil {
 					return err
 				}
+				if resp.Error != nil {
+					return resp.Error
+				}
 			}
 			return nil
 		})
@@ -102,6 +110,9 @@ func (c *Channel) ChatCompletion(req *core.ChatCompletionReq) (resp *core.ChatCo
 	resp, err = c.gptClient.HandleChatResponse(httpResult.Response)
 	if err != nil {
 		return nil, core.NewOpenAiError("handle_response_failed", err.Error())
+	}
+	if resp.Error != nil {
+		return nil, resp.Error
 	}
 	return
 }

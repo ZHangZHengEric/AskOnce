@@ -3,16 +3,11 @@ package data
 import (
 	"askonce/api/jobd"
 	"askonce/components/dto"
-	"askonce/conf"
+	"askonce/es"
 	"askonce/helpers"
 	"askonce/models"
-	"encoding/json"
-	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
-	"golang.org/x/sync/errgroup"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -60,11 +55,7 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 		return err
 	}
 	if doc.Status == models.KdbDocSuccess {
-		esDbConfigStr := strings.Replace(conf.WebConf.EsDbConfig, "@indexName@", kdb.GetIndexName(), 1)
-		_, err = k.jobdApi.EsDelete(&jobd.ESDeleteReq{DocIds: []string{
-			strconv.FormatInt(docId, 10)},
-			MapperValueOrPath: json.RawMessage(esDbConfigStr),
-		})
+		err = es.CommonDocumentDelete(k.GetCtx(), kdb.GetIndexName(), []int64{docId})
 		if err != nil {
 			tx.Rollback()
 			return
@@ -76,8 +67,7 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 
 func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content string, splitList []jobd.TextChunkItem, embeddingAll [][]float32) (err error) {
 	segments := make([]*models.KdbDocSegment, 0, len(splitList))
-	esInsertCorpus := make([]map[string]any, 0)
-	for i, split := range splitList {
+	for _, split := range splitList {
 		if len(split.PassageContent) == 0 {
 			continue
 		}
@@ -91,13 +81,6 @@ func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content s
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
-		})
-		esInsertCorpus = append(esInsertCorpus, map[string]any{
-			"doc_id":      doc.Id,
-			"doc_content": split.PassageContent,
-			"start":       split.Start,
-			"end":         split.End,
-			"emb":         embeddingAll[i],
 		})
 	}
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
@@ -122,41 +105,24 @@ func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content s
 		k.LogErrorf("kdbDocSegmentDao insert error，docId %v, error %v", doc.Id, err.Error())
 		return err
 	}
-	err = k.saveEs(kdb, doc, esInsertCorpus, len(embeddingAll[0]))
+	esInsertCorpus := make([]*es.CommonDocument, 0)
+	for i, s := range segments {
+		esInsertCorpus = append(esInsertCorpus, &es.CommonDocument{
+			DocId:        s.DocId,
+			DocContent:   s.Text,
+			DocSegmentId: s.Id,
+			Start:        s.StartIndex,
+			End:          s.EndIndex,
+			Emb:          embeddingAll[i],
+		})
+	}
+	err = es.CommonDocumentInsert(k.GetCtx(), kdb.GetIndexName(), esInsertCorpus)
 	if err != nil {
 		tx.Rollback()
 		k.LogErrorf("saveEs error，docId %v, error %v", doc.Id, err.Error())
 		return err
 	}
 	tx.Commit()
-	return
-}
-
-func (k *KdbDocData) saveEs(kdb *models.Kdb, doc *models.KdbDoc, corpus []map[string]any, embLength int) (err error) {
-	corpusG := slice.Chunk(corpus, 500)
-	eg, _ := errgroup.WithContext(k.GetCtx())
-	esDbConfigStr := strings.ReplaceAll(conf.WebConf.EsDbConfig, "@indexName@", kdb.GetIndexName())
-	for _, ccc := range corpusG {
-		tmp := ccc
-		eg.Go(func() error {
-			_, err := k.jobdApi.EsInsert(jobd.ESInsertReq{
-				Corpus:            tmp,
-				MapperValueOrPath: json.RawMessage(esDbConfigStr),
-			})
-			if err != nil {
-				return err
-			}
-			return nil
-		})
-
-	}
-	if err := eg.Wait(); err != nil {
-		_, _ = k.jobdApi.EsDelete(&jobd.ESDeleteReq{
-			DocIds:            []string{strconv.FormatInt(doc.Id, 10)},
-			MapperValueOrPath: json.RawMessage(esDbConfigStr),
-		})
-		return err
-	}
 	return
 }
 

@@ -2,7 +2,7 @@
 port: 20034
 appName: askonce
 log:
-  level: DEBUG
+  level:  INFO
   stdout: true
 
 ##################################
@@ -26,6 +26,8 @@ minioConf:
 
 elastic:
   addr: ${BACKEND_ES_ADDR}
+  username: ${BACKEND_ES_USERNAME}
+  password: ${BACKEND_ES_PASSWORD}
 
 channel:
   chat:
@@ -60,4 +62,3 @@ api:
     # 重试次数，最多执行retry+1次
     retry: 2
 
-esDbConfig: "{\"mappings_config\":{\"index_name\":\"@indexName@\",\"mappings\":{\"properties\":{\"doc_id\":{\"type\":\"keyword\",\"index\":\"false\"},\"doc_content\":{\"type\":\"text\",\"index\":\"true\",\"analyzer\": \"my_ana\",\"similarity\": \"my_similarity\"},\"emb\":{\"type\":\"dense_vector\",\"dims\":4096,\"similarity\":\"cosine\"},\"data_split_id\":{\"type\":\"keyword\",\"index\":\"false\"}}},\"bm25_field\":\"doc_content\",\"emb_fields\":\"emb\"}}"

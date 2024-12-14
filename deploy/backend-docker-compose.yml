@@ -20,6 +20,7 @@ services:
     container_name: askonce-backend
     volumes:
       - ${BACKEND_CONF_DIR}/askonce:/app/conf/mount
+      - /data:/data
     restart: unless-stopped
     ports:
       - 20034:8080

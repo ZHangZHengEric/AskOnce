@@ -103,7 +103,7 @@ func (entity *KdbDocDao) GetListByStatus(status int) (res []*KdbDoc, err error) 
 	res = []*KdbDoc{}
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
-	err = db.Where("status = ?", status).Limit(100).Find(&res).Error
+	err = db.Where("status = ?", status).Limit(10).Find(&res).Error
 	return
 }
 
