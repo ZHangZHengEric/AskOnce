@@ -4,6 +4,7 @@ import (
 	"askonce/gpt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/xiangtao94/golib/pkg/elastic8"
 	"github.com/xiangtao94/golib/pkg/env"
 	"github.com/xiangtao94/golib/pkg/http"
 	"github.com/xiangtao94/golib/pkg/middleware"
@@ -19,27 +20,12 @@ type SWebConf struct {
 	Log        zlog.LogConfig                `yaml:"log"`
 	accessConf middleware.AccessLoggerConfig `yaml:"accessConf"`
 
-	Mysql         map[string]orm.MysqlConf   `yaml:"mysql"`
-	Redis         map[string]redis.RedisConf `yaml:"redis"`
-	ElasticSearch SElasticConf               `yaml:"elastic"`
-	MongoDb       map[string]SMongoDBConf    `yaml:"mongodb"`
-
-	Api       map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
-	MinioConf SMinioConf                      `yaml:"minioConf"`
-	Channel   map[string]gpt.ChannelConf      `yaml:"channel"`
-}
-
-type SMongoDBConf struct {
-	DataBase string `yaml:"database"`
-	Addr     string `yaml:"addr"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-}
-
-type SElasticConf struct {
-	Addr     string `yaml:"addr"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Mysql         map[string]orm.MysqlConf        `yaml:"mysql"`
+	Redis         map[string]redis.RedisConf      `yaml:"redis"`
+	ElasticSearch elastic8.ElasticConf            `yaml:"elastic"`
+	Api           map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
+	MinioConf     SMinioConf                      `yaml:"minioConf"`
+	Channel       map[string]gpt.ChannelConf      `yaml:"channel"`
 }
 
 type SMinioConf struct {

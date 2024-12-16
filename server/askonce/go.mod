@@ -6,7 +6,6 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/bytedance/sonic v1.11.6
 	github.com/duke-git/lancet/v2 v2.3.3
-	github.com/elastic/elastic-transport-go/v8 v8.6.0
 	github.com/elastic/go-elasticsearch/v8 v8.16.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gocolly/colly/v2 v2.1.0
@@ -17,7 +16,7 @@ require (
 	github.com/minio/pkg v1.7.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/xiangtao94/golib v1.0.5
+	github.com/xiangtao94/golib v1.0.6
 	golang.org/x/sync v0.8.0
 	golang.org/x/text v0.19.0
 	gorm.io/datatypes v1.2.4
@@ -39,6 +38,7 @@ require (
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.6.0 // indirect
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
