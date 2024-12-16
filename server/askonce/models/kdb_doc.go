@@ -148,8 +148,8 @@ func (entity *KdbDocDao) QueryProcess(kdbId int64, taskId string) (res []*Progre
 func (entity *KdbDocDao) GetByTaskIdAndStatus(kdbId int64, taskId string, status []int) (res []*KdbDoc, err error) {
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable()).Model(&KdbDoc{})
-	db = db.Where("kdb_id = ? and task_id = ? and status in (?)", kdbId, taskId, status)
-
+	err = db.Where("kdb_id = ? and task_id = ? and status in (?)", kdbId, taskId, status).Find(&res).Error
+	return
 }
 
 func (entity *KdbDocDao) BatchUpdateStatus(ids []int64, status int) (err error) {
