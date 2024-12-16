@@ -263,9 +263,11 @@ func (f *FileData) DeleteByFileIds(fileIds []string) (err error) {
 	go func() {
 		defer close(objectsCh)
 		for _, file := range files {
-			objectName := file.Name + file.Extension
+			parsedURL, _ := url.Parse(file.Path)
+			p1, _ := url.PathUnescape(parsedURL.Path)
+			p, _ := strings.CutPrefix(p1, "/"+bucketName+"/")
 			objectsCh <- minio.ObjectInfo{
-				Key: objectName,
+				Key: p,
 			}
 		}
 	}()
