@@ -59,15 +59,12 @@ func (f *FileData) ConvertFileToText(fileId string) (fileName string, output str
 }
 
 // 允许的格式
-var allowExtension = []string{"pdf", "doc", "docx", "txt", "ppt", "pptx", "xlsx", "xls", "json"}
+var allowExtension = []string{".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xlsx", ".xls", ".json"}
 
 func (f *FileData) UploadContent(userId string, fileName string, content string, source string) (add *models.File, err error) {
 	pathN := path.Base(fileName)
 	// 文件原始格式
 	fileOriginExtension := path.Ext(pathN)
-	if strings.HasPrefix(fileOriginExtension, ".") {
-		fileOriginExtension = fileOriginExtension[1:]
-	}
 	// 文件原始名称
 	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 	if !slice.Contain(allowExtension, fileOriginExtension) {
@@ -78,7 +75,7 @@ func (f *FileData) UploadContent(userId string, fileName string, content string,
 	// 文件上传目录
 	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
 	// 文件上传路径
-	uploadObjectPath := fmt.Sprintf("%s/%s.%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
+	uploadObjectPath := fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
 	// 文件bucket
 	bucketName := defines.BucketOrigin
 	minioClient, err := helpers.GetMinioClient(f.GetCtx())
@@ -124,9 +121,7 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 	pathN := path.Base(file.Filename)
 	// 文件原始格式
 	fileOriginExtension := path.Ext(pathN)
-	if strings.HasPrefix(fileOriginExtension, ".") {
-		fileOriginExtension = fileOriginExtension[1:]
-	}
+
 	// 文件原始名称
 	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 
@@ -138,7 +133,7 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 	// 文件上传目录
 	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
 	// 文件上传路径
-	uploadObjectPath := fmt.Sprintf("%s/%s.%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
+	uploadObjectPath := fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
 	// 文件bucket
 	bucketName := defines.BucketOrigin
 	minioClient, err := helpers.GetMinioClient(f.GetCtx())
@@ -257,9 +252,6 @@ func (f *FileData) uploadByZipDo(minioClient *minio.Client, userId string, file 
 	pathN := path.Base(fileName)
 	// 文件原始格式
 	fileOriginExtension := path.Ext(pathN)
-	if strings.HasPrefix(fileOriginExtension, ".") {
-		fileOriginExtension = fileOriginExtension[1:]
-	}
 	// 文件原始名称
 	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 	if !slice.Contain(allowExtension, fileOriginExtension) {
@@ -270,7 +262,7 @@ func (f *FileData) uploadByZipDo(minioClient *minio.Client, userId string, file 
 	// 文件上传目录
 	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
 	// 文件上传路径
-	uploadObjectPath := fmt.Sprintf("%s/%s.%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
+	uploadObjectPath := fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
 	// 文件bucket
 	bucketName := defines.BucketOrigin
 	if err != nil {
