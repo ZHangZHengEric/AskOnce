@@ -11,10 +11,14 @@ import time
 from datetime import datetime
 import traceback
 
+
+# answer_outlines = [{'level': 'h2','title_level':'##', 'content':'标题'},{'level': 'h3','title_level':'##', 'content':'标题'}]
+
 class QAnswerInput:
     def __init__(self,json_data,task_id) -> None:
         self.question = json_data['question']
         self.answer_style = json_data['answer_style'] if 'answer_style' in json_data.keys() else 'simplify'
+        self.answer_outlines = json_data['answer_outlines'] if 'answer_outlines' in json_data.keys() else None
         self.search_result = json_data['search_result'] if 'search_result' in json_data.keys() else []
         self.is_stream = json_data['is_stream'] if 'is_stream' in json_data.keys() else False
         self.search_code = json_data['search_code'] if 'search_code' in json_data.keys() else None
@@ -42,7 +46,9 @@ def process(task_input,task_type,model,args,tm):
             elif task_input.answer_style == 'detailed_no_chapter':
                 result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
             elif task_input.answer_style == 'professional':
-                result = model.professional_answer(task_input.question,task_input.search_result,task_input.search_code ,task_input.is_stream)
+                result = model.professional_answer(task_input.question,task_input.search_result,task_input.search_code,task_input.is_stream)
+            elif task_input.answer_style == 'professional_no_more_qa':
+                result = model.professional_answer_no_more_questions(task_input.question,task_input.search_result,task_input.answer_outlines,task_input.search_code,task_input.is_stream)
             else:
                 result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
         

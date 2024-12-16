@@ -268,5 +268,52 @@ class SearchAnswer (LLMBaseAPI):
                 yield more_question_answer+'\n'
             yield '\n'
         
-    
+    def professional_answer_no_more_questions(self,question,search_result,directory_dict=None,search_session_id='',stream=False):
+        print('对问题进行专业回答，不添加问答:',question)
+        print('搜索结果长度',len(search_result))
+        directory = directory_dict
+        if directory is None or len(directory)==0:
+            outlines_model  =  GenerateOutlines(platform_api_url = self.platform_api_url,
+                                            api_key  =self.api_key,
+                                            model_name = self.model_name)
+            directory = outlines_model.generate_outlines_by_question_and_search_result(question,search_result)
+        all_result = ''
+        if len(directory) ==0 :
+            detailed_answer_result = self.detailed_answer(question,search_result,stream)
+            if stream:
+                for item in detailed_answer_result:
+                    all_result+=item
+                    yield item
+                yield '\n'
+                all_result+='\n'
+            else:
+                all_result+=detailed_answer_result+'\n'
+                yield detailed_answer_result
+
+        directory_str = '\n'.join([ item['title_level']+'# '+item['content'] for item in directory ])
+        print('大纲：\n',directory_str)
+        # 根据大纲逐步生成回答
+        for index,directory_item in enumerate(directory):
+            
+            if index < len(directory)-1:
+                all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
+                yield directory_item['title_level']+'# '+directory_item['content']+'\n'
+                if len(directory[index]['title_level']) < len(directory[index+1]['title_level']):
+                    continue
+            else:
+                all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
+                yield directory_item['title_level']+'# '+directory_item['content']+'\n'
+                
+            new_search_result = self.search_internet(question+directory_item['content'],search_session_id)
+            one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,new_search_result,stream)
+            if stream:
+                for item in one_chapter_result:
+                    all_result+=item
+                    yield item
+                yield '\n'
+                all_result+='\n'
+            else:
+                all_result+=one_chapter_result+'\n'
+                yield one_chapter_result
+                yield '\n'
     

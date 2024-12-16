@@ -47,6 +47,21 @@ services:
       - LANG=C.UTF-8
     restart: "no"
   
+  askonce_generate_outlines_from_question_0:
+    container_name:   askonce_generate_outlines_from_question_0
+    build:
+      context: ../../
+      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
+      network: host
+    image: askonce_llm_service_image
+    network_mode: host
+    shm_size: '4gb'
+    command: /bin/bash -c "python generate_outlines/generate_outlines_from_question.py --jobdurl ${JOBD_ADDR} --tasktype generate_outlines_from_question --worker_name generate_outlines_from_question_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL} "
+    tty: true
+    environment:
+      - LANG=C.UTF-8
+    restart: "no"
+  
   askonce_result_add_reference_0:
     container_name:   askonce_result_add_reference_0
     build:

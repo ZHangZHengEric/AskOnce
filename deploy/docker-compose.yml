@@ -109,6 +109,11 @@ services:
       file: llm_services-docker-compose.yml
       service: askonce_generate_outlines_0
     profiles: ["all", "llm"]
+  askonce_generate_outlines_from_question_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_generate_outlines_from_question_0
+    profiles: ["all", "llm"]
   askonce_search_result_post_process_0:
     extends:
       file: llm_services-docker-compose.yml
