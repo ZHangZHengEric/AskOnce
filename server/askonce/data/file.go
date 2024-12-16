@@ -59,7 +59,7 @@ func (f *FileData) ConvertFileToText(fileId string) (fileName string, output str
 }
 
 // 允许的格式
-var allowExtension = []string{".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xlsx", ".xls", ".json"}
+var allowExtension = []string{"pdf", "doc", "docx", "txt", "ppt", "pptx", "xlsx", "xls", "json"}
 
 func (f *FileData) UploadContent(userId string, fileName string, content string, source string) (add *models.File, err error) {
 	pathN := path.Base(fileName)
