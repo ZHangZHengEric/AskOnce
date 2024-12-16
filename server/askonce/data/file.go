@@ -65,6 +65,9 @@ func (f *FileData) UploadContent(userId string, fileName string, content string,
 	pathN := path.Base(fileName)
 	// 文件原始格式
 	fileOriginExtension := path.Ext(pathN)
+	if strings.HasPrefix(fileOriginExtension, ".") {
+		fileOriginExtension = fileOriginExtension[1:]
+	}
 	// 文件原始名称
 	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 	if !slice.Contain(allowExtension, fileOriginExtension) {
@@ -121,6 +124,9 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 	pathN := path.Base(file.Filename)
 	// 文件原始格式
 	fileOriginExtension := path.Ext(pathN)
+	if strings.HasPrefix(fileOriginExtension, ".") {
+		fileOriginExtension = fileOriginExtension[1:]
+	}
 	// 文件原始名称
 	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 
@@ -251,6 +257,9 @@ func (f *FileData) uploadByZipDo(minioClient *minio.Client, userId string, file 
 	pathN := path.Base(fileName)
 	// 文件原始格式
 	fileOriginExtension := path.Ext(pathN)
+	if strings.HasPrefix(fileOriginExtension, ".") {
+		fileOriginExtension = fileOriginExtension[1:]
+	}
 	// 文件原始名称
 	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
 	if !slice.Contain(allowExtension, fileOriginExtension) {
