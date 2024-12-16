@@ -158,7 +158,8 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 	return
 }
 
-func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, err error) {
+func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res *dto_kdb_doc.AddZipRes, err error) {
+	taskId := utils.Get16MD5Encode(fmt.Sprintf("%s%v", req.ZipUrl, time.Now().UnixNano()))
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
 	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
 	if err != nil {
@@ -172,6 +173,7 @@ func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, 
 	for _, file := range files {
 		doc := &models.KdbDoc{
 			KdbId:      kdb.Id,
+			TaskId:     taskId,
 			DocName:    file.OriginName,
 			DataSource: "file",
 			SourceId:   file.Id,
@@ -188,6 +190,9 @@ func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res interface{}, 
 	err = k.kdbDocDao.BatchInsert(docs)
 	if err != nil {
 		return nil, err
+	}
+	res = &dto_kdb_doc.AddZipRes{
+		TaskId: taskId,
 	}
 	return
 }
@@ -315,6 +320,45 @@ func (k *KdbDocService) docBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err err
 	if err != nil {
 		k.LogErrorf("存mysql error，docId %v,error %v", doc.Id, err.Error())
 		return err
+	}
+	return
+}
+
+func (k *KdbDocService) LoadProcess(req *dto_kdb_doc.LoadProcessReq) (res *dto_kdb.LoadProcessRes, err error) {
+	userInfo, err := utils.LoginInfo(k.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
+	if err != nil {
+		return nil, err
+	}
+	processRes, err := k.kdbDocDao.QueryProcess(kdb.Id, req.TaskId)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_kdb.LoadProcessRes{}
+	var totalNum int64
+
+	for _, p := range processRes {
+		switch p.Status {
+		case models.KdbDocWaiting:
+			res.Waiting = p.Total
+		case models.KdbDocFail:
+			res.Fail = p.Total
+		case models.KdbDocSuccess:
+			res.Success = p.Total
+		case models.KdbDocRunning:
+			res.InProgress = p.Total
+		default:
+		}
+		totalNum = totalNum + p.Total
+	}
+	res.Total = totalNum
+	if res.Total == res.Success {
+		res.TaskProcess = 100
+	} else {
+		res.TaskProcess = (res.Success * 100) / totalNum
 	}
 	return
 }

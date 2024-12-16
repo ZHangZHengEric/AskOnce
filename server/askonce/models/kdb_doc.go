@@ -23,6 +23,7 @@ const (
 type KdbDoc struct {
 	Id         int64  `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`
 	KdbId      int64  `gorm:"type:int(11);default:0;comment:知识库id"`
+	TaskId     string `gorm:"type:varchar(128);default:'';comment:任务id"`
 	DocName    string `gorm:"type:varchar(128);default:'';comment:文档名称"`
 	DataSource string `gorm:"type:varchar(52);default:'';comment:文档来源 file"`
 	SourceId   string `gorm:"type:varchar(128);default:0;comment:来源id"`
@@ -129,4 +130,17 @@ func (entity *KdbDocDao) DeleteById(docId int64) (err error) {
 	db = db.Table(entity.GetTable())
 	err = db.Where("id =  ? ", docId).Delete(&KdbDoc{}).Error
 	return err
+}
+
+type Progress struct {
+	Status int   `json:"status"`
+	Total  int64 `json:"total"`
+}
+
+func (entity *KdbDocDao) QueryProcess(kdbId int64, taskId string) (res []*Progress, err error) {
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable()).Model(&KdbDoc{})
+	db = db.Where("kdb_id = ? and task_id = ?", kdbId, taskId)
+	err = db.Select("status,count(1) as total").Group("status").Find(&res).Error
+	return
 }

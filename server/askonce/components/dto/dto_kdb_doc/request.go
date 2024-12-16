@@ -49,3 +49,8 @@ type RecallReq struct {
 	KdbId int64  `json:"kdbId" binding:"required"`
 	Query string `query:"query" binding:"required"`
 }
+
+type LoadProcessReq struct {
+	KdbId  int64  `json:"kdbId" form:"kdbId" binding:"required"`
+	TaskId string `json:"taskId" form:"taskId" binding:"required"`
+}

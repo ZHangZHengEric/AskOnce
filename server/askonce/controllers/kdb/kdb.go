@@ -38,27 +38,27 @@ type DeleteController struct {
 	flow.Controller
 }
 
-func (entity *DeleteController) Action(req *dto_kdb.DeleteReq) (interface{}, error) {
+func (entity *DeleteController) Action(req *dto_kdb.SingleKdbReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbService)).(*service.KdbService)
-	return s.Delete(req)
+	return s.Delete(req.KdbId)
 }
 
 type InfoController struct {
 	flow.Controller
 }
 
-func (entity *InfoController) Action(req *dto_kdb.InfoReq) (interface{}, error) {
+func (entity *InfoController) Action(req *dto_kdb.SingleKdbReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbService)).(*service.KdbService)
-	return s.Info(req)
+	return s.Info(req.KdbId)
 }
 
 type DeleteSelfController struct {
 	flow.Controller
 }
 
-func (entity *DeleteSelfController) Action(req *dto_kdb.DeleteSelfReq) (interface{}, error) {
+func (entity *DeleteSelfController) Action(req *dto_kdb.SingleKdbReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbService)).(*service.KdbService)
-	return s.DeleteRelation(req)
+	return s.DeleteRelation(req.KdbId)
 }
 
 type CoversController struct {
@@ -74,9 +74,9 @@ type AuthController struct {
 	flow.Controller
 }
 
-func (entity *AuthController) Action(req *dto_kdb.AuthReq) (interface{}, error) {
+func (entity *AuthController) Action(req *dto_kdb.SingleKdbReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbService)).(*service.KdbService)
-	return s.Auth(req)
+	return s.Auth(req.KdbId)
 }
 
 type UserListController struct {

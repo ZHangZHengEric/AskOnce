@@ -132,3 +132,13 @@ type DocListItem struct {
 	CreatedBy      string `json:"createdBy"`
 	UpdatedAt      int64  `json:"updatedAt"`
 }
+
+type LoadProcessRes struct {
+	Success    int64 `json:"success"`
+	Fail       int64 `json:"fail"`
+	InProgress int64 `json:"inProgress"`
+	Waiting    int64 `json:"waiting"`
+
+	Total       int64 `json:"total"`
+	TaskProcess int64 `json:"taskProcess"`
+}

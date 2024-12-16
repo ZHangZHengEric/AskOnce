@@ -68,3 +68,12 @@ func (entity *RecallController) Action(req *dto_kdb_doc.RecallReq) (interface{},
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.Recall(req)
 }
+
+type TaskProcessController struct {
+	flow.Controller
+}
+
+func (entity *TaskProcessController) Action(req *dto_kdb_doc.LoadProcessReq) (interface{}, error) {
+	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
+	return s.LoadProcess(req)
+}

@@ -46,20 +46,8 @@ type UpdateReq struct {
 	*dto.KdbSetting
 }
 
-type DeleteReq struct {
-	KdbId int64 `json:"kdbId" binding:"required"`
-}
-
-type DeleteSelfReq struct {
-	KdbId int64 `json:"kdbId" binding:"required"`
-}
-
-type AuthReq struct {
-	KdbId int64 `json:"kdbId" binding:"required"`
-}
-
-type InfoReq struct {
-	KdbId int64 `form:"kdbId" binding:"required"`
+type SingleKdbReq struct {
+	KdbId int64 `json:"kdbId" form:"kdbId" binding:"required"`
 }
 
 type UserListReq struct {

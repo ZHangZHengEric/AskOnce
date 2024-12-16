@@ -28,3 +28,7 @@ type RecallItem struct {
 	SearchContent string `json:"searchContent"`
 	DataContent   string `json:"dataContent"`
 }
+
+type AddZipRes struct {
+	TaskId string `json:"taskId" form:"taskId"`
+}

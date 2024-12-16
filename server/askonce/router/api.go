@@ -18,10 +18,11 @@ func API(engine *gin.Engine) {
 	{
 		kdbGroup.POST("add", flow.Use[dto_kdb.AddReq](new(kdb.AddController)))          // 知识库新增
 		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController))) // 知识库修改
-		kdbGroup.GET("info", flow.Use[dto_kdb.InfoReq](new(kdb.InfoController)))        // 知识库详情
+		kdbGroup.GET("info", flow.Use[dto_kdb.SingleKdbReq](new(kdb.InfoController)))   // 知识库详情
 		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))       // 知识库列表
 		// 删除
-		kdbGroup.POST("delete", flow.Use[dto_kdb.DeleteReq](new(kdb.DeleteController))) // 删除
+		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController))) // 删除
+
 		docGroup := kdbGroup.Group("doc")
 		{
 			// 列表
@@ -30,6 +31,8 @@ func API(engine *gin.Engine) {
 			docGroup.POST("add", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
 			// zip包新增
 			docGroup.POST("addByZip", flow.Use[dto_kdb_doc.AddZipReq](new(kdb.DocAddByZipController)))
+			// 查询知识库进度
+			docGroup.POST("taskProcess", flow.Use[dto_kdb_doc.LoadProcessReq](new(kdb.LoadProcessController)))
 			// 批量文本新增
 			docGroup.POST("addByBatchText", flow.Use[dto_kdb_doc.AddByBatchTextReq](new(kdb.DocAddByBatchTextController)))
 			// 删除

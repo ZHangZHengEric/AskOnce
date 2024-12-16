@@ -47,13 +47,13 @@ func Http(engine *gin.Engine) {
 		// 修改
 		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController)))
 		// 删除
-		kdbGroup.POST("delete", flow.Use[dto_kdb.DeleteReq](new(kdb.DeleteController)))
+		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController)))
 		// 详情
-		kdbGroup.GET("detail", flow.Use[dto_kdb.InfoReq](new(kdb.InfoController)))
+		kdbGroup.GET("detail", flow.Use[dto_kdb.SingleKdbReq](new(kdb.InfoController)))
 		// 删除自己与知识库关系
-		kdbGroup.POST("deleteSelf", flow.Use[dto_kdb.DeleteSelfReq](new(kdb.DeleteSelfController)))
+		kdbGroup.POST("deleteSelf", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteSelfController)))
 		// 判断是否有权限
-		kdbGroup.POST("auth", flow.Use[dto_kdb.AuthReq](new(kdb.AuthController)))
+		kdbGroup.POST("auth", flow.Use[dto_kdb.SingleKdbReq](new(kdb.AuthController)))
 
 		// 知识库用户列表
 		kdbGroup.POST("userList", flow.Use[dto_kdb.UserListReq](new(kdb.UserListController)))

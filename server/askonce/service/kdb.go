@@ -14,6 +14,7 @@ import (
 type KdbService struct {
 	flow.Service
 	kdbCoverDao *models.KdbCoverDao
+	kdbDocDao   *models.KdbDocDao
 
 	kdbData  *data.KdbData
 	userData *data.UserData
@@ -21,6 +22,7 @@ type KdbService struct {
 
 func (k *KdbService) OnCreate() {
 	k.kdbCoverDao = flow.Create(k.GetCtx(), new(models.KdbCoverDao))
+	k.kdbDocDao = flow.Create(k.GetCtx(), new(models.KdbDocDao))
 
 	k.kdbData = flow.Create(k.GetCtx(), new(data.KdbData))
 	k.userData = flow.Create(k.GetCtx(), new(data.UserData))
@@ -97,9 +99,9 @@ func (k *KdbService) List(req *dto_kdb.ListReq) (res *dto_kdb.ListResp, err erro
 	return
 }
 
-func (k *KdbService) Info(req *dto_kdb.InfoReq) (res *dto_kdb.InfoRes, err error) {
+func (k *KdbService) Info(kdbId int64) (res *dto_kdb.InfoRes, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
-	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	kdb, err := k.kdbData.CheckKdbAuth(kdbId, userInfo.UserId, models.AuthTypeRead)
 	if err != nil {
 		return
 	}
@@ -128,9 +130,9 @@ func (k *KdbService) Info(req *dto_kdb.InfoReq) (res *dto_kdb.InfoRes, err error
 	return
 }
 
-func (k *KdbService) Delete(req *dto_kdb.DeleteReq) (res interface{}, err error) {
+func (k *KdbService) Delete(kdbId int64) (res interface{}, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
-	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
+	kdb, err := k.kdbData.CheckKdbAuth(kdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
 	if err != nil {
 		return
 	}
@@ -141,12 +143,12 @@ func (k *KdbService) Delete(req *dto_kdb.DeleteReq) (res interface{}, err error)
 	return
 }
 
-func (k *KdbService) DeleteRelation(req *dto_kdb.DeleteSelfReq) (res interface{}, err error) {
+func (k *KdbService) DeleteRelation(kdbId int64) (res interface{}, err error) {
 	userInfo, err := utils.LoginInfo(k.GetCtx())
 	if err != nil {
 		return nil, err
 	}
-	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
+	kdb, err := k.kdbData.CheckKdbAuth(kdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
 	if err != nil {
 		return
 	}
@@ -180,12 +182,12 @@ func (k *KdbService) Covers(req *dto.EmptyReq) (res *dto_kdb.CoversRes, err erro
 	return
 }
 
-func (k *KdbService) Auth(req *dto_kdb.AuthReq) (res *dto_kdb.AuthRes, err error) {
+func (k *KdbService) Auth(kdbId int64) (res *dto_kdb.AuthRes, err error) {
 	userInfo, err := utils.LoginInfo(k.GetCtx())
 	if err != nil {
 		return nil, err
 	}
-	authType, err := k.kdbData.GetKdbAuthType(userInfo.UserId, req.KdbId)
+	authType, err := k.kdbData.GetKdbAuthType(userInfo.UserId, kdbId)
 	if err != nil {
 		return nil, err
 	}
