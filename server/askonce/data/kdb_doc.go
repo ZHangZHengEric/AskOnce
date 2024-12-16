@@ -14,6 +14,7 @@ import (
 type KdbDocData struct {
 	flow.Redis
 	kdbDocDao        *models.KdbDocDao
+	fileData         *FileData
 	kdbDocContentDao *models.KdbDocContentDao
 	kdbDocSegmentDao *models.KdbDocSegmentDao
 	jobdApi          *jobd.JobdApi
@@ -24,14 +25,23 @@ func (k *KdbDocData) OnCreate() {
 	k.kdbDocContentDao = flow.Create(k.GetCtx(), new(models.KdbDocContentDao))
 	k.kdbDocSegmentDao = flow.Create(k.GetCtx(), new(models.KdbDocSegmentDao))
 	k.jobdApi = flow.Create(k.GetCtx(), new(jobd.JobdApi))
+	k.fileData = flow.Create(k.GetCtx(), new(FileData))
 }
 
-func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
-	doc, err := k.kdbDocDao.GetById(docId)
-	if err != nil {
-		return err
+func (k *KdbDocData) DeleteDocs(kdb *models.Kdb, docIds []int64, deleteAll bool) (err error) {
+	var docs []*models.KdbDoc
+	if deleteAll {
+		docs, err = k.kdbDocDao.GetByKdbId(kdb.Id)
+		if err != nil {
+			return err
+		}
+	} else {
+		docs, err = k.kdbDocDao.GetByIds(docIds)
+		if err != nil {
+			return err
+		}
 	}
-	if doc == nil {
+	if len(docs) == 0 {
 		return
 	}
 	db := helpers.MysqlClient.WithContext(k.GetCtx())
@@ -39,27 +49,38 @@ func (k *KdbDocData) DeleteDoc(kdb *models.Kdb, docId int64) (err error) {
 	k.kdbDocDao.SetDB(tx)
 	k.kdbDocContentDao.SetDB(tx)
 	k.kdbDocSegmentDao.SetDB(tx)
-	err = k.kdbDocDao.DeleteById(docId)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	err = k.kdbDocContentDao.DeleteByDocIds([]int64{docId})
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	err = k.kdbDocSegmentDao.DeleteByDocIds(kdb.Id, []int64{docId})
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	if doc.Status == models.KdbDocSuccess {
-		err = es.CommonDocumentDelete(k.GetCtx(), kdb.GetIndexName(), []int64{docId})
-		if err != nil {
-			tx.Rollback()
-			return
+	docSuccessIds := make([]int64, 0)
+	docFileIds := make([]string, 0)
+	for _, doc := range docs {
+		if doc.Status == models.KdbDocSuccess {
+			docSuccessIds = append(docSuccessIds, doc.Id)
 		}
+		docFileIds = append(docFileIds, doc.SourceId)
+	}
+	err = k.fileData.DeleteByFileIds(docFileIds)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = k.kdbDocDao.DeleteByIds(docIds)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = k.kdbDocContentDao.DeleteByDocIds(docIds)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = k.kdbDocSegmentDao.DeleteByDocIds(kdb.Id, docIds)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = es.CommonDocumentDelete(k.GetCtx(), kdb.GetIndexName(), docSuccessIds)
+	if err != nil {
+		tx.Rollback()
+		return
 	}
 	tx.Commit()
 	return

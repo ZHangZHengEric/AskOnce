@@ -7,6 +7,7 @@ import (
 	"askonce/components/defines"
 	"askonce/helpers"
 	"askonce/models"
+	"askonce/utils"
 	"bytes"
 	"fmt"
 	"github.com/duke-git/lancet/v2/cryptor"
@@ -19,10 +20,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
-	"io"
 	"io/ioutil"
 	"mime/multipart"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -61,21 +60,11 @@ func (f *FileData) ConvertFileToText(fileId string) (fileName string, output str
 // 允许的格式
 var allowExtension = []string{".pdf", ".doc", ".docx", ".txt", ".ppt", ".pptx", ".xlsx", ".xls", ".json"}
 
-func (f *FileData) UploadContent(userId string, fileName string, content string, source string) (add *models.File, err error) {
-	pathN := path.Base(fileName)
-	// 文件原始格式
-	fileOriginExtension := path.Ext(pathN)
-	// 文件原始名称
-	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
-	if !slice.Contain(allowExtension, fileOriginExtension) {
-		return nil, components.ErrorFormatError
+func (f *FileData) UploadByText(userId string, fileName string, content string, source string) (add *models.File, err error) {
+	uploadObjectPath, uploadObjectName, fileOriginName, fileOriginExt, err := parseFileName(fileName, source, userId)
+	if err != nil {
+		return nil, err
 	}
-	// 文件上传名称
-	uploadObjectName := fmt.Sprintf("%v_%s", helpers.GenID(), fileOriginName)
-	// 文件上传目录
-	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
-	// 文件上传路径
-	uploadObjectPath := fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
 	// 文件bucket
 	bucketName := defines.BucketOrigin
 	minioClient, err := helpers.GetMinioClient(f.GetCtx())
@@ -94,7 +83,7 @@ func (f *FileData) UploadContent(userId string, fileName string, content string,
 		Id:         cryptor.HmacMd5(objectInfo.Key, "askonce"),
 		Name:       uploadObjectName,
 		OriginName: fileOriginName,
-		Extension:  fileOriginExtension,
+		Extension:  fileOriginExt,
 		Path:       fileUrl,
 		Size:       objectInfo.Size,
 		Source:     source,
@@ -111,29 +100,17 @@ func (f *FileData) UploadContent(userId string, fileName string, content string,
 	return
 }
 
-func (f *FileData) Upload(userId string, file *multipart.FileHeader, source string) (add *models.File, err error) {
+func (f *FileData) UploadByFile(userId string, file *multipart.FileHeader, source string) (add *models.File, err error) {
 	fileR, err := file.Open()
 	if err != nil {
 		f.LogErrorf("file open fail, %v", err)
 		return
 	}
 	defer fileR.Close()
-	pathN := path.Base(file.Filename)
-	// 文件原始格式
-	fileOriginExtension := path.Ext(pathN)
-
-	// 文件原始名称
-	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
-
-	if !slice.Contain(allowExtension, fileOriginExtension) {
-		return nil, components.ErrorFormatError
+	uploadObjectPath, uploadObjectName, fileOriginName, fileOriginExt, err := parseFileName(file.Filename, source, userId)
+	if err != nil {
+		return nil, err
 	}
-	// 文件上传名称
-	uploadObjectName := fmt.Sprintf("%v_%s", helpers.GenID(), fileOriginName)
-	// 文件上传目录
-	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
-	// 文件上传路径
-	uploadObjectPath := fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
 	// 文件bucket
 	bucketName := defines.BucketOrigin
 	minioClient, err := helpers.GetMinioClient(f.GetCtx())
@@ -141,7 +118,6 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 		return nil, components.ErrorFileClientError
 	}
 	zlog.Infof(f.GetCtx(), "upload object %s to minio bucket %s", uploadObjectPath, bucketName)
-
 	objectInfo, err := minioClient.PutObject(f.GetCtx(), bucketName, uploadObjectPath, fileR, file.Size, minio.PutObjectOptions{})
 	if err != nil {
 		zlog.Errorf(f.GetCtx(), "upload file fail: %+v", err)
@@ -153,7 +129,7 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 		Id:         cryptor.HmacMd5(objectInfo.Key, "askonce"),
 		Name:       uploadObjectName,
 		OriginName: fileOriginName,
-		Extension:  fileOriginExtension,
+		Extension:  fileOriginExt,
 		Path:       fileUrl,
 		Size:       objectInfo.Size,
 		Source:     source,
@@ -170,26 +146,14 @@ func (f *FileData) Upload(userId string, file *multipart.FileHeader, source stri
 	return
 }
 
-func (f *FileData) GetFileByFileIds(fileIds []string) (res map[string]*models.File, err error) {
-	res = make(map[string]*models.File)
-	files, err := f.fileDao.GetByIds(fileIds)
-	if err != nil {
-		return nil, err
-	}
-	for _, file := range files {
-		res[file.Id] = file
-	}
-	return
-}
-
 func (f *FileData) UploadByZip(userId string, zipUrl string, source string) (files []*models.File, err error) {
-	network, err := IsNetWorkUrlOrLocal(zipUrl)
+	network, err := utils.IsNetWorkUrlOrLocal(zipUrl)
 	if err != nil {
 		return nil, err
 	}
 	var zipData []byte
 	if network {
-		zipData, err = downloadZip(zipUrl)
+		zipData, err = utils.DownloadZip(zipUrl)
 		if err != nil {
 			return nil, err
 		}
@@ -249,21 +213,10 @@ func (f *FileData) uploadByZipDo(minioClient *minio.Client, userId string, file 
 	} else {
 		fileName = file.Name
 	}
-	pathN := path.Base(fileName)
-	// 文件原始格式
-	fileOriginExtension := path.Ext(pathN)
-	// 文件原始名称
-	fileOriginName := pathN[0 : len(pathN)-len(fileOriginExtension)]
-	if !slice.Contain(allowExtension, fileOriginExtension) {
-		return nil, components.ErrorFormatError
-	}
-	// 文件上传名称
-	uploadObjectName := fmt.Sprintf("%v_%s", helpers.GenID(), fileOriginName)
-	// 文件上传目录
-	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
-	// 文件上传路径
-	uploadObjectPath := fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExtension)
-	// 文件bucket
+	uploadObjectPath, uploadObjectName, fileOriginName, fileOriginExt, err := parseFileName(fileName, source, userId)
+	if err != nil {
+		return nil, err
+	} // 文件bucket
 	bucketName := defines.BucketOrigin
 	if err != nil {
 		return nil, components.ErrorFileClientError
@@ -280,7 +233,7 @@ func (f *FileData) uploadByZipDo(minioClient *minio.Client, userId string, file 
 		Id:         cryptor.HmacMd5(objectInfo.Key, "askonce"),
 		Name:       uploadObjectName,
 		OriginName: fileOriginName,
-		Extension:  fileOriginExtension,
+		Extension:  fileOriginExt,
 		Path:       fileUrl,
 		Size:       objectInfo.Size,
 		Source:     source,
@@ -292,56 +245,67 @@ func (f *FileData) uploadByZipDo(minioClient *minio.Client, userId string, file 
 	}
 	return
 }
-func IsNetWorkUrlOrLocal(input string) (network bool, err error) {
-	if isNetworkURL(input) {
-		return true, nil
-	}
-	local, err := pathExists(input)
-	if !local || err != nil {
-		return false, components.ErrorFileNoExist
-	}
-	return false, nil
-}
 
-func isNetworkURL(input string) bool {
-	parsedURL, err := url.Parse(input)
+func (f *FileData) DeleteByFileIds(fileIds []string) (err error) {
+	if len(fileIds) == 0 {
+		return
+	}
+	files, err := f.fileDao.GetByIds(fileIds)
 	if err != nil {
-		return false
+		return err
 	}
-	// 判断是否有 scheme 并且 scheme 是 http 或 https
-	if parsedURL.Scheme == "http" || parsedURL.Scheme == "https" {
-		return true
-	}
-	return false
-}
-
-func pathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
-// 下载 ZIP 文件到内存
-func downloadZip(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+	minioClient, err := helpers.GetMinioClient(f.GetCtx())
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.NewError(500, fmt.Sprintf("failed to download zip: status %s", resp.Status))
+	bucketName := defines.BucketOrigin
+	objectsCh := make(chan minio.ObjectInfo)
+	go func() {
+		defer close(objectsCh)
+		for _, file := range files {
+			objectName := file.Name + file.Extension
+			objectsCh <- minio.ObjectInfo{
+				Key: objectName,
+			}
+		}
+	}()
+	errorCh := minioClient.RemoveObjects(f.GetCtx(), bucketName, objectsCh, minio.RemoveObjectsOptions{})
+	for e := range errorCh {
+		if e.Err != nil {
+			return fmt.Errorf("minio remove objects fail, %v", e.Err)
+		}
 	}
+	err = f.fileDao.DeleteByFileIds(fileIds)
+	return
+}
 
-	data, err := io.ReadAll(resp.Body)
+func (f *FileData) GetFileByFileIds(fileIds []string) (res map[string]*models.File, err error) {
+	res = make(map[string]*models.File)
+	files, err := f.fileDao.GetByIds(fileIds)
 	if err != nil {
 		return nil, err
 	}
+	for _, file := range files {
+		res[file.Id] = file
+	}
+	return
+}
 
-	return data, nil
+func parseFileName(fileName, source, userId string) (uploadObjectPath, uploadObjectName, fileOriginName, fileOriginExt string, err error) {
+	pathN := path.Base(fileName)
+	// 文件原始格式
+	fileOriginExt = path.Ext(pathN)
+	// 文件原始名称
+	fileOriginName = pathN[0 : len(pathN)-len(fileOriginExt)]
+	if !slice.Contain(allowExtension, fileOriginExt) {
+		err = components.ErrorFormatError
+		return
+	}
+	// 文件上传名称
+	uploadObjectName = fmt.Sprintf("%v_%s", helpers.GenID(), fileOriginName)
+	// 文件上传目录
+	uploadObjectDir := fmt.Sprintf("%s/%s", source, userId)
+	// 文件上传路径
+	uploadObjectPath = fmt.Sprintf("%s/%s%s", uploadObjectDir, uploadObjectName, fileOriginExt)
+	return
 }

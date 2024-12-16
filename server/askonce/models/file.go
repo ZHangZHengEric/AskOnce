@@ -60,3 +60,10 @@ func (entity *FileDao) BatchInsert(files []*File) error {
 	}
 	return entity.GetDB().CreateInBatches(files, 2000).Error
 }
+
+func (entity *FileDao) DeleteByFileIds(ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	return entity.GetDB().Where("id in ?", ids).Delete(&File{}).Error
+}

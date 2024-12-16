@@ -22,6 +22,7 @@ import (
 */
 type KdbData struct {
 	flow.Service
+	kdbDocData  *KdbDocData
 	kdbDao      *models.KdbDao
 	kdbCoverDao *models.KdbCoverDao
 	kdbUserDao  *models.KdbUserDao
@@ -31,6 +32,7 @@ type KdbData struct {
 }
 
 func (k *KdbData) OnCreate() {
+	k.kdbDocData = flow.Create(k.GetCtx(), new(KdbDocData))
 	k.kdbDao = flow.Create(k.GetCtx(), new(models.KdbDao))
 	k.kdbCoverDao = flow.Create(k.GetCtx(), new(models.KdbCoverDao))
 	k.kdbUserDao = flow.Create(k.GetCtx(), new(models.KdbUserDao))
@@ -225,6 +227,11 @@ func (k *KdbData) DeleteKdb(userId string, kdb *models.Kdb) (err error) {
 	k.kdbDao.SetDB(tx)
 	k.kdbUserDao.SetDB(tx)
 	k.askInfoDao.SetDB(tx)
+	err = k.kdbDocData.DeleteDocs(kdb, nil, true)
+	if err != nil {
+		tx.Rollback()
+		return
+	}
 	err = k.kdbDao.DeleteById(kdb.Id)
 	if err != nil {
 		tx.Rollback()

@@ -97,12 +97,12 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 		if len([]rune(req.Text)) < 1024 {
 			needSplit = false
 		}
-		file, err = k.fileData.UploadContent(userInfo.UserId, fileName, req.Text, "knowledge")
+		file, err = k.fileData.UploadByText(userInfo.UserId, fileName, req.Text, "knowledge")
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		file, err = k.fileData.Upload(userInfo.UserId, req.File, "knowledge")
+		file, err = k.fileData.UploadByFile(userInfo.UserId, req.File, "knowledge")
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +136,7 @@ func (k *KdbDocService) DocDelete(req *dto_kdb_doc.DeleteReq) (res interface{}, 
 	if err != nil {
 		return
 	}
-	err = k.kdbDocData.DeleteDoc(kdb, req.DocId)
+	err = k.kdbDocData.DeleteDocs(kdb, []int64{req.DocId}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (r
 			fileName = fmt.Sprintf("%v.txt", helpers.GenID())
 		}
 
-		file, err := k.fileData.UploadContent(userInfo.UserId, fileName, doc.Text, "knowledge")
+		file, err := k.fileData.UploadByText(userInfo.UserId, fileName, doc.Text, "knowledge")
 		if err != nil {
 			return nil, err
 		}

@@ -132,6 +132,16 @@ func (entity *KdbDocDao) DeleteById(docId int64) (err error) {
 	return err
 }
 
+func (entity *KdbDocDao) DeleteByIds(docIds []int64) (err error) {
+	if len(docIds) == 0 {
+		return
+	}
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable())
+	err = db.Where("id in (?) ", docIds).Delete(&KdbDoc{}).Error
+	return err
+}
+
 type Progress struct {
 	Status int   `json:"status"`
 	Total  int64 `json:"total"`
@@ -160,4 +170,12 @@ func (entity *KdbDocDao) BatchUpdateStatus(ids []int64, status int) (err error) 
 	db = db.Table(entity.GetTable())
 	db = db.Where("id in (?)", ids).Updates(map[string]interface{}{"status": status, "updated_at": time.Now()})
 	return db.Error
+}
+
+func (entity *KdbDocDao) GetByKdbId(kdbId int64) (res []*KdbDoc, err error) {
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable()).Model(&KdbDoc{})
+	db = db.Where("kdb_id = ?", kdbId)
+	err = db.Find(&res).Error
+	return
 }

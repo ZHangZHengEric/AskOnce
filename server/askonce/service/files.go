@@ -19,7 +19,7 @@ func (c *FileService) OnCreate() {
 
 func (c *FileService) FileUpload(req *dto.FileUploadReq) (res *dto.FileUploadRes, err error) {
 	userInfo, _ := utils.LoginInfo(c.GetCtx())
-	file, err := flow.Create(c.GetCtx(), new(data.FileData)).Upload(userInfo.UserId, req.File, req.Source)
+	file, err := flow.Create(c.GetCtx(), new(data.FileData)).UploadByFile(userInfo.UserId, req.File, req.Source)
 	if err != nil {
 		return nil, err
 	}
