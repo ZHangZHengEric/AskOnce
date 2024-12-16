@@ -50,7 +50,12 @@ type RecallReq struct {
 	Query string `query:"query" binding:"required"`
 }
 
-type LoadProcessReq struct {
+type TaskProcessReq struct {
+	KdbId  int64  `json:"kdbId" form:"kdbId" binding:"required"`
+	TaskId string `json:"taskId" form:"taskId" binding:"required"`
+}
+
+type TaskRedoReq struct {
 	KdbId  int64  `json:"kdbId" form:"kdbId" binding:"required"`
 	TaskId string `json:"taskId" form:"taskId" binding:"required"`
 }

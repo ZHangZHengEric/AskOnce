@@ -73,7 +73,16 @@ type TaskProcessController struct {
 	flow.Controller
 }
 
-func (entity *TaskProcessController) Action(req *dto_kdb_doc.LoadProcessReq) (interface{}, error) {
+func (entity *TaskProcessController) Action(req *dto_kdb_doc.TaskProcessReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
 	return s.LoadProcess(req)
+}
+
+type TaskRedoController struct {
+	flow.Controller
+}
+
+func (entity *TaskRedoController) Action(req *dto_kdb_doc.TaskRedoReq) (interface{}, error) {
+	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
+	return s.TaskRedo(req)
 }

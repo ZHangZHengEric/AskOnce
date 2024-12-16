@@ -9,6 +9,7 @@ import (
 	"askonce/models"
 	"askonce/utils"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/orm"
@@ -324,7 +325,7 @@ func (k *KdbDocService) docBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err err
 	return
 }
 
-func (k *KdbDocService) LoadProcess(req *dto_kdb_doc.LoadProcessReq) (res *dto_kdb.LoadProcessRes, err error) {
+func (k *KdbDocService) LoadProcess(req *dto_kdb_doc.TaskProcessReq) (res *dto_kdb.LoadProcessRes, err error) {
 	userInfo, err := utils.LoginInfo(k.GetCtx())
 	if err != nil {
 		return nil, err
@@ -359,6 +360,23 @@ func (k *KdbDocService) LoadProcess(req *dto_kdb_doc.LoadProcessReq) (res *dto_k
 		res.TaskProcess = 100
 	} else {
 		res.TaskProcess = (res.Success * 100) / totalNum
+	}
+	return
+}
+
+func (k *KdbDocService) TaskRedo(req *dto_kdb_doc.TaskRedoReq) (res interface{}, err error) {
+	docs, err := k.kdbDocDao.GetByTaskIdAndStatus(req.KdbId, req.TaskId, []int{models.KdbDocFail})
+	if err != nil {
+		return nil, err
+	}
+	docIds := make([]int64, 0, len(docs))
+	for _, doc := range docs {
+		docIds = append(docIds, doc.Id)
+	}
+	k.LogInfof("重做邮件，ids【%v】", slice.Join(docIds, ","))
+	err = k.kdbDocDao.BatchUpdateStatus(docIds, models.KdbDocWaiting)
+	if err != nil {
+		return nil, err
 	}
 	return
 }

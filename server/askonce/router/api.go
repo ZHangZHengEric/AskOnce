@@ -32,7 +32,9 @@ func API(engine *gin.Engine) {
 			// zip包新增
 			docGroup.POST("addByZip", flow.Use[dto_kdb_doc.AddZipReq](new(kdb.DocAddByZipController)))
 			// 查询知识库进度
-			docGroup.GET("taskProcess", flow.Use[dto_kdb_doc.LoadProcessReq](new(kdb.TaskProcessController)))
+			docGroup.GET("taskProcess", flow.Use[dto_kdb_doc.TaskProcessReq](new(kdb.TaskProcessController)))
+			// 任务重做
+			docGroup.POST("taskRedo", flow.Use[dto_kdb_doc.TaskRedoReq](new(kdb.TaskRedoController)))
 			// 批量文本新增
 			docGroup.POST("addByBatchText", flow.Use[dto_kdb_doc.AddByBatchTextReq](new(kdb.DocAddByBatchTextController)))
 			// 删除
