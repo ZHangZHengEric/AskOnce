@@ -134,3 +134,21 @@ func (entity *KdbSearchController) Action(req *dto_search.KdbSearchReq) (interfa
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.KdbSearch(req)
 }
+
+type QuestionFocusController struct {
+	flow.Controller
+}
+
+func (entity *QuestionFocusController) Action(req *dto_search.QuestionFocusReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.QuestionFocus(req)
+}
+
+type ReportAskController struct {
+	flow.Controller
+}
+
+func (entity *ReportAskController) Action(req *dto_search.ReportAskReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.ReportAsk(req)
+}

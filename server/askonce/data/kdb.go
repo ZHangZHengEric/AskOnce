@@ -143,12 +143,12 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (a
 	}
 	now := time.Now()
 	add = &models.Kdb{
-		Name:       kdbName,
-		Intro:      kdbIntro,
-		Setting:    datatypes.NewJSONType(defaultSetting),
-		Type:       models.KdbTypePrivate,
-		DataSource: models.DataSourceFile,
-		Creator:    user.Account,
+		Name:     kdbName,
+		Intro:    kdbIntro,
+		Setting:  datatypes.NewJSONType(defaultSetting),
+		Type:     models.KdbTypePrivate,
+		DataType: models.DataTypeCommon,
+		Creator:  user.Account,
 		CrudModel: orm.CrudModel{
 			CreatedAt: now,
 			UpdatedAt: now,

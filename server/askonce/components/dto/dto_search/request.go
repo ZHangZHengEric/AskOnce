@@ -55,7 +55,7 @@ type KdbListReq struct {
 type ChatAskReq struct {
 	SessionId string `json:"sessionId"`
 	Question  string `json:"question" binding:"required"` // 问题
-	Type      string `json:"type" `                       // simple complex research
+	Type      string `json:"type" `                       // simple complex Professional
 	KdbId     int64  `json:"kdbId"`                       // 为kdb时有值
 }
 
@@ -67,4 +67,24 @@ type WebSearchReq struct {
 type KdbSearchReq struct {
 	KdbName  string `json:"kdbName"  binding:"required"`
 	Question string `json:"question" binding:"required"`
+}
+
+type QuestionFocusReq struct {
+	KdbId    int64  `json:"kdbId" binding:"required"`
+	Question string `json:"question" binding:"required"`
+}
+
+type ReportAskReq struct {
+	Subject     string         `json:"subject" binding:"required"`  // 主题
+	Question    string         `json:"question" binding:"required"` // 问题
+	Focus       []string       `json:"focus"`                       // 关注点
+	SearchParam AskSearchParam `json:"searchParam"`                 // 结构化搜索相关
+}
+
+// 搜索相关参数
+type AskSearchParam struct {
+	// 返回前top
+	TopK int64 `json:"topK"`
+	// 结构化过滤
+	StructureFilter map[string]any `json:"structureFilter"`
 }

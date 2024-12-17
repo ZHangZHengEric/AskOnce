@@ -4,18 +4,18 @@ services:
     extends:
       file: backend-docker-compose.yml
       service: jobd
-    profiles: ["all", "backend"]
+    profiles: ["all", "back-end"]
   backend:
     extends:
       file: backend-docker-compose.yml
       service: backend
-    profiles: ["all", "backend"]
+    profiles: ["all", "back-end"]
 
   askonce-nginx:
     extends:
       file: web-docker-compose.yml
       service: askonce-nginx
-    profiles: ["all", "nginx"]
+    profiles: ["all", "front-end"]
 
   mysql:
     extends:
