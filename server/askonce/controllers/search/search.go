@@ -143,3 +143,12 @@ func (entity *QuestionFocusController) Action(req *dto_search.QuestionFocusReq) 
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.QuestionFocus(req)
 }
+
+type ReportAskController struct {
+	flow.Controller
+}
+
+func (entity *ReportAskController) Action(req *dto_search.ReportAskReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.ReportAsk(req)
+}

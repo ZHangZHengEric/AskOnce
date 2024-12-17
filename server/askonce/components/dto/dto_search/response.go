@@ -90,3 +90,8 @@ type KdbSearchRes struct {
 type QuestionFocusRes struct {
 	Focus []string `json:"focus"`
 }
+
+type ReportAskRes struct {
+	MarkdownContent string               `json:"markdownContent"` //
+	SearchResult    []CommonSearchOutput `json:"searchResult"`
+}

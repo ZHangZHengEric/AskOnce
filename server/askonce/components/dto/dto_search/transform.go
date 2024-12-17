@@ -1,9 +1,14 @@
 package dto_search
 
 type CommonSearchOutput struct {
-	Title   string `json:"title"`
-	Url     string `json:"url"`
+	// 标题
+	Title string `json:"title"`
+	// 文档路径或页面地址
+	Url string `json:"url"`
+	// 检索的内容
 	Content string `json:"content"`
+	// 元数据
+	Metadata map[string]any `json:"metadata, omitempty"`
 }
 
 type DoReferItem struct {

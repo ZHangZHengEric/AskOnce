@@ -1387,3 +1387,7 @@ func (s *SearchService) QuestionFocus(req *dto_search.QuestionFocusReq) (res *dt
 	}
 	return
 }
+
+func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search.ReportAskRes, err error) {
+	return
+}

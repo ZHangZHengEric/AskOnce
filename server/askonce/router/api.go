@@ -52,12 +52,13 @@ func API(engine *gin.Engine) {
 			searchGroup.POST("web", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
 			// 知识库库直搜
 			searchGroup.POST("kdb", flow.Use[dto_search.KdbSearchReq](new(search.KdbSearchController)))
-			// 问题关注点生成(搜索知识库）
-			searchGroup.POST("questionFocus", flow.Use[dto_search.QuestionFocusReq](new(search.QuestionFocusController)))
-
-			// 搜索对话（同步接口）
+			// 对话搜索（同步接口）
 			searchGroup.POST("chatAskSync", flow.Use[dto_search.ChatAskReq](new(search.ChatAskSyncController)))
 
+			// 问题关注点生成(搜索知识库）
+			searchGroup.POST("questionFocus", flow.Use[dto_search.QuestionFocusReq](new(search.QuestionFocusController)))
+			// 报告搜索（同步接口，输出docx）
+			searchGroup.POST("reportAskSync", flow.Use[dto_search.ReportAskReq](new(search.ReportAskController)))
 		}
 	}
 
