@@ -25,7 +25,7 @@ func API(engine *gin.Engine) {
 		// 知识库列表
 		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))
 		// 知识库删除
-		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController)))
+		kdbGroup.POST("delete", flow.Use[dto_kdb.KdbDeleteReq](new(kdb.DeleteController)))
 		// 知识库文档
 		docGroup := kdbGroup.Group("doc")
 		{

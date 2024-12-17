@@ -260,10 +260,10 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	if err != nil {
 		k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
 		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
-	} else {
-		k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
-		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
+		return
 	}
+	k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
+	_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
 	return
 }
 
