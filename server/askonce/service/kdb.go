@@ -80,7 +80,7 @@ func (k *KdbService) List(req *dto_kdb.ListReq) (res *dto_kdb.ListResp, err erro
 			Id:           kdb.Id,
 			Name:         kdb.Name,
 			CreateTime:   kdb.CreatedAt.Format(time.DateTime),
-			DataSource:   kdb.DataSource,
+			DataSource:   kdb.DataType,
 			DocNum:       0,
 			Cover:        "",
 			DefaultColor: false,
@@ -114,7 +114,7 @@ func (k *KdbService) Info(kdbId int64) (res *dto_kdb.InfoRes, err error) {
 		CreatedAt:      kdb.CreatedAt.Unix(),
 		CreatedBy:      kdb.Creator,
 		UpdatedAt:      kdb.UpdatedAt.Unix(),
-		DataSourceType: dto_kdb.DataSourceType(kdb.DataSource),
+		DataSourceType: dto_kdb.DataSourceType(kdb.DataType),
 		WordCount:      0,
 		DocumentCount:  0,
 		KdbSetting: dto.KdbSetting{

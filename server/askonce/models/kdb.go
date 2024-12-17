@@ -21,18 +21,20 @@ const (
 )
 
 const (
-	DataSourceFile = "file"
+	DataTypeCommon = "common" // 通用文件库
+	DataTypeEml    = "eml"    // 邮件库
+	DataTypeSql    = "sql"    // sql数据库
 )
 
 // Kdb  知识库表
 type Kdb struct {
-	Id         int64                              `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`
-	Name       string                             `gorm:"type:varchar(128);default:'';comment:知识库名"`
-	Intro      string                             `gorm:"type:varchar(1024);default:'';comment:介绍"`
-	Setting    datatypes.JSONType[dto.KdbSetting] `gorm:"type:json;comment:知识库设置"`
-	DataSource string                             `gorm:"type:varchar(52);default:'';comment:数据来源 file"`
-	Type       string                             `gorm:"type:varchar(52);default:'';comment:类型  private 私有知识库 public 共有知识库"`
-	Creator    string                             `gorm:"type:varchar(128);default:'';comment: 创建人id"`
+	Id       int64                              `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`
+	Name     string                             `gorm:"type:varchar(128);default:'';comment:知识库名"`
+	Intro    string                             `gorm:"type:varchar(1024);default:'';comment:介绍"`
+	Setting  datatypes.JSONType[dto.KdbSetting] `gorm:"type:json;comment:知识库设置"`
+	DataType string                             `gorm:"type:varchar(52);default:'';comment:数据类型 file"`
+	Type     string                             `gorm:"type:varchar(52);default:'';comment:类型  private 私有知识库 public 共有知识库"`
+	Creator  string                             `gorm:"type:varchar(128);default:'';comment: 创建人id"`
 	orm.CrudModel
 }
 

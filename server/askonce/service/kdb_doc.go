@@ -5,7 +5,6 @@ import (
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
-	"askonce/helpers"
 	"askonce/models"
 	"askonce/utils"
 	"fmt"
@@ -82,22 +81,12 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 	if err != nil {
 		return
 	}
-	needSplit := true
 	var file *models.File
 	if req.Type == "text" {
 		if len(req.Text) == 0 {
 			return nil, errors.NewError(10034, "文本内容为空！")
 		}
-		fileName := ""
-		if len(req.Title) > 0 {
-			fileName = fmt.Sprintf("%s.txt", req.Title)
-		} else {
-			fileName = fmt.Sprintf("%v.txt", helpers.GenID())
-		}
-		if len([]rune(req.Text)) < 1024 {
-			needSplit = false
-		}
-		file, err = k.fileData.UploadByText(userInfo.UserId, fileName, req.Text, "knowledge")
+		file, err = k.fileData.UploadByText(userInfo.UserId, req.Title, req.Text, "knowledge")
 		if err != nil {
 			return nil, err
 		}
@@ -110,9 +99,9 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 	doc := &models.KdbDoc{
 		KdbId:      kdb.Id,
 		DocName:    file.OriginName,
-		DataSource: "file",
+		DataSource: models.DataTypeCommon,
 		SourceId:   file.Id,
-		NeedSplit:  needSplit,
+		NeedSplit:  true,
 		Status:     models.KdbDocRunning,
 		UserId:     userInfo.UserId,
 		CrudModel: orm.CrudModel{
@@ -212,14 +201,7 @@ func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (r
 		if len(doc.Text) == 0 {
 			return nil, errors.NewError(10034, "文本内容为空！")
 		}
-		fileName := ""
-		if len(doc.Title) > 0 {
-			fileName = fmt.Sprintf("%s.txt", doc.Title)
-		} else {
-			fileName = fmt.Sprintf("%v.txt", helpers.GenID())
-		}
-
-		file, err := k.fileData.UploadByText(userInfo.UserId, fileName, doc.Text, "knowledge")
+		file, err := k.fileData.UploadByText(userInfo.UserId, doc.Title, doc.Text, "knowledge")
 		if err != nil {
 			return nil, err
 		}
