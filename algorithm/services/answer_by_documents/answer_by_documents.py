@@ -35,6 +35,7 @@ def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
         result_all = {'answer':''} 
+        is_stream = task_input.is_stream
         if len(task_input.history_messages)>0:
             result = model.answer_with_history_messages(task_input.question,task_input.search_result,task_input.history_messages,task_input.is_stream)
         else:
@@ -46,29 +47,36 @@ def process(task_input,task_type,model,args,tm):
             elif task_input.answer_style == 'detailed_no_chapter':
                 result = model.detailed_no_chapter_answer(task_input.question,task_input.search_result,task_input.is_stream)
             elif task_input.answer_style == 'professional':
-                result = model.professional_answer(task_input.question,task_input.search_result,task_input.search_code,task_input.is_stream)
+                is_stream =True
+                result = model.professional_answer(task_input.question,task_input.search_result,task_input.search_code,is_stream)
             elif task_input.answer_style == 'professional_no_more_qa':
-                result = model.professional_answer_no_more_questions(task_input.question,task_input.search_result,task_input.answer_outlines,task_input.search_code,task_input.is_stream)
+                print('professional_no_more_qa')
+                is_stream =True
+                result = model.professional_answer_no_more_questions(task_input.question,task_input.search_result,task_input.answer_outlines,task_input.search_code,is_stream)
             else:
                 result = model.simplify_answer(task_input.question,task_input.search_result,task_input.is_stream)
         
-        if task_input.is_stream:
-            is_update = 0
-            for content_part in result:
-                result_all['answer'] += content_part
-                try:
-                    # print(result_all)
-                    if is_update % 4==0: 
-                        # up_start_time = time.time()
-                        tm.update_info(task_info={"task_id": task_input.task_id,"output": json.dumps(result_all,ensure_ascii=False),"status" : TaskManager.STATUS_RUNNING},is_multi_resps=True)
-                        # end_start_time = time.time()
-                        # update_time += (end_start_time-up_start_time)
-                        is_update=0
-                        result_all['answer'] = ''
-                    is_update+=1
-                except:
-                    print(traceback.format_exc())
-                    print('流式返回出现错误')
+        if is_stream == True:
+            if task_input.is_stream ==True:
+                is_update = 0
+                for content_part in result:
+                    result_all['answer'] += content_part
+                    try:
+                        # print(result_all)
+                        if is_update % 4==0: 
+                            # up_start_time = time.time()
+                            tm.update_info(task_info={"task_id": task_input.task_id,"output": json.dumps(result_all,ensure_ascii=False),"status" : TaskManager.STATUS_RUNNING},is_multi_resps=True)
+                            # end_start_time = time.time()
+                            # update_time += (end_start_time-up_start_time)
+                            is_update=0
+                            result_all['answer'] = ''
+                        is_update+=1
+                    except:
+                        print(traceback.format_exc())
+                        print('流式返回出现错误')
+            else:
+                for content_part in result:
+                    result_all['answer'] += content_part
         else:
             result_all['answer']= result
         end_time = time.time()

@@ -13,7 +13,7 @@ import traceback
 
 class DataInput:
     def __init__(self,json_data,task_id) -> None:
-        self.quesiton = json_data['quesiton']
+        self.question = json_data['question']
         self.search_result = json_data['search_result']
         self.task_id = task_id
 
@@ -28,7 +28,7 @@ def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
         result_all = {} 
-        result_all['outline']= model.generate_outlines_by_question_and_search_result_one_level(task_input.quesiton,task_input.search_result)
+        result_all['outline']= model.generate_outlines_by_question_and_search_result_one_level(task_input.question,task_input.search_result)
         end_time = time.time()
         print('回答','用时'+str(end_time-start_time))
         return result_all

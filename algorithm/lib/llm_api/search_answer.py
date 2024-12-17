@@ -267,7 +267,7 @@ class SearchAnswer (LLMBaseAPI):
             else:
                 yield more_question_answer+'\n'
             yield '\n'
-        
+    
     def professional_answer_no_more_questions(self,question,search_result,directory_dict=None,search_session_id='',stream=False):
         print('对问题进行专业回答，不添加问答:',question)
         print('搜索结果长度',len(search_result))
@@ -288,7 +288,7 @@ class SearchAnswer (LLMBaseAPI):
                 all_result+='\n'
             else:
                 all_result+=detailed_answer_result+'\n'
-                yield detailed_answer_result
+                return detailed_answer_result
 
         directory_str = '\n'.join([ item['title_level']+'# '+item['content'] for item in directory ])
         print('大纲：\n',directory_str)
@@ -297,13 +297,14 @@ class SearchAnswer (LLMBaseAPI):
             
             if index < len(directory)-1:
                 all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
-                yield directory_item['title_level']+'# '+directory_item['content']+'\n'
+                if stream:
+                    yield directory_item['title_level']+'# '+directory_item['content']+'\n'
                 if len(directory[index]['title_level']) < len(directory[index+1]['title_level']):
                     continue
             else:
                 all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
-                yield directory_item['title_level']+'# '+directory_item['content']+'\n'
-                
+                if stream:
+                    yield directory_item['title_level']+'# '+directory_item['content']+'\n'
             new_search_result = self.search_internet(question+directory_item['content'],search_session_id)
             one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,new_search_result,stream)
             if stream:
@@ -314,6 +315,6 @@ class SearchAnswer (LLMBaseAPI):
                 all_result+='\n'
             else:
                 all_result+=one_chapter_result+'\n'
-                yield one_chapter_result
-                yield '\n'
+                print(all_result)
+                return all_result
     
