@@ -16,13 +16,17 @@ func API(engine *gin.Engine) {
 	// 知识库
 	kdbGroup := router.Group("kdb")
 	{
-		kdbGroup.POST("add", flow.Use[dto_kdb.AddReq](new(kdb.AddController)))          // 知识库新增
-		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController))) // 知识库修改
-		kdbGroup.GET("info", flow.Use[dto_kdb.SingleKdbReq](new(kdb.InfoController)))   // 知识库详情
-		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))       // 知识库列表
-		// 删除
-		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController))) // 删除
-
+		// 知识库新增
+		kdbGroup.POST("add", flow.Use[dto_kdb.AddReq](new(kdb.AddController)))
+		// 知识库修改
+		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController)))
+		// 知识库详情
+		kdbGroup.GET("info", flow.Use[dto_kdb.SingleKdbReq](new(kdb.InfoController)))
+		// 知识库列表
+		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))
+		// 知识库删除
+		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController)))
+		// 知识库文档
 		docGroup := kdbGroup.Group("doc")
 		{
 			// 列表
@@ -44,11 +48,16 @@ func API(engine *gin.Engine) {
 		}
 		searchGroup := router.Group("search")
 		{
-			//  网页直搜
+			// 网页直搜
 			searchGroup.POST("web", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
+			// 知识库库直搜
 			searchGroup.POST("kdb", flow.Use[dto_search.KdbSearchReq](new(search.KdbSearchController)))
-			// 智能搜索
+			// 问题关注点生成(搜索知识库）
+			searchGroup.POST("questionFocus", flow.Use[dto_search.QuestionFocusReq](new(search.QuestionFocusController)))
+
+			// 搜索对话（同步接口）
 			searchGroup.POST("chatAskSync", flow.Use[dto_search.ChatAskReq](new(search.ChatAskSyncController)))
+
 		}
 	}
 

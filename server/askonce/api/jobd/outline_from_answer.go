@@ -7,10 +7,10 @@ type AnswerOutlineReq struct {
 }
 
 type AnswerOutlineRes struct {
-	AnswerOutline []AnswerOutlineItem `json:"answer_outline"`
+	AnswerOutline []Outline `json:"answer_outline"`
 }
 
-type AnswerOutlineItem struct {
+type Outline struct {
 	Level   string `json:"level"`
 	Content string `json:"content"`
 }

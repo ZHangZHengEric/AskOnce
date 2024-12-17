@@ -75,11 +75,7 @@ func (entity *SearchData) SearchFromWebOrKnowledge(sessionId, question string, k
 			entity.LogErrorf("es搜索报错")
 		}
 		for _, result := range esSearchResult {
-			results = append(results, dto_search.CommonSearchOutput{
-				Title:   result.Title,
-				Url:     result.Url,
-				Content: result.Content,
-			})
+			results = append(results, result.CommonSearchOutput)
 		}
 	}
 	if len(results) > 0 {
@@ -106,11 +102,9 @@ type EsCommonSearch struct {
 
 type EsCommonSearchResult struct {
 	Id          int64
-	Title       string
-	Url         string
-	Content     string
 	FullContent string
 	Score       float64
+	dto_search.CommonSearchOutput
 }
 
 func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonSearchResult, err error) {

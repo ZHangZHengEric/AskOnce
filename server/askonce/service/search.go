@@ -1346,12 +1346,44 @@ func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search
 		return nil, components.ErrorQueryEmpty
 	}
 	for _, result := range esSearchResult {
-		res.SearchResult = append(res.SearchResult, dto_search.CommonSearchOutput{
-			Title:   result.Title,
-			Url:     result.Url,
-			Content: result.Content,
-		})
+		res.SearchResult = append(res.SearchResult, result.CommonSearchOutput)
 	}
 	return
 
+}
+
+func (s *SearchService) QuestionFocus(req *dto_search.QuestionFocusReq) (res *dto_search.QuestionFocusRes, err error) {
+	res = &dto_search.QuestionFocusRes{
+		Focus: make([]string, 0),
+	}
+	userInfo, err := utils.LoginInfo(s.GetCtx())
+	if err != nil {
+		return nil, err
+	}
+	kdb, err := s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	// es搜索的片段
+	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
+		IndexName: kdb.GetIndexName(),
+		Query:     req.Question,
+	})
+	if err != nil {
+		return nil, components.ErrorQueryError
+	}
+	commonSearchResult := make([]dto_search.CommonSearchOutput, 0)
+	for _, result := range esSearchResult {
+		commonSearchResult = append(commonSearchResult, result.CommonSearchOutput)
+	}
+	outlines, err := s.jobdApi.QuestionOutline(req.Question, commonSearchResult)
+	if err != nil {
+		return nil, components.ErrorJobdError
+	}
+	for _, o := range outlines.Outline {
+		if o.Level == "h1" {
+			res.Focus = append(res.Focus, o.Content)
+		}
+	}
+	return
 }

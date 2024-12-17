@@ -3,12 +3,13 @@ package jobd
 import "askonce/components/dto/dto_search"
 
 type AnswerByDocumentsReq struct {
-	Id           string                          `json:"id"`
-	Question     string                          `json:"question"`
-	AnswerStyle  string                          `json:"answer_style"`
-	SearchResult []dto_search.CommonSearchOutput `json:"search_result"`
-	IsStream     bool                            `json:"is_stream"`
-	SearchCode   string                          `json:"search_code"`
+	Id            string                          `json:"id"`
+	Question      string                          `json:"question"`
+	AnswerStyle   string                          `json:"answer_style"`
+	AnswerOutline []Outline                       `json:"answer_outline"`
+	SearchResult  []dto_search.CommonSearchOutput `json:"search_result"`
+	IsStream      bool                            `json:"is_stream"`
+	SearchCode    string                          `json:"search_code"`
 }
 
 type AnswerByDocumentsRes struct {

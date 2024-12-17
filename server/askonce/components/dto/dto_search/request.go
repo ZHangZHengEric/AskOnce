@@ -68,3 +68,8 @@ type KdbSearchReq struct {
 	KdbName  string `json:"kdbName"  binding:"required"`
 	Question string `json:"question" binding:"required"`
 }
+
+type QuestionFocusReq struct {
+	KdbId    int64  `json:"kdbId" binding:"required"`
+	Question string `json:"question" binding:"required"`
+}
