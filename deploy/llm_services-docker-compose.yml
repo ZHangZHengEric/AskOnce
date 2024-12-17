@@ -5,6 +5,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -20,6 +22,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -38,6 +42,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -53,6 +59,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -68,6 +76,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -83,6 +93,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -98,6 +110,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -113,6 +127,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -128,6 +144,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -143,6 +161,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -158,6 +178,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -173,6 +195,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
@@ -188,6 +212,8 @@ services:
       context: ../../
       dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
       network: host
+    env_file:
+      - .env
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
