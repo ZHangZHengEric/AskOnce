@@ -47,7 +47,7 @@ func Http(engine *gin.Engine) {
 		// 修改
 		kdbGroup.POST("update", flow.Use[dto_kdb.UpdateReq](new(kdb.UpdateController)))
 		// 删除
-		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController)))
+		kdbGroup.POST("delete", flow.Use[dto_kdb.KdbDeleteReq](new(kdb.DeleteController)))
 		// 详情
 		kdbGroup.GET("detail", flow.Use[dto_kdb.SingleKdbReq](new(kdb.InfoController)))
 		// 删除自己与知识库关系
