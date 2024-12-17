@@ -16,7 +16,7 @@ require (
 	github.com/minio/pkg v1.7.5
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/xiangtao94/golib v1.0.6
+	github.com/xiangtao94/golib v1.0.8
 	golang.org/x/sync v0.8.0
 	golang.org/x/text v0.19.0
 	gorm.io/datatypes v1.2.4
