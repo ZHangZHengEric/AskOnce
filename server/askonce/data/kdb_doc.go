@@ -77,10 +77,18 @@ func (k *KdbDocData) DeleteDocs(kdb *models.Kdb, docIds []int64, deleteAll bool)
 		tx.Rollback()
 		return err
 	}
-	err = es.CommonDocumentDelete(k.GetCtx(), kdb.GetIndexName(), docSuccessIds)
-	if err != nil {
-		tx.Rollback()
-		return
+	if deleteAll {
+		err = es.CommonIndexDelete(k.GetCtx(), kdb.GetIndexName())
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+	} else {
+		err = es.CommonDocumentDelete(k.GetCtx(), kdb.GetIndexName(), docSuccessIds)
+		if err != nil {
+			tx.Rollback()
+			return
+		}
 	}
 	tx.Commit()
 	return
