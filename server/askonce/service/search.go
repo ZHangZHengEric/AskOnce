@@ -1169,6 +1169,9 @@ func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []d
 
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
 	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, nil)
+	if err != nil {
+		return nil, err
+	}
 	return searchResult, nil
 }
 
@@ -1188,6 +1191,9 @@ func (s *SearchService) SessionSearch(req *dto_search.WebSearchReq) (res interfa
 		}
 	}
 	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, kdb)
+	if err != nil {
+		return nil, err
+	}
 	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
 	if err != nil {
 		return nil, err
