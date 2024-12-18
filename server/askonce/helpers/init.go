@@ -19,6 +19,7 @@ func InitResource() {
 
 	// 初始化elastic
 	InitElastic()
+	InitGpt()
 }
 
 func Clear() {

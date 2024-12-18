@@ -2,10 +2,7 @@ package data
 
 import (
 	"askonce/api/jobd"
-	"askonce/conf"
-	"askonce/gpt"
-	"askonce/gpt/client"
-	"askonce/gpt/core"
+	"askonce/helpers"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"golang.org/x/sync/errgroup"
@@ -47,7 +44,7 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 		tmp := ss
 		index := i
 		eg2.Go(func() error {
-			embRes, errA := d.Embedding(tmp)
+			embRes, errA := helpers.EmbeddingGpt.CreateEmbedding(d.GetCtx(), tmp)
 			if errA != nil {
 				return errA
 			}
@@ -64,24 +61,4 @@ func (d *DocumentData) TextEmbedding(texts []string) (embResAll [][]float32, err
 		embResAll = append(embResAll, embResMap[i]...)
 	}
 	return
-}
-
-func (d *DocumentData) Embedding(texts []string) (output [][]float32, err error) {
-	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeEmbedding)]
-	channel, err := gpt.CreatChannel(d.GetCtx(), embeddingModel)
-	if err != nil {
-		return
-	}
-	resp, err := channel.Embedding(&core.EmbeddingReq{
-		Model: embeddingModel.Model,
-		Input: texts,
-	})
-	if err != nil {
-		return
-	}
-	output = make([][]float32, 0)
-	for _, bb := range resp.Data {
-		output = append(output, bb.Embedding)
-	}
-	return output, nil
 }

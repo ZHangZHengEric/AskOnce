@@ -4,11 +4,8 @@ import (
 	"askonce/api/jobd"
 	"askonce/api/web_search"
 	"askonce/components/dto/dto_search"
-	"askonce/conf"
 	"askonce/es"
-	"askonce/gpt"
-	"askonce/gpt/client"
-	"askonce/gpt/core"
+
 	"askonce/helpers"
 	"askonce/models"
 	"crypto/md5"
@@ -108,12 +105,12 @@ type EsCommonSearchResult struct {
 }
 
 func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonSearchResult, err error) {
-	embRes, err := entity.QueryEmbedding(input.Query)
+	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{input.Query})
 	if err != nil {
 		return
 	}
 	querySize := 20
-	recalls, err := es.CommonDocumentSearch(entity.GetCtx(), input.IndexName, input.Query, embRes, querySize)
+	recalls, err := es.CommonDocumentSearch(entity.GetCtx(), input.IndexName, input.Query, embRes[0], querySize)
 	if err != nil {
 		return
 	}
@@ -260,21 +257,4 @@ func appendText(source *es.CommonDocument, fullContent string) string {
 		suffixIndex = prefixIndex
 	}
 	return string(full[prefixIndex:suffixIndex])
-}
-
-func (d *SearchData) QueryEmbedding(text string) (output []float32, err error) {
-	embeddingModel := conf.WebConf.Channel[string(client.MethodTypeEmbedding)]
-	channel, err := gpt.CreatChannel(d.GetCtx(), embeddingModel)
-	if err != nil {
-		return
-	}
-	resp, err := channel.Embedding(&core.EmbeddingReq{
-		Model: embeddingModel.Model,
-		Input: []string{text},
-	})
-	if err != nil {
-		return
-	}
-	output = resp.Data[0].Embedding
-	return output, nil
 }
