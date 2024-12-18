@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"github.com/bytedance/sonic"
 	"github.com/duke-git/lancet/v2/slice"
+	"github.com/russross/blackfriday/v2"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/orm"
@@ -1444,7 +1445,7 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
 		return
 	}
-	html := annotateHTML(markdownToHTML(answer), answerRefer, searchResult)
+	html := annotateHTMLWithBlackfriday(answer, answerRefer, searchResult)
 	res = &dto_search.ReportAskRes{
 		HtmlContent:  html,
 		SearchResult: searchResult,
@@ -1458,26 +1459,29 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 	return
 }
 
+// markdownToHTML renders Markdown using blackfriday/v2
 func markdownToHTML(markdown string) string {
-	// Simple Markdown to HTML conversion (can use libraries like blackfriday for more complex cases)
-	markdown = strings.ReplaceAll(markdown, "\n", "<br>")
-	return template.HTMLEscapeString(markdown)
+	htmlBytes := blackfriday.Run([]byte(markdown))
+	return string(htmlBytes)
 }
 
-func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
+// annotateHTMLWithBlackfriday adds references to the rendered Markdown HTML
+func annotateHTMLWithBlackfriday(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
 	var annotatedHTML bytes.Buffer
 	lastIndex := 0
 
 	for _, refer := range refers {
-		// Append non-referenced text before the current reference
+		// Add non-referenced text before the current reference
 		if lastIndex < refer.Start {
-			annotatedHTML.WriteString(template.HTMLEscapeString(answer[lastIndex:refer.Start]))
+			nonReferencedText := answer[lastIndex:refer.Start]
+			annotatedHTML.WriteString(markdownToHTML(nonReferencedText))
 		}
 
-		// Extract and annotate the referenced text
+		// Add referenced text with annotations
 		referencedText := answer[refer.Start:refer.End]
-		annotatedHTML.WriteString(fmt.Sprintf("<span style='color:red;' title='"))
+		annotatedHTML.WriteString("<span style='color:red;' title='")
 
+		// Add all reference details
 		for i, ref := range refer.Refers {
 			if ref.Index < len(searchResult) {
 				source := searchResult[ref.Index]
@@ -1491,13 +1495,15 @@ func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult [
 			}
 		}
 
-		annotatedHTML.WriteString(fmt.Sprintf("'>%s</span>", template.HTMLEscapeString(referencedText)))
+		// Close annotation and mark referenced text
+		annotatedHTML.WriteString(fmt.Sprintf("'>%s</span>", markdownToHTML(referencedText)))
 		lastIndex = refer.End
 	}
 
-	// Append any remaining non-referenced text
+	// Add remaining non-referenced text
 	if lastIndex < len(answer) {
-		annotatedHTML.WriteString(template.HTMLEscapeString(answer[lastIndex:]))
+		remainingText := answer[lastIndex:]
+		annotatedHTML.WriteString(markdownToHTML(remainingText))
 	}
 
 	return annotatedHTML.String()
