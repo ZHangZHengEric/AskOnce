@@ -32,4 +32,5 @@ func NewTxtContentParser(ext string) (Parser, error) {
 	default:
 		return nil, fmt.Errorf("unknown content type: %s", ext)
 	}
+	return nil, nil
 }

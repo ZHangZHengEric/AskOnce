@@ -1,6 +1,7 @@
 package service
 
 import (
+	"askonce/api"
 	"askonce/api/jobd"
 	"askonce/components"
 	"askonce/components/dto"
@@ -10,6 +11,7 @@ import (
 	"askonce/helpers"
 	"askonce/models"
 	"askonce/utils"
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -21,6 +23,7 @@ import (
 	"github.com/xiangtao94/golib/pkg/sse"
 	"github.com/xiangtao94/golib/pkg/zlog"
 	"golang.org/x/sync/errgroup"
+	"html/template"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -174,6 +177,7 @@ type AskContext struct {
 	DbData                *models.AskInfo
 	UserId                string
 	AnswerStyle           string
+	Outline               []jobd.Outline
 }
 
 func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
@@ -1227,14 +1231,14 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 	askContext := AskContext{
 		ModelType:  modelType,
 		PromptI18n: promptI18n,
-		SessionId:  req.SessionId,
+		SessionId:  askInfo.SessionId,
 		Question:   req.Question,
 		KdbId:      req.KdbId,
 		DbData:     askInfo,
 		UserId:     userInfo.UserId,
 	}
-	askContext.AnswerStyle = "simplify"
-	answer, answerRefer, searchResult, err := s.AskSimpleSync(askContext)
+	askContext.AnswerStyle = "detail"
+	answer, answerRefer, searchResult, err := s.AskSyncDo(askContext)
 	if err != nil {
 		s.LogErrorf("问答报错, %s", err.Error())
 		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
@@ -1258,7 +1262,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 }
 
 // 简单搜索
-func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
+func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
 	s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
 	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
 	if err != nil {
@@ -1278,7 +1282,7 @@ func (s *SearchService) AskSimpleSync(req AskContext) (answer string, echoRefers
 	s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 
-	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, searchResult)
+	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, searchResult, req.Outline)
 	if err != nil {
 		return
 	}
@@ -1393,5 +1397,108 @@ func (s *SearchService) QuestionFocus(req *dto_search.QuestionFocusReq) (res *dt
 }
 
 func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search.ReportAskRes, err error) {
+	userInfo, _ := utils.LoginInfo(s.GetCtx())
+	// 校验知识库权限
+	_, err = s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	askInfo, err := s.searchData.CreateSession(userInfo.UserId)
+	if err != nil {
+		return nil, err
+	}
+	user, _ := s.userDao.GetByUserId(userInfo.UserId)
+	config := user.Setting.Data()
+	modelType := config.ModelType
+	promptI18n := "\n 输出使用中文！！"
+	if config.Language == "en-us" {
+		promptI18n = "\n 输出使用英文！！"
+	}
+	askContext := AskContext{
+		ModelType:  modelType,
+		PromptI18n: promptI18n,
+		SessionId:  askInfo.SessionId,
+		Question:   req.Question,
+		KdbId:      req.KdbId,
+		DbData:     askInfo,
+		UserId:     userInfo.UserId,
+	}
+	askContext.AnswerStyle = "professional_no_more_qa"
+	if len(req.Focus) > 0 {
+		outline := make([]jobd.Outline, 0, len(req.Focus))
+		outline = append(outline, jobd.Outline{
+			Level:   "h1",
+			Content: req.Subject,
+		})
+		for _, f := range req.Focus {
+			outline = append(outline, jobd.Outline{
+				Level:   "h2",
+				Content: f,
+			})
+		}
+		askContext.Outline = outline
+	}
+	answer, answerRefer, searchResult, err := s.AskSyncDo(askContext)
+	if err != nil {
+		s.LogErrorf("问答报错, %s", err.Error())
+		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
+		return
+	}
+	html := annotateHTML(markdownToHTML(answer), answerRefer, searchResult)
+	res = &dto_search.ReportAskRes{
+		HtmlContent:  html,
+		SearchResult: searchResult,
+	}
+	goUnoApi := flow.Create(s.GetCtx(), new(api.GoUnoApi))
+	file, err := goUnoApi.HtmlToDocx("demo.html", html)
+	if err != nil {
+		return nil, err
+	}
+	res.DocxUrl = file
 	return
+}
+
+func markdownToHTML(markdown string) string {
+	// Simple Markdown to HTML conversion (can use libraries like blackfriday for more complex cases)
+	markdown = strings.ReplaceAll(markdown, "\n", "<br>")
+	return template.HTMLEscapeString(markdown)
+}
+
+func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
+	var annotatedHTML bytes.Buffer
+	lastIndex := 0
+
+	for _, refer := range refers {
+		// Append non-referenced text before the current reference
+		if lastIndex < refer.Start {
+			annotatedHTML.WriteString(template.HTMLEscapeString(answer[lastIndex:refer.Start]))
+		}
+
+		// Extract and annotate the referenced text
+		referencedText := answer[refer.Start:refer.End]
+		annotatedHTML.WriteString(fmt.Sprintf("<span style='color:red;' title='"))
+
+		for i, ref := range refer.Refers {
+			if ref.Index < len(searchResult) {
+				source := searchResult[ref.Index]
+				referenceSnippet := source.Content[ref.ReferStart:ref.ReferEnd]
+				annotatedHTML.WriteString(template.HTMLEscapeString(fmt.Sprintf(
+					"[%d] %s: %s",
+					ref.Index+1, source.Title, referenceSnippet)))
+				if i < len(refer.Refers)-1 {
+					annotatedHTML.WriteString(", ")
+				}
+			}
+		}
+
+		annotatedHTML.WriteString(fmt.Sprintf("'>%s</span>", template.HTMLEscapeString(referencedText)))
+		lastIndex = refer.End
+	}
+
+	// Append any remaining non-referenced text
+	if lastIndex < len(answer) {
+		annotatedHTML.WriteString(template.HTMLEscapeString(answer[lastIndex:]))
+	}
+
+	return annotatedHTML.String()
 }

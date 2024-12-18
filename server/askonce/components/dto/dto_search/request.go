@@ -75,6 +75,7 @@ type QuestionFocusReq struct {
 }
 
 type ReportAskReq struct {
+	KdbId       int64          `json:"kdbId" binding:"required"`
 	Subject     string         `json:"subject" binding:"required"`  // 主题
 	Question    string         `json:"question" binding:"required"` // 问题
 	Focus       []string       `json:"focus"`                       // 关注点

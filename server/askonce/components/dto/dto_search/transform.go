@@ -12,14 +12,14 @@ type CommonSearchOutput struct {
 }
 
 type DoReferItem struct {
-	Start       int                `json:"start"`
-	End         int                `json:"end"`
+	Start       int                `json:"start"` // 答案开始下标
+	End         int                `json:"end"`   // 答案结束下标
 	NumberIndex int                `json:"numberIndex"`
-	Refers      []DoReferReferItem `json:"refers"`
+	Refers      []DoReferReferItem `json:"refers"` // 参考文档信息
 }
 
 type DoReferReferItem struct {
-	Index      int `json:"index"`
-	ReferStart int `json:"referStart"`
-	ReferEnd   int `json:"referEnd"`
+	Index      int `json:"index"`      // 参考文档下标
+	ReferStart int `json:"referStart"` // 参考文档content文字开始下标
+	ReferEnd   int `json:"referEnd"`   // 参考文档content文字结束下标
 }

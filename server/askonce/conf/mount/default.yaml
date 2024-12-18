@@ -59,4 +59,12 @@ api:
     timeout: 60s
     # 重试次数，最多执行retry+1次
     retry: 2
+  gouno:
+    service: gouno
+    # 请求完整地址
+    domain: ${GOUNO_ADDR}
+    # 超时配置，time.Duration 类型
+    timeout: 60s
+    # 重试次数，最多执行retry+1次
+    retry: 2
 
