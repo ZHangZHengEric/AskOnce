@@ -664,7 +664,6 @@ func (s *SearchService) AskProfessional(req AskContext) (err error) {
 //		if err != nil {
 //			continue
 //		}
-//		s.EchoRes("refreshSearch", fmt.Sprintf("再次搜索到%v条相关内容", len(searchResult)))
 //
 //		zhanwei := ""
 //		if morePointDone {
@@ -912,7 +911,12 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 					return err
 				}
 				if attach != nil {
-					_ = json.Unmarshal(attach.Reference, &searchResult)
+					tmpResult := make([]dto_search.CommonSearchOutput, 0)
+					_ = json.Unmarshal(attach.Reference, &tmpResult)
+					if len(tmpResult) > len(searchResult) {
+						s.EchoRes("refreshSearch", fmt.Sprintf("再次搜索到%v条相关内容", len(tmpResult)-len(searchResult)))
+						searchResult = tmpResult
+					}
 				}
 				s.LogInfof("完整句子: %s。开始位置: %v", needReference, begin)
 				wg.Add(1)

@@ -8,7 +8,7 @@ type CommonSearchOutput struct {
 	// 检索的内容
 	Content string `json:"content"`
 	// 元数据
-	Metadata map[string]any `json:"metadata, omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type DoReferItem struct {

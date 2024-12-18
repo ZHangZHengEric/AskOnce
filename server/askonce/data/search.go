@@ -169,6 +169,7 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 		out.Id = result.DocId
 		out.Title = ddd.DocName
 		out.Url = filePathMap[ddd.SourceId]
+		out.Metadata = ddd.Metadata
 		out.Content = appendText(dataSearchMap[i], dataContentMap[result.DocId])
 		out.FullContent = dataContentMap[result.DocId]
 		out.Score = result.Score

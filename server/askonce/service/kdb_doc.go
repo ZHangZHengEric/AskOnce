@@ -101,9 +101,9 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 		DocName:    file.OriginName,
 		DataSource: models.DataTypeCommon,
 		SourceId:   file.Id,
-		NeedSplit:  true,
 		Status:     models.KdbDocRunning,
 		UserId:     userInfo.UserId,
+		Metadata:   req.Metadata,
 		CrudModel: orm.CrudModel{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -167,7 +167,6 @@ func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res *dto_kdb_doc.
 			DocName:    file.OriginName,
 			DataSource: "file",
 			SourceId:   file.Id,
-			NeedSplit:  true,
 			Status:     models.KdbDocWaiting,
 			UserId:     userInfo.UserId,
 			CrudModel: orm.CrudModel{
@@ -210,9 +209,9 @@ func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (r
 			DocName:    file.OriginName,
 			DataSource: "file",
 			SourceId:   file.Id,
-			NeedSplit:  true,
 			Status:     models.KdbDocWaiting,
 			UserId:     userInfo.UserId,
+			Metadata:   doc.Metadata,
 			CrudModel: orm.CrudModel{
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
