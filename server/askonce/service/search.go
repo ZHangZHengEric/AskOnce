@@ -1462,8 +1462,8 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 }
 
 // markdownToHTML renders Markdown using blackfriday/v2
-func markdownToHTML(markdown string) string {
-	htmlBytes := blackfriday.Run([]byte(markdown))
+func markdownToHTML(answer string) string {
+	htmlBytes := blackfriday.Run([]byte(answer))
 	return string(htmlBytes)
 }
 
@@ -1471,42 +1471,42 @@ func markdownToHTML(markdown string) string {
 func annotateHTMLWithBlackfriday(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
 	var annotatedHTML bytes.Buffer
 	lastIndex := 0
-
+	answerRunes := []rune(answer)
 	for _, refer := range refers {
 		// Add non-referenced text before the current reference
 		if lastIndex < refer.Start {
-			nonReferencedText := answer[lastIndex:refer.Start]
-			annotatedHTML.WriteString(markdownToHTML(nonReferencedText))
+			nonReferencedText := string(answerRunes[lastIndex:refer.Start])
+			annotatedHTML.WriteString(nonReferencedText)
 		}
 
 		// Add referenced text with annotations
-		referencedText := answer[refer.Start:refer.End]
+		referencedText := string(answerRunes[refer.Start:refer.End])
 		annotatedHTML.WriteString("<span style='color:red;' title='")
-
+		supStr := ""
 		// Add all reference details
 		for i, ref := range refer.Refers {
 			if ref.Index < len(searchResult) {
 				source := searchResult[ref.Index]
-				referenceSnippet := source.Content[ref.ReferStart:ref.ReferEnd]
-				annotatedHTML.WriteString(template.HTMLEscapeString(fmt.Sprintf(
-					"[%d] %s: %s",
-					ref.Index+1, source.Title, referenceSnippet)))
+				referenceSnippet := string([]rune(source.Content)[ref.ReferStart:ref.ReferEnd])
+				annotatedHTML.WriteString(template.HTMLEscapeString(fmt.Sprintf("%s", referenceSnippet)))
 				if i < len(refer.Refers)-1 {
 					annotatedHTML.WriteString(", ")
 				}
+				showNum := ref.Index + 1
+				supStr = supStr + fmt.Sprintf("<sup>[%d]</sup> ", showNum)
 			}
 		}
 
 		// Close annotation and mark referenced text
-		annotatedHTML.WriteString(fmt.Sprintf("'>%s</span>", markdownToHTML(referencedText)))
+		annotatedHTML.WriteString(fmt.Sprintf("'>%s%s</span>", referencedText, supStr))
 		lastIndex = refer.End
 	}
 
 	// Add remaining non-referenced text
-	if lastIndex < len(answer) {
-		remainingText := answer[lastIndex:]
-		annotatedHTML.WriteString(markdownToHTML(remainingText))
+	if lastIndex < len(answerRunes) {
+		remainingText := answerRunes[lastIndex:]
+		annotatedHTML.WriteString(string(remainingText))
 	}
 
-	return annotatedHTML.String()
+	return markdownToHTML(annotatedHTML.String())
 }
