@@ -1430,13 +1430,15 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 	if len(req.Focus) > 0 {
 		outline := make([]jobd.Outline, 0, len(req.Focus))
 		outline = append(outline, jobd.Outline{
-			Level:   "h1",
-			Content: req.Subject,
+			Level:      "h1",
+			TitleLevel: "#",
+			Content:    req.Subject,
 		})
 		for _, f := range req.Focus {
 			outline = append(outline, jobd.Outline{
-				Level:   "h2",
-				Content: f,
+				Level:      "h2",
+				TitleLevel: "##",
+				Content:    f,
 			})
 		}
 		askContext.Outline = outline

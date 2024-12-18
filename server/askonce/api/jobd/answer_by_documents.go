@@ -3,13 +3,13 @@ package jobd
 import "askonce/components/dto/dto_search"
 
 type AnswerByDocumentsReq struct {
-	Id            string                          `json:"id"`
-	Question      string                          `json:"question"`
-	AnswerStyle   string                          `json:"answer_style"`
-	AnswerOutline []Outline                       `json:"answer_outline"`
-	SearchResult  []dto_search.CommonSearchOutput `json:"search_result"`
-	IsStream      bool                            `json:"is_stream"`
-	SearchCode    string                          `json:"search_code"`
+	Id             string                          `json:"id"`
+	Question       string                          `json:"question"`
+	AnswerStyle    string                          `json:"answer_style"`
+	AnswerOutlines []Outline                       `json:"answer_outlines"`
+	SearchResult   []dto_search.CommonSearchOutput `json:"search_result"`
+	IsStream       bool                            `json:"is_stream"`
+	SearchCode     string                          `json:"search_code"`
 }
 
 type AnswerByDocumentsRes struct {
@@ -36,13 +36,13 @@ func (entity *JobdApi) AnswerByDocumentsSync(sessionId string, question string, 
 		searchResult = make([]dto_search.CommonSearchOutput, 0)
 	}
 	input := &AnswerByDocumentsReq{
-		Id:            "",
-		AnswerOutline: outline,
-		AnswerStyle:   answerStyle,
-		Question:      question,
-		SearchResult:  searchResult,
-		SearchCode:    sessionId,
-		IsStream:      false,
+		Id:             "",
+		AnswerOutlines: outline,
+		AnswerStyle:    answerStyle,
+		Question:       question,
+		SearchResult:   searchResult,
+		SearchCode:     sessionId,
+		IsStream:       false,
 	}
 	return doTaskProcess[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 1000000)
 }

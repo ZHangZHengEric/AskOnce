@@ -11,8 +11,9 @@ type AnswerOutlineRes struct {
 }
 
 type Outline struct {
-	Level   string `json:"level"`
-	Content string `json:"content"`
+	Level      string `json:"level"`
+	TitleLevel string `json:"title_level"`
+	Content    string `json:"content"`
 }
 
 func (entity *JobdApi) AnswerOutline(answer string) (res *AnswerOutlineRes, err error) {
