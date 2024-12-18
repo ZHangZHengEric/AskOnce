@@ -1451,7 +1451,7 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 		SearchResult: searchResult,
 	}
 	goUnoApi := flow.Create(s.GetCtx(), new(api.GoUnoApi))
-	file, err := goUnoApi.HtmlToDocx("demo.html", html)
+	file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.Subject), html)
 	if err != nil {
 		return nil, err
 	}

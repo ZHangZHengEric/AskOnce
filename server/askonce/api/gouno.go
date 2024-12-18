@@ -5,6 +5,7 @@ import (
 	"askonce/conf"
 	"askonce/helpers"
 	"bytes"
+	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/pkg/mimedb"
 	"github.com/xiangtao94/golib/flow"
@@ -14,6 +15,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type GoUnoApi struct {
@@ -25,6 +27,11 @@ func (a *GoUnoApi) OnCreate() {
 }
 
 func (a *GoUnoApi) HtmlToDocx(fileName string, content string) (fileUrl string, err error) {
+	filePrefix := strings.Split(fileName, ".")[0]
+	if filePrefix == "" {
+		filePrefix = "askance_doc_" + time.Now().String()
+		fileName = fmt.Sprintf("%s.html", filePrefix)
+	}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", fileName)
@@ -44,7 +51,6 @@ func (a *GoUnoApi) HtmlToDocx(fileName string, content string) (fileUrl string, 
 	}
 	defer resp.Body.Close()
 	minioClient, err := helpers.GetMinioClient(a.GetCtx())
-	filePrefix := strings.Split(fileName, ".")[0]
 	_, err = minioClient.PutObject(a.GetCtx(), defines.BucketTmp, filePrefix+".docx", resp.Body, resp.ContentLength, minio.PutObjectOptions{
 		ContentType: mimedb.TypeByExtension("docx"),
 	})
