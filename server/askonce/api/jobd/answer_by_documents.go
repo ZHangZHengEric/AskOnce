@@ -31,7 +31,7 @@ func (entity *JobdApi) AnswerByDocuments(sessionId string, question string, answ
 	return doTaskProcessStream[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 1000000, f)
 }
 
-func (entity *JobdApi) AnswerByDocumentsSync(question string, answerStyle string, searchResult []dto_search.CommonSearchOutput, outline []Outline) (out AnswerByDocumentsRes, err error) {
+func (entity *JobdApi) AnswerByDocumentsSync(sessionId string, question string, answerStyle string, searchResult []dto_search.CommonSearchOutput, outline []Outline) (out AnswerByDocumentsRes, err error) {
 	if len(searchResult) == 0 {
 		searchResult = make([]dto_search.CommonSearchOutput, 0)
 	}
@@ -41,6 +41,7 @@ func (entity *JobdApi) AnswerByDocumentsSync(question string, answerStyle string
 		AnswerStyle:   answerStyle,
 		Question:      question,
 		SearchResult:  searchResult,
+		SearchCode:    sessionId,
 		IsStream:      false,
 	}
 	return doTaskProcess[*AnswerByDocumentsReq, AnswerByDocumentsRes](entity, "answer_by_documents", input, 1000000)

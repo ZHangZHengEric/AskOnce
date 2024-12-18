@@ -1222,6 +1222,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 	if err != nil {
 		return nil, err
 	}
+	_ = s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"question": req.Question, "ask_type": "detail"})
 	user, _ := s.userDao.GetByUserId(userInfo.UserId)
 	config := user.Setting.Data()
 	modelType := config.ModelType
@@ -1283,7 +1284,7 @@ func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []d
 	s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 
-	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.Question, req.AnswerStyle, searchResult, req.Outline)
+	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.SessionId, req.Question, req.AnswerStyle, searchResult, req.Outline)
 	if err != nil {
 		return
 	}
@@ -1408,6 +1409,7 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 	if err != nil {
 		return nil, err
 	}
+	_ = s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"question": req.Question, "ask_type": "professional_no_more_qa"})
 	user, _ := s.userDao.GetByUserId(userInfo.UserId)
 	config := user.Setting.Data()
 	modelType := config.ModelType
