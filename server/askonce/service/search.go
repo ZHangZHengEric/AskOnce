@@ -1169,36 +1169,10 @@ func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []d
 
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
 	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, nil)
-	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
-	if err != nil {
-		return nil, err
-	}
-	if askAttach != nil {
-		refers := make([]dto_search.CommonSearchOutput, 0)
-		_ = json.Unmarshal(askAttach.Reference, &refers)
-		searchResultMap := make(map[string]dto_search.CommonSearchOutput)
-		for _, output := range searchResult {
-			searchResultMap[output.Title+output.Url] = output
-		}
-		for _, refer := range refers {
-			if _, ok := searchResultMap[refer.Title+refer.Url]; ok {
-				delete(searchResultMap, refer.Title+refer.Url)
-			}
-		}
-		for _, output := range searchResultMap {
-			refers = append(refers, output)
-		}
-		refersAfterStr, _ := json.Marshal(refers)
-		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": refersAfterStr})
-		if err != nil {
-			return
-		}
-	}
 	return searchResult, nil
 }
 
 func (s *SearchService) SessionSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
-	userInfo, _ := utils.LoginInfo(s.GetCtx())
 	askInfo, err := s.askInfoDao.GetBySessionId(req.SessionId)
 	if err != nil {
 		return nil, err
@@ -1208,7 +1182,7 @@ func (s *SearchService) SessionSearch(req *dto_search.WebSearchReq) (res interfa
 	}
 	var kdb *models.Kdb
 	if askInfo.KdbId != 0 {
-		kdb, err = s.kdbData.CheckKdbAuth(askInfo.KdbId, userInfo.UserId, models.AuthTypeRead)
+		kdb, err = s.kdbData.CheckKdbAuth(askInfo.KdbId, askInfo.UserId, models.AuthTypeRead)
 		if err != nil {
 			return nil, err
 		}
