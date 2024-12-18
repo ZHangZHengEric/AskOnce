@@ -152,3 +152,12 @@ func (entity *ReportAskController) Action(req *dto_search.ReportAskReq) (interfa
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.ReportAsk(req)
 }
+
+type SessionSearchController struct {
+	flow.Controller
+}
+
+func (entity *SessionSearchController) Action(req *dto_search.WebSearchReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.WebSearch(req)
+}

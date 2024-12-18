@@ -89,3 +89,8 @@ type AskSearchParam struct {
 	// 结构化过滤
 	StructureFilter map[string]any `json:"structureFilter"`
 }
+
+type SessionSearchReq struct {
+	SessionId string `json:"sessionId"  binding:"required"`
+	Question  string `json:"question" binding:"required"`
+}

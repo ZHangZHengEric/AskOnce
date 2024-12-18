@@ -174,7 +174,7 @@ type AskContext struct {
 	ModelType, PromptI18n string
 	SessionId             string
 	Question              string // 问题
-	KdbId                 int64  // 为kdb时有值
+	Kdb                   *models.Kdb
 	DbData                *models.AskInfo
 	UserId                string
 	AnswerStyle           string
@@ -184,14 +184,14 @@ type AskContext struct {
 func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 	userInfo, _ := utils.LoginInfo(s.GetCtx())
 	// 校验知识库权限
+	var kdb *models.Kdb
 	if req.KdbId > 0 {
-		_, err := s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+		kdb, err = s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
 		if err != nil {
 			return err
 		}
 
 	}
-
 	// 判断session是否存在
 	askInfoDao := s.Create(new(models.AskInfoDao)).(*models.AskInfoDao)
 	askInfo, err := askInfoDao.GetBySessionId(req.SessionId)
@@ -218,13 +218,13 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 		PromptI18n: promptI18n,
 		SessionId:  req.SessionId,
 		Question:   req.Question,
-		KdbId:      req.KdbId,
+		Kdb:        kdb,
 		DbData:     askInfo,
 		UserId:     userInfo.UserId,
 	}
 	s.EchoRes("start", "")
 	askDirect := false
-	if req.KdbId == 0 { // 互联网判断是否要搜索
+	if kdb == nil { // 互联网判断是否要搜索
 		judgeRes, err := s.jobdApi.NetRagAssessment(req.Question)
 		if err != nil {
 			s.LogErrorf("NetRagAssessment err %s", err.Error())
@@ -234,35 +234,21 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 			}
 		}
 	}
+	answerStyle := resolveAnswerStyle(req.Type, req.KdbId)
+	askContext.AnswerStyle = answerStyle
 	if askDirect {
-		switch req.Type {
-		case "simple":
-			askContext.AnswerStyle = "simplify"
-		case "complex":
-			askContext.AnswerStyle = "detailed"
-		case "research":
-			if req.KdbId > 0 {
-				askContext.AnswerStyle = "detailed"
-			} else {
-				askContext.AnswerStyle = "professional"
-			}
-		}
-		err = s.AskDirect(askContext)
+		err = s.askDirect(askContext)
 	} else {
 		switch req.Type {
 		case "simple":
-			askContext.AnswerStyle = "simplify"
-			err = s.AskSimple(askContext)
+			err = s.askSimple(askContext)
 		case "complex":
-			askContext.AnswerStyle = "detailed"
-			err = s.AskComplex(askContext)
+			err = s.askComplex(askContext)
 		case "research":
 			if req.KdbId > 0 {
-				askContext.AnswerStyle = "detailed"
-				err = s.AskComplex(askContext)
+				err = s.askComplex(askContext)
 			} else {
-				askContext.AnswerStyle = "professional"
-				err = s.AskProfessional(askContext)
+				err = s.askProfessional(askContext)
 			}
 		default:
 			return errors.ErrorParamInvalid
@@ -277,7 +263,24 @@ func (s *SearchService) Ask(req *dto_search.AskReq) (err error) {
 	return
 }
 
-func (s *SearchService) AskDirect(req AskContext) (err error) {
+func resolveAnswerStyle(typeN string, kdbId int64) string {
+	switch typeN {
+	case "simple":
+		return "simplify"
+	case "complex":
+		return "detailed"
+	case "research":
+		if kdbId > 0 {
+			return "detailed"
+		} else {
+			return "professional"
+		}
+	default:
+		return "simplify"
+	}
+}
+
+func (s *SearchService) askDirect(req AskContext) (err error) {
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
 	// 开始回答
 	answer, echoRefers, err := s.askByDocument(req, req.AnswerStyle, nil)
@@ -297,15 +300,15 @@ func (s *SearchService) AskDirect(req AskContext) (err error) {
 }
 
 // 简单搜索
-func (s *SearchService) AskSimple(req AskContext) (err error) {
+func (s *SearchService) askSimple(req AskContext) (err error) {
 	s.EchoRes("search", "")
-	if req.KdbId == 0 {
+	if req.Kdb == nil {
 		s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
 	} else {
-		s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
+		s.saveRes(req.SessionId, "kdbSearch", "开始搜索知识库")
 	}
 	searchResult := make([]dto_search.CommonSearchOutput, 0)
-	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
+	searchResult, err = s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, req.Kdb)
 	if err != nil {
 		return components.ErrorQueryError
 	}
@@ -318,10 +321,10 @@ func (s *SearchService) AskSimple(req AskContext) (err error) {
 		return components.ErrorMysqlError
 	}
 	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResult)))
-	if req.KdbId == 0 {
+	if req.Kdb == nil {
 		s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResult)))
 	} else {
-		s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
+		s.saveRes(req.SessionId, "kdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
 	}
 	if req.AnswerStyle == "detailed" {
 		go func(entity *SearchService) {
@@ -359,7 +362,7 @@ func (s *SearchService) AskSimple(req AskContext) (err error) {
 	return
 }
 
-func (s *SearchService) AskComplex(req AskContext) (err error) {
+func (s *SearchService) askComplex(req AskContext) (err error) {
 	s.EchoRes("analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
 	s.saveRes(req.SessionId, "analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
 	splitRes, err := s.jobdApi.SplitQuestion(req.Question)
@@ -374,13 +377,13 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.Questions, ";")))
 	}
 	if len(splitRes.Questions) <= 1 {
-		return s.AskSimple(req)
+		return s.askSimple(req)
 	}
 	s.EchoRes("search", "")
-	if req.KdbId == 0 {
+	if req.Kdb == nil {
 		s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
 	} else {
-		s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
+		s.saveRes(req.SessionId, "kdbSearch", "开始搜索知识库")
 	}
 	searchResultAll := make([]dto_search.CommonSearchOutput, 0)
 	searchResultAllMap := make(map[string][]dto_search.CommonSearchOutput)
@@ -391,7 +394,7 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 		tmpQ := subQ
 		tmpSearchContent := splitRes.Questions[i]
 		eg0.Go(func() (err error) {
-			searchResult, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, tmpSearchContent, req.KdbId, req.UserId)
+			searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, tmpSearchContent, req.Kdb)
 			if err != nil {
 				return err
 			}
@@ -417,10 +420,10 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 		}
 	}
 	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResultAll)))
-	if req.KdbId == 0 {
+	if req.Kdb == nil {
 		s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResultAll)))
 	} else {
-		s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResultAll)))
+		s.saveRes(req.SessionId, "kdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResultAll)))
 	}
 	oreferenceStr, _ := json.Marshal(searchResultAll)
 	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": oreferenceStr})
@@ -463,7 +466,7 @@ func (s *SearchService) AskComplex(req AskContext) (err error) {
 	return
 }
 
-func (s *SearchService) AskProfessional(req AskContext) (err error) {
+func (s *SearchService) askProfessional(req AskContext) (err error) {
 	s.EchoRes("analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
 	s.saveRes(req.SessionId, "analyze", fmt.Sprintf("开始分析问题：%s", req.Question))
 	splitRes, err := s.jobdApi.SplitQuestion(req.Question)
@@ -478,13 +481,13 @@ func (s *SearchService) AskProfessional(req AskContext) (err error) {
 		s.saveRes(req.SessionId, "analyze", fmt.Sprintf("分析问题为: %s ", strings.Join(splitRes.Questions, ";")))
 	}
 	if len(splitRes.Questions) <= 1 {
-		return s.AskSimple(req)
+		return s.askSimple(req)
 	}
 	s.EchoRes("search", "")
-	if req.KdbId == 0 {
+	if req.Kdb == nil {
 		s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
 	} else {
-		s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
+		s.saveRes(req.SessionId, "kdbSearch", "开始搜索知识库")
 	}
 	searchResultAll := make([]dto_search.CommonSearchOutput, 0)
 	searchResultAllMap := make(map[string][]dto_search.CommonSearchOutput)
@@ -495,7 +498,7 @@ func (s *SearchService) AskProfessional(req AskContext) (err error) {
 		tmpQ := subQ
 		tmpSearchContent := splitRes.Questions[i]
 		eg0.Go(func() (err error) {
-			searchResult, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, tmpSearchContent, req.KdbId, req.UserId)
+			searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, tmpSearchContent, req.Kdb)
 			if err != nil {
 				return err
 			}
@@ -521,10 +524,10 @@ func (s *SearchService) AskProfessional(req AskContext) (err error) {
 		}
 	}
 	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResultAll)))
-	if req.KdbId == 0 {
+	if req.Kdb == nil {
 		s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResultAll)))
 	} else {
-		s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResultAll)))
+		s.saveRes(req.SessionId, "kdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResultAll)))
 	}
 	oreferenceStr, _ := json.Marshal(searchResultAll)
 	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": oreferenceStr})
@@ -566,142 +569,6 @@ func (s *SearchService) AskProfessional(req AskContext) (err error) {
 
 	return
 }
-
-//
-//func (s *SearchService) AskResearch(req AskContext) (err error) {
-//	s.EchoRes("search", "")
-//	s.saveRes(req.SessionId, "webSearch", "开始搜索互联网")
-//	searchResult := make([]dto_search.CommonSearchOutput, 0)
-//	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
-//	if err != nil {
-//		return components.ErrorQueryError
-//	}
-//	if len(searchResult) == 0 {
-//		return components.ErrorQueryEmpty
-//	}
-//	s.EchoRes("search", fmt.Sprintf("搜索到%v条相关内容", len(searchResult)))
-//	s.saveRes(req.SessionId, "webSearch", fmt.Sprintf("互联网搜索到%v条相关内容", len(searchResult)))
-//	oreferenceStr, _ := json.Marshal(searchResult)
-//	err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": oreferenceStr})
-//	if err != nil {
-//		return
-//	}
-//	keyPointsRes, err := s.jobdApi.GenerateAnswerKeyPoints(req.Question, searchResult)
-//	if err != nil {
-//		return components.ErrorChatError
-//	}
-//	keyPoints := keyPointsRes.AnswerKeyPoints
-//	if len(keyPoints) == 0 {
-//		return components.ErrorQueryEmpty
-//	}
-//	moreKeyPoints := make([]string, 0)
-//	wg3 := sync.WaitGroup{}
-//	wg3.Add(1)
-//	go func(entity *SearchService) {
-//		defer func() {
-//			wg3.Done()
-//		}()
-//		moreKeyPointRes, err := entity.jobdApi.GenerateMoreKeyPoints(req.Question, keyPointsRes.AnswerKeyPoints)
-//		if err != nil {
-//			entity.LogErrorf("GenerateMoreKeyPoints err %v", err.Error())
-//			return
-//		}
-//		if len(moreKeyPointRes.MoreKeyPoints) > 0 {
-//			moreKeyPoints = append(moreKeyPoints, moreKeyPointRes.MoreKeyPoints...)
-//		}
-//	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-//	// 并发处理相关信息
-//	go func(entity *SearchService) {
-//		//first, err := entity.jobdApi.GenerateRelateInfo(req.Question, searchResult)
-//		//if err != nil {
-//		//	entity.LogErrorf("GenerateRelateInfo error, %s", err.Error())
-//		//}
-//		//second, err := entity.jobdApi.DeduplicationRelateInfo(first)
-//		//if err != nil {
-//		//	entity.LogErrorf("DeduplicationRelateInfo error, %s", err.Error())
-//		//}
-//		//relateStr, _ := json.Marshal(second)
-//		//err = entity.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"relation": relateStr})
-//		//if err != nil {
-//		//	return
-//		//}
-//		entity.EchoRes("relate", "done")
-//	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-//	// 按顺序输出
-//	s.saveRes(req.SessionId, "summary", "整理答案开始")
-//	s.EchoRes("generate", "")
-//	answerAll := ""
-//	echoReferAll := []DoReferItem{}
-//	beginIndex := 0
-//	kpointTree, allPath := jobd.ReturnTree(keyPoints)
-//
-//	answerAll, echoReferAll, beginIndex, err = s.treeAskForResearch(kpointTree, answerAll, echoReferAll, beginIndex, req, searchResult, keyPoints)
-//	if err != nil {
-//		return components.ErrorChatError
-//	}
-//	wg3.Wait()
-//	morePointDone := false
-//	searchResultUnique := make(map[string]bool)
-//	for _, output := range searchResult {
-//		unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
-//		if searchResultUnique[unique] {
-//			continue
-//		}
-//		searchResultUnique[unique] = true
-//	}
-//	for _, point := range moreKeyPoints {
-//		point = strings.Replace(point, "#", "", -1)
-//		point = strings.TrimSpace(point)
-//		srTmp, err := s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
-//		if err != nil {
-//			continue
-//		}
-//		for _, output := range srTmp {
-//			unique := base64.StdEncoding.EncodeToString([]byte(output.Url + output.Content))
-//			if searchResultUnique[unique] {
-//				continue
-//			}
-//			searchResultUnique[unique] = true
-//			searchResult = append(searchResult, output)
-//		}
-//		orferenceStr2, _ := json.Marshal(searchResult)
-//		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": orferenceStr2})
-//		if err != nil {
-//			continue
-//		}
-//
-//		zhanwei := ""
-//		if morePointDone {
-//			zhanwei = fmt.Sprintf("\n\n ## %s\n\n", point)
-//		} else {
-//			zhanwei = fmt.Sprintf("\n\n# %s\n\n ## %s\n\n", "更多问题", point)
-//			morePointDone = true
-//		}
-//		s.EchoRes("appendText", zhanwei)
-//		zhanweil := len([]rune(zhanwei))
-//		// 开始回答
-//		beginIndex = beginIndex + zhanweil
-//		answer, echoRefers, err := s.askChatForResearch(req, searchResult, beginIndex, echoReferAll)
-//		if err != nil {
-//			return components.ErrorChatError
-//		}
-//		answerAll = answerAll + zhanwei + answer
-//		beginIndex = beginIndex + len([]rune(answer))
-//		echoReferAll = echoRefers
-//
-//	}
-//	s.EchoRes("complete", answerAll)
-//	s.saveRes(req.SessionId, "summary", "整理答案结束")
-//	// 保存记录
-//	go func(entity *SearchService) {
-//		_ = entity.askRecordUpdate(req.DbData, allPath, answerAll, echoReferAll)
-//	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
-//	// 生成大纲
-//	s.askOutline(req.SessionId, answerAll)
-//	s.EchoRes("outline", "done")
-//
-//	return
-//}
 
 func IsCompleted(answer string, status string, doneAnswer string) (string, int) {
 	begin := len([]rune(doneAnswer))
@@ -1171,10 +1038,7 @@ func (s *SearchService) Recall(req *dto_kdb_doc.RecallReq) (res *dto_kdb_doc.Rec
 	}
 
 	// es搜索的片段
-	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
-		IndexName: kdb.GetIndexName(),
-		Query:     req.Query,
-	})
+	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Query, kdb)
 	if err != nil {
 		return nil, components.ErrorQueryEmpty
 	}
@@ -1214,7 +1078,7 @@ func mergeItems(items []dto_search.DoReferItem) []dto_search.DoReferItem {
 func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.AskSyncRes, err error) {
 	userInfo, _ := utils.LoginInfo(s.GetCtx())
 	// 校验知识库权限
-	_, err = s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	kdb, err := s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
 	if err != nil {
 		return nil, err
 	}
@@ -1222,7 +1086,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 	if err != nil {
 		return nil, err
 	}
-	_ = s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"question": req.Question, "ask_type": "detail"})
+	_ = s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"question": req.Question, "ask_type": "detail", "kdb_id": req.KdbId})
 	user, _ := s.userDao.GetByUserId(userInfo.UserId)
 	config := user.Setting.Data()
 	modelType := config.ModelType
@@ -1235,7 +1099,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 		PromptI18n: promptI18n,
 		SessionId:  askInfo.SessionId,
 		Question:   req.Question,
-		KdbId:      req.KdbId,
+		Kdb:        kdb,
 		DbData:     askInfo,
 		UserId:     userInfo.UserId,
 	}
@@ -1265,8 +1129,8 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 
 // 简单搜索
 func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
-	s.saveRes(req.SessionId, "vdbSearch", "开始搜索知识库")
-	searchResult, err = s.searchData.SearchFromWebOrKnowledge(req.SessionId, req.Question, req.KdbId, req.UserId)
+	s.saveRes(req.SessionId, "kdbSearch", "开始搜索知识库")
+	searchResult, err = s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, req.Kdb)
 	if err != nil {
 		err = components.ErrorQueryError
 		return
@@ -1281,9 +1145,8 @@ func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []d
 		err = components.ErrorMysqlError
 		return
 	}
-	s.saveRes(req.SessionId, "vdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
+	s.saveRes(req.SessionId, "kdbSearch", fmt.Sprintf("知识库搜索到%v条相关内容", len(searchResult)))
 	s.saveRes(req.SessionId, "summary", "整理答案开始")
-
 	answerRes, err := s.jobdApi.AnswerByDocumentsSync(req.SessionId, req.Question, req.AnswerStyle, searchResult, req.Outline)
 	if err != nil {
 		return
@@ -1305,7 +1168,52 @@ func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []d
 }
 
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
-	searchResult, err := s.searchData.SearchFromWeb(req.SessionId, req.Question)
+	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, nil)
+	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
+	if err != nil {
+		return nil, err
+	}
+	if askAttach != nil {
+		refers := make([]dto_search.CommonSearchOutput, 0)
+		_ = json.Unmarshal(askAttach.Reference, &refers)
+		searchResultMap := make(map[string]dto_search.CommonSearchOutput)
+		for _, output := range searchResult {
+			searchResultMap[output.Title+output.Url] = output
+		}
+		for _, refer := range refers {
+			if _, ok := searchResultMap[refer.Title+refer.Url]; ok {
+				delete(searchResultMap, refer.Title+refer.Url)
+			}
+		}
+		for _, output := range searchResultMap {
+			refers = append(refers, output)
+		}
+		refersAfterStr, _ := json.Marshal(refers)
+		err = s.askAttachDao.UpdateBySessionId(req.SessionId, map[string]interface{}{"reference": refersAfterStr})
+		if err != nil {
+			return
+		}
+	}
+	return searchResult, nil
+}
+
+func (s *SearchService) SessionSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
+	userInfo, _ := utils.LoginInfo(s.GetCtx())
+	askInfo, err := s.askInfoDao.GetBySessionId(req.SessionId)
+	if err != nil {
+		return nil, err
+	}
+	if askInfo == nil {
+		return nil, components.ErrorAskSessionNoExist
+	}
+	var kdb *models.Kdb
+	if askInfo.KdbId != 0 {
+		kdb, err = s.kdbData.CheckKdbAuth(askInfo.KdbId, userInfo.UserId, models.AuthTypeRead)
+		if err != nil {
+			return nil, err
+		}
+	}
+	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, kdb)
 	askAttach, err := s.askAttachDao.GetBySessionId(req.SessionId)
 	if err != nil {
 		return nil, err
@@ -1348,16 +1256,11 @@ func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search
 	}
 
 	// es搜索的片段
-	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
-		IndexName: kdb.GetIndexName(),
-		Query:     req.Question,
-	})
+	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Question, kdb)
 	if err != nil {
 		return nil, components.ErrorQueryEmpty
 	}
-	for _, result := range esSearchResult {
-		res.SearchResult = append(res.SearchResult, result.CommonSearchOutput)
-	}
+	res.SearchResult = append(res.SearchResult, esSearchResult...)
 	return
 
 }
@@ -1375,18 +1278,11 @@ func (s *SearchService) QuestionFocus(req *dto_search.QuestionFocusReq) (res *dt
 		return nil, err
 	}
 	// es搜索的片段
-	esSearchResult, err := s.searchData.CommonEsSearch(data.EsCommonSearch{
-		IndexName: kdb.GetIndexName(),
-		Query:     req.Question,
-	})
+	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Question, kdb)
 	if err != nil {
 		return nil, components.ErrorQueryError
 	}
-	commonSearchResult := make([]dto_search.CommonSearchOutput, 0)
-	for _, result := range esSearchResult {
-		commonSearchResult = append(commonSearchResult, result.CommonSearchOutput)
-	}
-	outlines, err := s.jobdApi.QuestionOutline(req.Question, commonSearchResult)
+	outlines, err := s.jobdApi.QuestionOutline(req.Question, esSearchResult)
 	if err != nil {
 		return nil, components.ErrorJobdError
 	}
@@ -1401,7 +1297,7 @@ func (s *SearchService) QuestionFocus(req *dto_search.QuestionFocusReq) (res *dt
 func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search.ReportAskRes, err error) {
 	userInfo, _ := utils.LoginInfo(s.GetCtx())
 	// 校验知识库权限
-	_, err = s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	kdb, err := s.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
 	if err != nil {
 		return nil, err
 	}
@@ -1422,7 +1318,7 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 		PromptI18n: promptI18n,
 		SessionId:  askInfo.SessionId,
 		Question:   req.Question,
-		KdbId:      req.KdbId,
+		Kdb:        kdb,
 		DbData:     askInfo,
 		UserId:     userInfo.UserId,
 	}

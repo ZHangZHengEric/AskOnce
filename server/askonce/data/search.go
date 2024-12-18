@@ -5,11 +5,11 @@ import (
 	"askonce/api/web_search"
 	"askonce/components/dto/dto_search"
 	"askonce/es"
+	"encoding/json"
 
 	"askonce/helpers"
 	"askonce/models"
 	"crypto/md5"
-	"encoding/json"
 	"fmt"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
@@ -41,53 +41,37 @@ func (entity *SearchData) OnCreate() {
 	entity.kdbData = entity.Create(new(KdbData)).(*KdbData)
 }
 
-func (entity *SearchData) SearchFromWebOrKnowledge(sessionId, question string, kdbId int64, userId string) (results []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, kdb *models.Kdb) (results []dto_search.CommonSearchOutput, err error) {
 	results = make([]dto_search.CommonSearchOutput, 0)
-	if kdbId == 0 { // web搜索
-		searchList, err := entity.webSearchApi.Search(question)
+	if kdb == nil { // web搜索
+		results, err = entity.webSearch(question)
 		if err != nil {
-			return nil, err
-		}
-		if len(searchList) >= 10 {
-			searchList = searchList[:10]
-		}
-		for _, resp := range searchList {
-			results = append(results, dto_search.CommonSearchOutput{
-				Title:   resp.Title,
-				Url:     resp.Url,
-				Content: resp.Content,
-			})
+			entity.LogErrorf("web搜索报错")
 		}
 	} else { // 知识库搜索
-		kdb, err := entity.kdbData.CheckKdbAuth(kdbId, userId, models.AuthTypeRead)
-		if err != nil {
-			return nil, err
-		}
 		// es搜索的片段
-		esSearchResult, err := entity.CommonEsSearch(EsCommonSearch{
+		results, err = entity.esSearch(EsCommonSearch{
 			IndexName: kdb.GetIndexName(),
 			Query:     question,
 		})
 		if err != nil {
 			entity.LogErrorf("es搜索报错")
 		}
-		for _, result := range esSearchResult {
-			results = append(results, result.CommonSearchOutput)
-		}
 	}
-	if len(results) > 0 {
-		now := time.Now()
-		searchResultStr, _ := json.Marshal(results)
-		err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
-			SessionId:    sessionId,
-			SubQuestion:  question,
-			SearchResult: searchResultStr,
-			CrudModel: orm.CrudModel{
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-		})
+	if len(results) == 0 || len(sessionId) == 0 {
+		return
 	}
+	now := time.Now()
+	searchResultStr, _ := json.Marshal(results)
+	err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
+		SessionId:    sessionId,
+		SubQuestion:  question,
+		SearchResult: searchResultStr,
+		CrudModel: orm.CrudModel{
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+	})
 	return
 }
 
@@ -97,14 +81,7 @@ type EsCommonSearch struct {
 	Size      int
 }
 
-type EsCommonSearchResult struct {
-	Id          int64
-	FullContent string
-	Score       float64
-	dto_search.CommonSearchOutput
-}
-
-func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonSearchResult, err error) {
+func (entity *SearchData) esSearch(input EsCommonSearch) (res []dto_search.CommonSearchOutput, err error) {
 	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{input.Query})
 	if err != nil {
 		return
@@ -162,14 +139,15 @@ func (entity *SearchData) CommonEsSearch(input EsCommonSearch) (res []*EsCommonS
 		if !ok {
 			continue
 		}
-		out := &EsCommonSearchResult{}
-		out.Id = result.DocId
+		out := dto_search.CommonSearchOutput{}
+		out.DocId = result.DocId
 		out.Title = ddd.DocName
 		out.Url = filePathMap[ddd.SourceId]
 		out.Metadata = ddd.Metadata
 		out.Content = appendText(dataSearchMap[i], dataContentMap[result.DocId])
 		out.FullContent = dataContentMap[result.DocId]
 		out.Score = result.Score
+		out.Form = "kdb"
 		res = append(res, out)
 	}
 	returnSize := 10
@@ -210,7 +188,7 @@ func (entity *SearchData) CreateSession(userId string) (add *models.AskInfo, err
 	return
 }
 
-func (entity *SearchData) SearchFromWeb(sessionId string, question string) (results []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) webSearch(question string) (results []dto_search.CommonSearchOutput, err error) {
 	searchList, err := entity.webSearchApi.Search(question)
 	if err != nil {
 		return nil, err
@@ -223,19 +201,7 @@ func (entity *SearchData) SearchFromWeb(sessionId string, question string) (resu
 			Title:   resp.Title,
 			Url:     resp.Url,
 			Content: resp.Content,
-		})
-	}
-	if len(results) > 0 {
-		now := time.Now()
-		searchResultStr, _ := json.Marshal(results)
-		err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
-			SessionId:    sessionId,
-			SubQuestion:  question,
-			SearchResult: searchResultStr,
-			CrudModel: orm.CrudModel{
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
+			Form:    "web",
 		})
 	}
 	return results, nil

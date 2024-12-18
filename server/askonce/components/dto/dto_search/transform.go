@@ -9,6 +9,14 @@ type CommonSearchOutput struct {
 	Content string `json:"content"`
 	// 元数据
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	// 来源
+	Form string `json:"form,omitempty"`
+	// 文档id
+	DocId int64 `json:"docId,omitempty"`
+	// 文档全文
+	FullContent string `json:"fullContent,omitempty"`
+	// 分数
+	Score float64 `json:"score,omitempty"`
 }
 
 type DoReferItem struct {

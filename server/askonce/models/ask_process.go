@@ -8,7 +8,7 @@ import (
 var ProcessTypeNameMap = map[string]string{
 	"analyze":   "问题分析",
 	"webSearch": "全网搜索",
-	"vdbSearch": "知识库搜索",
+	"kdbSearch": "知识库搜索",
 	"summary":   "整理答案",
 	"finish":    "回答完成",
 }
