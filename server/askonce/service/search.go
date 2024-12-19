@@ -1327,7 +1327,8 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 	}
 	html := annotateHTML(answer, answerRefer, searchResult)
 	res = &dto_search.ReportAskRes{
-		HtmlContent:  html,
+		Answer:       answer,
+		AnswerRefer:  answerRefer,
 		SearchResult: searchResult,
 	}
 	goUnoApi := flow.Create(s.GetCtx(), new(api.GoUnoApi))
@@ -1354,9 +1355,7 @@ func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult [
 		// Add non-referenced text before the current reference
 		if lastIndex < refer.Start {
 			nonReferencedText := string(answerRunes[lastIndex:refer.Start])
-			annotatedHTML.WriteString("<span title=''>")
 			annotatedHTML.WriteString(nonReferencedText)
-			annotatedHTML.WriteString("</span>")
 		}
 
 		// Add referenced text with annotations
@@ -1385,9 +1384,7 @@ func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult [
 	// Add remaining non-referenced text
 	if lastIndex < len(answerRunes) {
 		remainingText := answerRunes[lastIndex:]
-		annotatedHTML.WriteString("<span title=''>")
 		annotatedHTML.WriteString(string(remainingText))
-		annotatedHTML.WriteString("</span>")
 	}
 
 	return markdownToHTML(annotatedHTML.String())
