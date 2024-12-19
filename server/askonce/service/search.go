@@ -1033,7 +1033,7 @@ func uniqueDoc(result []dto_search.CommonSearchOutput) []dto_search.CommonSearch
 	for _, item := range result {
 		if existing, ok := existMap[item.DocId]; ok {
 			// 更新内容
-			existing.Content = existing.Content + item.Content
+			existing.Content = existing.Content + "\n\n" + item.Content
 			existMap[item.DocId] = existing
 		} else {
 			existMap[item.DocId] = item
