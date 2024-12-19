@@ -129,9 +129,13 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (a
 				VectorWeight:  0.5,
 			},
 		},
+		ReferenceThreshold: float32(0.7),
 		KdbAttach: dto.KdbAttach{
 			Language: "zh-cn",
 		},
+	}
+	if user.Account == "fujian" {
+		defaultSetting.ReferenceThreshold = float32(0.5)
 	}
 	cover, err := k.kdbCoverDao.GetRandom()
 	if err != nil {

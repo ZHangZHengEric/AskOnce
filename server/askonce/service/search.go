@@ -597,14 +597,14 @@ func IsCompleted(answer string, status string, doneAnswer string) (string, int) 
 	return matchText, begin
 }
 
-func (s *SearchService) referDo(begin int, needReference string, searchResult []dto_search.CommonSearchOutput) (output []dto_search.DoReferItem, err error) {
+func (s *SearchService) referDo(begin int, needReference string, searchResult []dto_search.CommonSearchOutput, setting dto.KdbSetting) (output []dto_search.DoReferItem, err error) {
 
 	referStrList := []string{}
 	for _, o := range searchResult {
 		referStrList = append(referStrList, o.Content)
 	}
 
-	referenceRes, err := s.jobdApi.ResultAddReference(needReference, referStrList)
+	referenceRes, err := s.jobdApi.ResultAddReference(needReference, referStrList, setting.ReferenceThreshold)
 	if err != nil {
 		zlog.Errorf(s.GetCtx(), "ResultAddReference error %s", err.Error())
 		return
@@ -795,7 +795,7 @@ func (s *SearchService) askByDocument(req AskContext, answerStyle string, search
 				alreadyReferAnswer = alreadyReferAnswer + needReference
 				go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
 					defer wg.Done()
-					aa, errA := entity.referDo(begin, needRefer, searchResult)
+					aa, errA := entity.referDo(begin, needRefer, searchResult, req.Kdb.Setting.Data())
 					if errA != nil {
 						return
 					}
@@ -1153,7 +1153,7 @@ func (s *SearchService) AskSyncDo(req AskContext) (answer string, echoRefers []d
 	}
 	answer = answerRes.Answer
 	if len(searchResult) > 0 {
-		echoRefers, err = s.referDo(0, answer, searchResult)
+		echoRefers, err = s.referDo(0, answer, searchResult, req.Kdb.Setting.Data())
 		if err != nil {
 			return "", nil, nil, err
 		}
@@ -1325,7 +1325,7 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
 		return
 	}
-	html := annotateHTMLWithBlackfriday(answer, answerRefer, searchResult)
+	html := annotateHTML(answer, answerRefer, searchResult)
 	res = &dto_search.ReportAskRes{
 		HtmlContent:  html,
 		SearchResult: searchResult,
@@ -1345,8 +1345,8 @@ func markdownToHTML(answer string) string {
 	return string(htmlBytes)
 }
 
-// annotateHTMLWithBlackfriday adds references to the rendered Markdown HTML
-func annotateHTMLWithBlackfriday(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
+// annotateHTML adds references to the rendered Markdown HTML
+func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
 	var annotatedHTML bytes.Buffer
 	lastIndex := 0
 	answerRunes := []rune(answer)
@@ -1354,12 +1354,14 @@ func annotateHTMLWithBlackfriday(answer string, refers []dto_search.DoReferItem,
 		// Add non-referenced text before the current reference
 		if lastIndex < refer.Start {
 			nonReferencedText := string(answerRunes[lastIndex:refer.Start])
+			annotatedHTML.WriteString("<span title=''>")
 			annotatedHTML.WriteString(nonReferencedText)
+			annotatedHTML.WriteString("</span>")
 		}
 
 		// Add referenced text with annotations
 		referencedText := string(answerRunes[refer.Start:refer.End])
-		annotatedHTML.WriteString("<span style='color:red;' title='")
+		annotatedHTML.WriteString("<span style='color:blue;' title='")
 		supStr := ""
 		// Add all reference details
 		for i, ref := range refer.Refers {
@@ -1383,7 +1385,9 @@ func annotateHTMLWithBlackfriday(answer string, refers []dto_search.DoReferItem,
 	// Add remaining non-referenced text
 	if lastIndex < len(answerRunes) {
 		remainingText := answerRunes[lastIndex:]
+		annotatedHTML.WriteString("<span title=''>")
 		annotatedHTML.WriteString(string(remainingText))
+		annotatedHTML.WriteString("</span>")
 	}
 
 	return markdownToHTML(annotatedHTML.String())
