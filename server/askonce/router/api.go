@@ -62,7 +62,7 @@ func API(engine *gin.Engine) {
 			// 报告搜索（同步接口，输出docx）
 			searchGroup.POST("reportAskSync", flow.Use[dto_search.ReportAskReq](new(search.ReportAskController)))
 			// 报告搜索（输出docx）
-			searchGroup.POST("reportToDocx", flow.Use[dto_search.ReportDocxReq](new(search.ReportAskController)))
+			searchGroup.POST("reportToDocx", flow.Use[dto_search.ReportDocxReq](new(search.ReportDocxController)))
 		}
 	}
 
