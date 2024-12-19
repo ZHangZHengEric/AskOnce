@@ -19,7 +19,7 @@ type ReferenceMap struct {
 }
 
 func (entity *JobdApi) ResultAddReference(result string, referenceList []string, threshold float32) (res *AtomResultReferenceRes, err error) {
-	defaultThreshold := float32(0.5)
+	defaultThreshold := float32(0.7)
 	if threshold > 0 {
 		defaultThreshold = threshold
 	}
