@@ -45,3 +45,10 @@ func (entity *AskProcessDao) GetBySessionId(sessionId string) (res []*AskProcess
 	err = entity.GetDB().Where("session_id = ?", sessionId).Find(&res).Error
 	return
 }
+
+func (entity *AskProcessDao) BatchInsert(process []*AskProcess) (err error) {
+	if process == nil || len(process) == 0 {
+		return
+	}
+	return entity.GetDB().Create(process).Error
+}

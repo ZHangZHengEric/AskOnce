@@ -41,19 +41,37 @@ func (entity *SearchData) OnCreate() {
 	entity.kdbData = entity.Create(new(KdbData)).(*KdbData)
 }
 
-func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, kdb *models.Kdb) (results []dto_search.CommonSearchOutput, err error) {
+type SearchOptions struct {
+	QuerySize int    // 返回数量
+	IndexName string // 知识库索引名称
+}
+
+func (s *SearchOptions) WithIndex(indexName string) *SearchOptions {
+	s.IndexName = indexName
+	return s
+}
+
+func (s *SearchOptions) WithQuerySize(querySize int) *SearchOptions {
+	s.QuerySize = querySize
+	return s
+}
+
+func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *SearchOptions) (results []dto_search.CommonSearchOutput, err error) {
+	if opts == nil {
+		opts = new(SearchOptions)
+	}
+	if opts.QuerySize == 0 {
+		opts.QuerySize = 20
+	}
 	results = make([]dto_search.CommonSearchOutput, 0)
-	if kdb == nil { // web搜索
-		results, err = entity.webSearch(question)
+	if len(opts.IndexName) == 0 { // web搜索
+		results, err = entity.webSearch(question, opts.QuerySize)
 		if err != nil {
 			entity.LogErrorf("web搜索报错")
 		}
 	} else { // 知识库搜索
 		// es搜索的片段
-		results, err = entity.esSearch(EsCommonSearch{
-			IndexName: kdb.GetIndexName(),
-			Query:     question,
-		})
+		results, err = entity.esSearch(question, opts.IndexName, opts.QuerySize)
 		if err != nil {
 			entity.LogErrorf("es搜索报错")
 		}
@@ -75,26 +93,19 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, kdb *mo
 	return
 }
 
-type EsCommonSearch struct {
-	IndexName string
-	Query     string
-	Size      int
-}
-
-func (entity *SearchData) esSearch(input EsCommonSearch) (res []dto_search.CommonSearchOutput, err error) {
-	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{input.Query})
+func (entity *SearchData) esSearch(question string, indexName string, querySize int) (res []dto_search.CommonSearchOutput, err error) {
+	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{question})
 	if err != nil {
 		return
 	}
-	querySize := 20
-	recalls, err := es.CommonDocumentSearch(entity.GetCtx(), input.IndexName, input.Query, embRes[0], querySize)
+	recalls, err := es.CommonDocumentSearch(entity.GetCtx(), indexName, question, embRes[0], 20)
 	if err != nil {
 		return
 	}
 	if len(recalls) == 0 {
 		return
 	}
-	recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(input.Query, recalls)
+	recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(question, recalls)
 	if err != nil {
 		return
 	}
@@ -102,8 +113,8 @@ func (entity *SearchData) esSearch(input EsCommonSearch) (res []dto_search.Commo
 	sort.Slice(recalls, func(i, j int) bool {
 		return recalls[i].Score > recalls[j].Score
 	})
-	var dataIds []int64
 	dataSearchMap := make(map[int]*es.CommonDocument)
+	var dataIds []int64
 	for i, result := range recalls {
 		dataIds = append(dataIds, result.DocId)
 		dataSearchMap[i] = result
@@ -140,24 +151,18 @@ func (entity *SearchData) esSearch(input EsCommonSearch) (res []dto_search.Commo
 			continue
 		}
 		out := dto_search.CommonSearchOutput{}
+		out.DocSegmentId = result.DocSegmentId
 		out.DocId = result.DocId
 		out.Title = ddd.DocName
 		out.Url = filePathMap[ddd.SourceId]
 		out.Metadata = ddd.Metadata
 		out.Content = appendText(dataSearchMap[i], dataContentMap[result.DocId])
-		out.FullContent = dataContentMap[result.DocId]
 		out.Score = result.Score
 		out.Form = "kdb"
 		res = append(res, out)
 	}
-	returnSize := 10
-	if input.Size > 0 {
-		returnSize = input.Size
-	}
-	if len(res) <= returnSize {
-		return
-	} else {
-		res = res[0 : returnSize-1]
+	if len(res) >= querySize {
+		res = res[:querySize]
 	}
 	return
 }
@@ -188,13 +193,13 @@ func (entity *SearchData) CreateSession(userId string) (add *models.AskInfo, err
 	return
 }
 
-func (entity *SearchData) webSearch(question string) (results []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) webSearch(question string, querySize int) (results []dto_search.CommonSearchOutput, err error) {
 	searchList, err := entity.webSearchApi.Search(question)
 	if err != nil {
 		return nil, err
 	}
-	if len(searchList) >= 10 {
-		searchList = searchList[:10]
+	if len(searchList) >= querySize {
+		searchList = searchList[:querySize]
 	}
 	for _, resp := range searchList {
 		results = append(results, dto_search.CommonSearchOutput{

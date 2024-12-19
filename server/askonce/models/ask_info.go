@@ -68,6 +68,16 @@ func (entity *AskInfoDao) UpdateById(id int64, update map[string]interface{}) er
 	return nil
 }
 
+func (entity *AskInfoDao) Update(update *AskInfo) error {
+	update.UpdatedAt = time.Now()
+	db := entity.GetDB()
+	err := db.Save(update).Error
+	if err != nil {
+		return components.ErrorMysqlError
+	}
+	return nil
+}
+
 func (entity *AskInfoDao) UpdateEntity(update *AskInfo) error {
 	db := entity.GetDB()
 	err := db.Model(&AskInfo{}).Where("id = ?", update.Id).Updates(update).Error
