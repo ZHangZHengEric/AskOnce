@@ -1042,10 +1042,10 @@ func uniqueDoc(result []dto_search.CommonSearchOutput) []dto_search.CommonSearch
 	// 转换结果为切片
 	var output []dto_search.CommonSearchOutput
 	for _, item := range existMap {
-		result = append(result, item)
+		output = append(output, item)
 	}
 	sort.Slice(output, func(i, j int) bool {
-		return result[i].DocId < result[j].DocId
+		return output[i].DocId < output[j].DocId
 	})
 	return output
 }
