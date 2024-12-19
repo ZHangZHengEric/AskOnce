@@ -1285,7 +1285,7 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 	if err != nil {
 		return nil, err
 	}
-	_ = s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"question": req.Question, "ask_type": "professional_no_more_qa"})
+	_ = s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"question": req.Question, "ask_type": "professional_no_more_qa", "kdb_id": req.KdbId})
 	user, _ := s.userDao.GetByUserId(userInfo.UserId)
 	config := user.Setting.Data()
 	modelType := config.ModelType
