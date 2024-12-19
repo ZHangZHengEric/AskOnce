@@ -119,16 +119,6 @@ func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAut
 func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 
 	defaultSetting := dto.KdbSetting{
-		RetrievalModel: dto.RetrievalSetting{
-			SearchMethod:          dto.DocSearchMethodAll,
-			TopK:                  10,
-			ScoreThresholdEnabled: true,
-			ScoreThreshold:        0.3,
-			Weights: dto.RetrievalSettingWeights{
-				KeywordWeight: 0.5,
-				VectorWeight:  0.5,
-			},
-		},
 		ReferenceThreshold: float32(0.7),
 		KdbAttach: dto.KdbAttach{
 			Language: "zh-cn",

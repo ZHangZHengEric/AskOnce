@@ -117,9 +117,6 @@ func (k *KdbService) Info(kdbId int64) (res *dto_kdb.InfoRes, err error) {
 		DataSourceType: dto_kdb.DataSourceType(kdb.DataType),
 		WordCount:      0,
 		DocumentCount:  0,
-		KdbSetting: dto.KdbSetting{
-			RetrievalModel: kdbSetting.RetrievalModel,
-		},
 	}
 	if kdbSetting.KdbAttach.CoverId != 0 {
 		cover, _ := k.kdbCoverDao.GetById(kdbSetting.KdbAttach.CoverId)

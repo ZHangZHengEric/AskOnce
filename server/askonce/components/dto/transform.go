@@ -18,9 +18,8 @@ type LoginInfoSession struct {
 
 // 知识库设置
 type KdbSetting struct {
-	RetrievalModel     RetrievalSetting `json:"retrievalModel"`     // 召回设置
-	ReferenceThreshold float32          `json:"referenceThreshold"` // 引用参考阈值
-	KdbAttach          KdbAttach        `json:"kdbAttach"`          // 附加属性
+	ReferenceThreshold float32   `json:"referenceThreshold"` // 引用参考阈值
+	KdbAttach          KdbAttach `json:"kdbAttach"`          // 附加属性
 }
 
 // 检索设置
