@@ -1021,6 +1021,7 @@ func (s *SearchService) AskSyncDo(askContext *AskContext) (answer string, echoRe
 	go func(entity *SearchService) {
 		_ = entity.askRecordUpdate(askContext.DbData, []string{askContext.Question}, answer, echoRefers)
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
+	searchResult = referResult
 	return
 }
 
