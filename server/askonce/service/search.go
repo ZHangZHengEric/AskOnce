@@ -1011,7 +1011,8 @@ func (s *SearchService) AskSyncDo(askContext *AskContext) (answer string, echoRe
 		return
 	}
 	askContext.AppendProcess("summary", fmt.Sprintf("回答问题【%s】答案结束", askContext.Question))
-	echoRefers, err = s.referDo(0, answer, searchResult, askContext.Kdb.Setting.Data())
+	referResult := uniqueDoc(searchResult)
+	echoRefers, err = s.referDo(0, answer, referResult, askContext.Kdb.Setting.Data())
 	if err != nil {
 		return
 	}
@@ -1021,6 +1022,32 @@ func (s *SearchService) AskSyncDo(askContext *AskContext) (answer string, echoRe
 		_ = entity.askRecordUpdate(askContext.DbData, []string{askContext.Question}, answer, echoRefers)
 	}(s.CopyWithCtx(s.GetCtx()).(*SearchService))
 	return
+}
+
+// 根据文档去重
+func uniqueDoc(result []dto_search.CommonSearchOutput) []dto_search.CommonSearchOutput {
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].DocSegmentId < result[j].DocSegmentId
+	})
+	existMap := make(map[int64]dto_search.CommonSearchOutput)
+	for _, item := range result {
+		if existing, ok := existMap[item.DocId]; ok {
+			// 更新内容
+			existing.Content = existing.Content + item.Content
+			existMap[item.DocId] = existing
+		} else {
+			existMap[item.DocId] = item
+		}
+	}
+	// 转换结果为切片
+	var output []dto_search.CommonSearchOutput
+	for _, item := range existMap {
+		result = append(result, item)
+	}
+	sort.Slice(output, func(i, j int) bool {
+		return result[i].DocId < result[j].DocId
+	})
+	return output
 }
 
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
