@@ -742,7 +742,11 @@ func (s *SearchService) askByDocument(req *AskContext) (answer string, echoRefer
 				alreadyReferAnswer = alreadyReferAnswer + needReference
 				go func(entity *SearchService, begin int, needRefer string, searchResult []dto_search.CommonSearchOutput) {
 					defer wg.Done()
-					aa, errA := entity.referDo(begin, needRefer, searchResult, req.Kdb.Setting.Data())
+					kdbSetting := dto.KdbSetting{}
+					if req.Kdb != nil {
+						kdbSetting = req.Kdb.Setting.Data()
+					}
+					aa, errA := entity.referDo(begin, needRefer, searchResult, kdbSetting)
 					if errA != nil {
 						return
 					}
