@@ -97,3 +97,7 @@ type ReportAskRes struct {
 	AnswerRefer  []DoReferItem        `json:"answerRefer"`
 	SearchResult []CommonSearchOutput `json:"searchResult"`
 }
+
+type ReportDocxRes struct {
+	DocxUrl string `json:"docxUrl"` //
+}

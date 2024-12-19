@@ -63,7 +63,7 @@ func (s *SearchService) EchoRes(stage, text string) {
 		Stage: stage,
 		Text:  text,
 	})
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(80 * time.Millisecond)
 	sse.RenderStream(s.GetCtx(), "0", "message", echoResStr)
 }
 
@@ -179,7 +179,7 @@ func (a *AskContext) GetKdbIndex() string {
 func (a *AskContext) AppendProcess(stageType string, appendText ...string) {
 	prefixContent := ""
 	if stageType == "search" {
-		if a.Kdb == nil {
+		if a.Kdb != nil {
 			prefixContent = "知识库"
 			stageType = "kdbSearch"
 		} else {
@@ -1146,18 +1146,24 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 		s.askInfoDao.UpdateById(askInfo.Id, map[string]interface{}{"status": models.AskInfoStatusFail})
 		return
 	}
-	html := annotateHTML(answer, answerRefer, searchResult)
 	res = &dto_search.ReportAskRes{
 		Answer:       answer,
 		AnswerRefer:  answerRefer,
 		SearchResult: searchResult,
 	}
+	return
+}
+
+func (s *SearchService) ReportDocx(req *dto_search.ReportDocxReq) (res *dto_search.ReportDocxRes, err error) {
 	goUnoApi := flow.Create(s.GetCtx(), new(api.GoUnoApi))
-	file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.Subject), html)
+	html := annotateHTML(req.Answer, req.AnswerRefer, req.SearchResult)
+	file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.DocName), html)
 	if err != nil {
 		return nil, err
 	}
-	res.DocxUrl = file
+	res = &dto_search.ReportDocxRes{
+		DocxUrl: file,
+	}
 	return
 }
 
