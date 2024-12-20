@@ -65,7 +65,7 @@ COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 # 复制构建结果
 COPY --from=builder /home/workspace/AskOnce/algorithm/build .
 
-COPY ../assets  /home/workspace/AskOnce
+COPY assets  /home/workspace/AskOnce
 
 # 复制 supervisor 配置文件
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
