@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile_build
     volumes:
       - ./bin:/home/workspace/AskOnce/algorithm/build
-    command: /bin/bash -c "/home/workspace/AskOnce/algorithm/build.sh && exit"  # 执行构建任务后退出
+    command: /bin/bash -c "exit"  # 执行构建任务后退出
   askonce_algorithm:
     build:
       context: .
@@ -18,6 +18,7 @@ services:
     volumes:
       - ./bin:/home/workspace/AskOnce/algorithm/
       - /data:/data
+      - ./logs:/var/log
     restart: unless-stopped
     network_mode: host
     shm_size: '4gb'

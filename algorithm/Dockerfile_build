@@ -25,4 +25,4 @@ WORKDIR /home/workspace/AskOnce/algorithm
 # 复制当前代码到容器
 COPY . .
 # 设置权限 并构建产物
-RUN chmod 777 build.sh
+RUN chmod 777 build.sh && ./build.sh
