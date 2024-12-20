@@ -66,9 +66,9 @@ COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 COPY --from=builder /home/workspace/AskOnce/algorithm/build .
 
 COPY assets /home/workspace/AskOnce
-
 # 复制 supervisor 配置文件
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+ENV WORKSPACE_DIR /home/workspace/AskOnce/algorithm
 
 # 启动 supervisor 来管理多个进程
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

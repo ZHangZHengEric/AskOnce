@@ -30,7 +30,7 @@ class TaskManager:
     STATUS_EXEC_FAILED = "EXEC_FAILED"
     STATUS_WAITTING    = "WAITTING"
     STATUS_RUNNING     = "RUNNING"
-    def __init__(jobdurl='',worker_name='') -> None:
+    def __init__(self,jobdip='127.0.0.1',jobdport=20033,jobdurl='',worker_name='') -> None:
         self.worker_name = worker_name
         if len(jobdurl)==0:
             default_jobd_url = os.getenv('JOBD_ADDR', '')
