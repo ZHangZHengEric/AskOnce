@@ -16,6 +16,9 @@ RUN ./build.sh
 
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
+RUN apt-get update -y --allow-unauthenticated
+RUN apt install pandoc -y -i https://mirrors.aliyun.com/pypi/simple/
+
 # 安装服务需要的所有依赖
 RUN pip install --upgrade openai -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install scipy sentencepiece datasets rank_bm25 joblib sentence_transformers jionlp cn2an diffusers pymysql rouge safetensors -i https://mirrors.aliyun.com/pypi/simple/
@@ -24,7 +27,6 @@ RUN pip install md2pdf -i https://mirrors.aliyun.com/pypi/simple/
 RUN apt install fonts-noto-cjk fontconfig -y
 RUN apt install libreoffice libreoffice-l10n-zh-cn libreoffice-help-zh-cn -y --fix-missing
 RUN pip install opencc==1.1.6 -i https://mirrors.aliyun.com/pypi/simple/
-RUN apt install pandoc -y
 RUN pip install pypandoc -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install python-docx markdown python-pptx PyMuPDF tqdm unstructured -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install matplotlib pandas python-magic pylibmagic pypdf opencc-python-reimplemented docx2txt langchain -i https://mirrors.aliyun.com/pypi/simple/
