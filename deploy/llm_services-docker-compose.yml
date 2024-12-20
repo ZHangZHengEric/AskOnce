@@ -27,7 +27,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python data_convert/data_convert.py --jobdurl ${JOBD_ADDR} --tasktype convert_file_to_text --worker_name convert_file_to_text_0 --correct_dict_path /home/workspace/AskOnce/assets/dict.json "
+    command: /bin/bash -c "python data_convert/data_convert.py --jobdurl ${JOBD_ADDR} --tasktype convert_file_to_text --worker_name convert_file_to_text_0 --correct_dict_path /home/workspace/AskOnce/algorithm/assets/dict.json "
     tty: true
     volumes:
       - ${CONVERT_CACHE}:${CONVERT_CACHE}
@@ -81,7 +81,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python result_add_reference/result_add_reference.py --jobdurl ${JOBD_ADDR} --tasktype result_add_reference --worker_name result_add_reference_0 --stop_word_file /home/workspace/AskOnce/assets/stopwords.txt "
+    command: /bin/bash -c "python result_add_reference/result_add_reference.py --jobdurl ${JOBD_ADDR} --tasktype result_add_reference --worker_name result_add_reference_0 --stop_word_file /home/workspace/AskOnce/algorithm/assets/stopwords.txt "
     tty: true
     environment:
       - LANG=C.UTF-8
