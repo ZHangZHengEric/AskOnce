@@ -45,9 +45,9 @@ RUN pip install elasticsearch Levenshtein -i https://mirrors.aliyun.com/pypi/sim
 ENV PYTHONPATH /home/workspace:$PYTHONPATH
 WORKDIR /home/workspace/AskOnce/algorithm
 
-COPY --from=build /etc/localtime /etc/localtime
-COPY --from=build /etc/timezone /etc/timezone
-COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=build /usr/share/ca-certificates /usr/share/ca-certificates
-COPY --from=build /etc/ssl/certs /etc/ssl/certs
-COPY --from=build /home/workspace/build .
+COPY --from=builder /etc/localtime /etc/localtime
+COPY --from=builder /etc/timezone /etc/timezone
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /usr/share/ca-certificates /usr/share/ca-certificates
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=builder /home/workspace/build .
