@@ -47,7 +47,7 @@ def process(task_input,task_type,model,args,tm):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--jobdurl", type=str, default=default_jobd_url, help="jobd use url not use ip & port")
+    parser.add_argument("--jobdurl", type=str, default='', help="jobd use url not use ip & port")
     parser.add_argument("--tasktype", type=str, nargs='+', default=[], help="task_type")
     parser.add_argument("--worker_name", type=str, default='', help="worker_name")
     args = parser.parse_args()

@@ -1,6 +1,6 @@
 #!/bin/bash
 export PYTHONPATH="../../:$PYTHONPATH"
-# 需要打包的服务文件名，标准的服务是放在相同名称文件夹下的，如：document_split/document_split.py
+# 需要打包的服务文件名，标准的服务是放在相同名称文件夹下的，
 services=(
  document_split
  answer_by_documents

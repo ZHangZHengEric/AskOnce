@@ -166,7 +166,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/search_result_post_process.py --jobdurl ${JOBD_ADDR} --tasktype search_result_post_process --worker_name search_result_post_process_0"
+    command: /bin/bash -c "python search_result_post_process/search_result_post_process.py --jobdurl ${JOBD_ADDR} --tasktype search_result_post_process --worker_name search_result_post_process_0"
     tty: true
     environment:
       - LANG=C.UTF-8
