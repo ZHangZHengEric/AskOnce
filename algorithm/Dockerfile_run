@@ -1,31 +1,3 @@
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
-ENV DEBIAN_FRONTEND=noninteractive
-
-# 设置为中国国内源
-RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
-RUN sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
-
-WORKDIR /home/workspace
-
-# 更新系统并安装必要的软件
-RUN apt-get update -y --allow-unauthenticated && \
-    apt-get install -y ttf-mscorefonts-installer && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# 安装nuitka来打包
-RUN pip install nuitka -i https://mirrors.aliyun.com/pypi/simple/ --no-cache-dir
-
-# 设置 Python 工作路径
-ENV PYTHONPATH /home/workspace:$PYTHONPATH
-
-# 设置工作目录
-WORKDIR /home/workspace/AskOnce/algorithm
-
-# 复制当前代码到容器内并设置权限
-COPY . .
-RUN chmod 777 build.sh && ./build.sh
-
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -56,20 +28,11 @@ ENV PYTHONPATH /home/workspace:$PYTHONPATH
 
 WORKDIR /home/workspace/AskOnce/algorithm
 
-# 复制时区等信息
-COPY --from=builder /etc/localtime /etc/localtime
-COPY --from=builder /etc/timezone /etc/timezone
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=builder /usr/share/ca-certificates /usr/share/ca-certificates
-COPY --from=builder /etc/ssl/certs /etc/ssl/certs
-# 复制构建结果
-COPY --from=builder /home/workspace/AskOnce/algorithm/build .
-
+# 复制静态文件
 COPY assets /home/workspace/AskOnce/assets
 # 复制 supervisor 配置文件
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ENV WORKSPACE_DIR /home/workspace/AskOnce/algorithm
-
 # 启动 supervisor 来管理多个进程
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 

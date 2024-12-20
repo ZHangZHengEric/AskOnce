@@ -1,0 +1,28 @@
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 设置为中国国内源
+RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+RUN sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+
+WORKDIR /home/workspace
+
+# 更新系统并安装必要的软件
+RUN apt-get update -y --allow-unauthenticated && \
+    apt-get install -y ttf-mscorefonts-installer && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 安装nuitka来打包
+RUN pip install nuitka -i https://mirrors.aliyun.com/pypi/simple/ --no-cache-dir
+
+# 设置 Python 工作路径
+ENV PYTHONPATH /home/workspace:$PYTHONPATH
+
+# 设置工作目录
+WORKDIR /home/workspace/AskOnce/algorithm
+
+# 复制当前代码到容器
+COPY . .
+# 设置权限 并构建产物
+RUN chmod 777 build.sh
