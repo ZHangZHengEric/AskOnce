@@ -104,57 +104,6 @@ services:
       - LANG=C.UTF-8
     restart: "no"
 
-  askonce_search_engine_insert_0:
-    container_name:   askonce_search_engine_insert_0
-    build:
-      context: ../../
-      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
-      network: host
-    env_file:
-      - .env
-    image: askonce_llm_service_image
-    network_mode: host
-    shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/insert.py --jobdurl ${JOBD_ADDR} --tasktype search_engine_insert --worker_name search_engine_insert_0 --es_address ${ES_ADDR} --es_username ${ES_USERNAME} --es_password ${ES_PASSWORD} --es_setting_path /home/workspace/AskOnce/assets/es_setting.json "
-    tty: true
-    environment:
-      - LANG=C.UTF-8
-    restart: "no"
-
-  askonce_search_engine_delete_0:
-    container_name:   askonce_search_engine_delete_0
-    build:
-      context: ../../
-      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
-      network: host
-    env_file:
-      - .env
-    image: askonce_llm_service_image
-    network_mode: host
-    shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/delete.py --jobdurl ${JOBD_ADDR} --tasktype search_engine_delete --worker_name search_engine_delete_0 --es_address ${ES_ADDR} --es_username ${ES_USERNAME} --es_password ${ES_PASSWORD} --es_setting_path /home/workspace/AskOnce/assets/es_setting.json "
-    tty: true
-    environment:
-      - LANG=C.UTF-8
-    restart: "no"
-
-  askonce_search_engine_search_0:
-    container_name:   askonce_search_engine_search_0
-    build:
-      context: ../../
-      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
-      network: host
-    env_file:
-      - .env
-    image: askonce_llm_service_image
-    network_mode: host
-    shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/search.py --jobdurl ${JOBD_ADDR} --tasktype search_engine_search --worker_name search_engine_search_0 --es_address ${ES_ADDR} --es_username ${ES_USERNAME} --es_password ${ES_PASSWORD} --es_setting_path /home/workspace/AskOnce/assets/es_setting.json "
-    tty: true
-    environment:
-      - LANG=C.UTF-8
-    restart: "no"
-
   askonce_document_split_0:
     container_name:   askonce_document_split_0
     build:

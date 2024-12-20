@@ -17,8 +17,6 @@ RUN pip install --upgrade openai -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install scipy sentencepiece datasets rank_bm25 joblib sentence_transformers jionlp cn2an diffusers pymysql rouge safetensors -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install weasyprint -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install md2pdf -i https://mirrors.aliyun.com/pypi/simple/
-RUN apt update --fix-missing
-RUN DEBIAN_FRONTEND=noninteractive apt-get install  ttf-mscorefonts-installer -y
 RUN apt install fonts-noto-cjk fontconfig -y
 RUN apt install libreoffice libreoffice-l10n-zh-cn libreoffice-help-zh-cn -y --fix-missing
 RUN pip install opencc==1.1.6 -i https://mirrors.aliyun.com/pypi/simple/
@@ -31,7 +29,3 @@ RUN pip install git+https://ghgo.xyz/https://github.com/mailgun/flanker@v0.9.14
 RUN pip install --upgrade "embedchain[dataloaders]"
 RUN pip install jieba -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install elasticsearch Levenshtein -i https://mirrors.aliyun.com/pypi/simple/
-
-# 开始打包
-RUN chmod 777 ./build.sh
-RUN ./build.sh

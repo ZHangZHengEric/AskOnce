@@ -7,7 +7,7 @@ files=("document_split" "answer_by_documents")
 for file in "${files[@]}"; do
   echo "开始构建服务 $file..."
   (
-    pyinstaller --onefile --noconfirm --clean --distpath ./bin/ --add-data "../algorithm:AskOnce/algorithm" --name "$file" "services/$file/$file.py"
+    pyinstaller --onefile --strip --noconfirm --distpath ./bin/ --add-data "../algorithm:AskOnce/algorithm" --name "$file" "services/$file/$file.py"
   ) &
 # Wait for all background jobs to complete
 wait

@@ -24,9 +24,9 @@ type AddByBatchTextReq struct {
 }
 
 type ImportText struct {
-	Title    string                 `json:"title"`
-	Text     string                 `json:"text"`
-	Metadata map[string]interface{} `json:"metadata"`
+	Title    string                 `json:"title" form:"title"`
+	Text     string                 `json:"text" form:"text"`
+	Metadata map[string]interface{} `json:"metadata" form:"metadata"`
 }
 
 type ListReq struct {
