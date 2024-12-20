@@ -9,9 +9,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install ttf-mscorefonts-installer -y
 RUN pip install pyinstaller -i https://mirrors.aliyun.com/pypi/simple/
 # 设置 Python 工作路径
 ENV PYTHONPATH /home/workspace:$PYTHONPATH
-ADD ../algorithm /home/workspace/AskOnce
 #设置工作目录
 WORKDIR /home/workspace/AskOnce/algorithm
+COPY . .
 # 安装服务需要的所有依赖
 RUN pip install --upgrade openai -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install scipy sentencepiece datasets rank_bm25 joblib sentence_transformers jionlp cn2an diffusers pymysql rouge safetensors -i https://mirrors.aliyun.com/pypi/simple/
