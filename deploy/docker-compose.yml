@@ -74,21 +74,6 @@ services:
       file: llm_services-docker-compose.yml
       service: askonce_split_question_0
     profiles: ["all", "llm"]
-  askonce_search_engine_insert_0:
-    extends:
-      file: llm_services-docker-compose.yml
-      service: askonce_search_engine_insert_0
-    profiles: ["all", "llm"]
-  askonce_search_engine_delete_0:
-    extends:
-      file: llm_services-docker-compose.yml
-      service: askonce_search_engine_delete_0
-    profiles: ["all", "llm"]
-  askonce_search_engine_search_0:
-    extends:
-      file: llm_services-docker-compose.yml
-      service: askonce_search_engine_search_0
-    profiles: [ "all", "llm" ]
   askonce_document_split_0:
     extends:
       file: llm_services-docker-compose.yml
