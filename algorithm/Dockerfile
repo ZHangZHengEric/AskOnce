@@ -17,7 +17,7 @@ RUN ./build.sh
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
 RUN apt-get update -y --allow-unauthenticated
-RUN apt install pandoc -y -i https://mirrors.aliyun.com/pypi/simple/
+RUN  apt-get install -y pandoc
 ENV DEBIAN_FRONTEND=noninteractive
 
 # 安装服务需要的所有依赖
