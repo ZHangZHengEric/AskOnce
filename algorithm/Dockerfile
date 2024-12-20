@@ -1,17 +1,29 @@
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
 WORKDIR /home/workspace
 # 更新系统并安装必要的软件
-RUN apt-get update -y --allow-unauthenticated
-RUN apt install git -y
-RUN apt update --fix-missing
-RUN DEBIAN_FRONTEND=noninteractive apt-get install ttf-mscorefonts-installer -y
-# 安装pyinstaller来打包
-RUN pip install pyinstaller -i https://mirrors.aliyun.com/pypi/simple/
+
+RUN sed  -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list \
+    && sed  -i "s/security.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list \
+
+RUN apt update && apt install -y --no-install-recommends \
+        git \
+        ttf-mscorefonts-installer \
+        && update-ca-certificates \
+        && rm -rf /var/lib/apt/lists/* \
+        && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime  \
+        && echo Asia/Shanghai > /etc/timezone
+# 安装nuitka来打包
+RUN pip install nuitka -i https://mirrors.aliyun.com/pypi/simple/
 # 设置 Python 工作路径
 ENV PYTHONPATH /home/workspace:$PYTHONPATH
 #设置工作目录
 WORKDIR /home/workspace/AskOnce/algorithm
 COPY . .
+RUN chmod 777 build.sh
+RUN ./build.sh
+
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+
 # 安装服务需要的所有依赖
 RUN pip install --upgrade openai -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install scipy sentencepiece datasets rank_bm25 joblib sentence_transformers jionlp cn2an diffusers pymysql rouge safetensors -i https://mirrors.aliyun.com/pypi/simple/
@@ -29,3 +41,13 @@ RUN pip install git+https://ghgo.xyz/https://github.com/mailgun/flanker@v0.9.14
 RUN pip install --upgrade "embedchain[dataloaders]"
 RUN pip install jieba -i https://mirrors.aliyun.com/pypi/simple/
 RUN pip install elasticsearch Levenshtein -i https://mirrors.aliyun.com/pypi/simple/
+
+ENV PYTHONPATH /home/workspace:$PYTHONPATH
+WORKDIR /home/workspace/AskOnce/algorithm
+
+COPY --from=build /etc/localtime /etc/localtime
+COPY --from=build /etc/timezone /etc/timezone
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=build /usr/share/ca-certificates /usr/share/ca-certificates
+COPY --from=build /etc/ssl/certs /etc/ssl/certs
+COPY --from=build /home/workspace/build .
