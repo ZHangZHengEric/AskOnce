@@ -44,4 +44,4 @@ COPY --from=builder /etc/timezone /etc/timezone
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /usr/share/ca-certificates /usr/share/ca-certificates
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
-COPY --from=builder /home/workspace/build .
+COPY --from=builder /home/workspace/AskOnce/algorithm/build .
