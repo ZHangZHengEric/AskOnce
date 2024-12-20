@@ -16,7 +16,7 @@ mkdir -p build
 # Loop through the array and execute pyinstaller for each file
 for s in "${services[@]}"; do
     echo "服务 $s 构建开始."
-    nuitka --nofollow-imports --enable-plugin=multiprocessing --include-package=AskOnce --output-dir=build/  --static-libpython=no -o "build/$s.bin" --remove-output "services/$s/$s.py"
+    nuitka  --nofollow-imports --enable-plugin=multiprocessing --include-package=AskOnce --output-dir=build/  --static-libpython=no -o "build/$s.bin" --remove-output "services/$s/$s.py"
 # Wait for all background jobs to complete
     echo "服务 $s 构建完成."
 done
