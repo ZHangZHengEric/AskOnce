@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
+FROM dockerpull.org/pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
 WORKDIR /home/workspace
 # 更新系统并安装必要的软件
 
@@ -22,7 +22,7 @@ COPY . .
 RUN chmod 777 build.sh
 RUN ./build.sh
 
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+FROM dockerpull.org/pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
 # 安装服务需要的所有依赖
 RUN pip install --upgrade openai -i https://mirrors.aliyun.com/pypi/simple/
