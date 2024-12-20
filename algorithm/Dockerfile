@@ -1,17 +1,9 @@
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
 WORKDIR /home/workspace
 # 更新系统并安装必要的软件
+RUN apt-get update -y --allow-unauthenticated
 
-RUN sed  -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list \
-    && sed  -i "s/security.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list \
-
-RUN apt update && apt install -y --no-install-recommends \
-        git \
-        ttf-mscorefonts-installer \
-        && update-ca-certificates \
-        && rm -rf /var/lib/apt/lists/* \
-        && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime  \
-        && echo Asia/Shanghai > /etc/timezone
+RUN DEBIAN_FRONTEND=noninteractive apt-get install  ttf-mscorefonts-installer -y
 # 安装nuitka来打包
 RUN pip install nuitka -i https://mirrors.aliyun.com/pypi/simple/
 # 设置 Python 工作路径
