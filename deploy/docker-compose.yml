@@ -104,4 +104,9 @@ services:
       file: llm_services-docker-compose.yml
       service: askonce_search_result_post_process_0
     profiles: ["all", "llm"]
+  askonce_translate_0:
+    extends:
+      file: llm_services-docker-compose.yml
+      service: askonce_translate_0
+    profiles: ["all", "llm"]
 
