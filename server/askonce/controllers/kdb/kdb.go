@@ -38,9 +38,9 @@ type DeleteController struct {
 	flow.Controller
 }
 
-func (entity *DeleteController) Action(req *dto_kdb.SingleKdbReq) (interface{}, error) {
+func (entity *DeleteController) Action(req *dto_kdb.KdbDeleteReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbService)).(*service.KdbService)
-	return s.Delete(req.KdbId)
+	return s.Delete(req.KdbId, req.KdbName)
 }
 
 type InfoController struct {

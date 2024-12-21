@@ -92,6 +92,12 @@ type QuestionFocusRes struct {
 }
 
 type ReportAskRes struct {
-	MarkdownContent string               `json:"markdownContent"` //
-	SearchResult    []CommonSearchOutput `json:"searchResult"`
+	DocxUrl      string               `json:"docxUrl"` //
+	Answer       string               `json:"answer"`
+	AnswerRefer  []DoReferItem        `json:"answerRefer"`
+	SearchResult []CommonSearchOutput `json:"searchResult"`
+}
+
+type ReportDocxRes struct {
+	DocxUrl string `json:"docxUrl"` //
 }

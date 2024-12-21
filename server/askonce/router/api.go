@@ -25,7 +25,7 @@ func API(engine *gin.Engine) {
 		// 知识库列表
 		kdbGroup.POST("list", flow.Use[dto_kdb.ListReq](new(kdb.ListController)))
 		// 知识库删除
-		kdbGroup.POST("delete", flow.Use[dto_kdb.SingleKdbReq](new(kdb.DeleteController)))
+		kdbGroup.POST("delete", flow.Use[dto_kdb.KdbDeleteReq](new(kdb.DeleteController)))
 		// 知识库文档
 		docGroup := kdbGroup.Group("doc")
 		{
@@ -50,7 +50,9 @@ func API(engine *gin.Engine) {
 		{
 			// 网页直搜
 			searchGroup.POST("web", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
-			// 知识库库直搜
+			// 根据会话继续搜索
+			searchGroup.POST("session", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
+			// 知识库直搜
 			searchGroup.POST("kdb", flow.Use[dto_search.KdbSearchReq](new(search.KdbSearchController)))
 			// 对话搜索（同步接口）
 			searchGroup.POST("chatAskSync", flow.Use[dto_search.ChatAskReq](new(search.ChatAskSyncController)))
@@ -59,6 +61,8 @@ func API(engine *gin.Engine) {
 			searchGroup.POST("questionFocus", flow.Use[dto_search.QuestionFocusReq](new(search.QuestionFocusController)))
 			// 报告搜索（同步接口，输出docx）
 			searchGroup.POST("reportAskSync", flow.Use[dto_search.ReportAskReq](new(search.ReportAskController)))
+			// 报告搜索（输出docx）
+			searchGroup.POST("reportToDocx", flow.Use[dto_search.ReportDocxReq](new(search.ReportDocxController)))
 		}
 	}
 

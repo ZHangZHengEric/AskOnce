@@ -75,6 +75,7 @@ type QuestionFocusReq struct {
 }
 
 type ReportAskReq struct {
+	KdbId       int64          `json:"kdbId" binding:"required"`
 	Subject     string         `json:"subject" binding:"required"`  // 主题
 	Question    string         `json:"question" binding:"required"` // 问题
 	Focus       []string       `json:"focus"`                       // 关注点
@@ -87,4 +88,16 @@ type AskSearchParam struct {
 	TopK int64 `json:"topK"`
 	// 结构化过滤
 	StructureFilter map[string]any `json:"structureFilter"`
+}
+
+type SessionSearchReq struct {
+	SessionId string `json:"sessionId"  binding:"required"`
+	Question  string `json:"question" binding:"required"`
+}
+
+type ReportDocxReq struct {
+	DocName      string               `json:"docName"  binding:"required"`
+	Answer       string               `json:"answer"`
+	AnswerRefer  []DoReferItem        `json:"answerRefer"`
+	SearchResult []CommonSearchOutput `json:"searchResult"`
 }

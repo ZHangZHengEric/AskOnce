@@ -27,7 +27,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python data_convert/data_convert.py --jobdurl ${JOBD_ADDR} --tasktype convert_file_to_text --worker_name convert_file_to_text_0 --correct_dict_path /home/workspace/AskOnce/assets/dict.json "
+    command: /bin/bash -c "python data_convert/data_convert.py --jobdurl ${JOBD_ADDR} --tasktype convert_file_to_text --worker_name convert_file_to_text_0 --correct_dict_path /home/workspace/AskOnce/algorithm/assets/dict.json "
     tty: true
     volumes:
       - ${CONVERT_CACHE}:${CONVERT_CACHE}
@@ -81,7 +81,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python result_add_reference/result_add_reference.py --jobdurl ${JOBD_ADDR} --tasktype result_add_reference --worker_name result_add_reference_0 --stop_word_file /home/workspace/AskOnce/assets/stopwords.txt "
+    command: /bin/bash -c "python result_add_reference/result_add_reference.py --jobdurl ${JOBD_ADDR} --tasktype result_add_reference --worker_name result_add_reference_0 --stop_word_file /home/workspace/AskOnce/algorithm/assets/stopwords.txt "
     tty: true
     environment:
       - LANG=C.UTF-8
@@ -99,57 +99,6 @@ services:
     network_mode: host
     shm_size: '4gb'
     command: /bin/bash -c "python split_question/split_question.py --jobdurl ${JOBD_ADDR} --tasktype split_question --worker_name split_question_0 --api_key ${LLM_API_KEY} --model_name ${LLM_MODEL_NAME} --platform_api_url ${LLM_API_URL} "
-    tty: true
-    environment:
-      - LANG=C.UTF-8
-    restart: "no"
-
-  askonce_search_engine_insert_0:
-    container_name:   askonce_search_engine_insert_0
-    build:
-      context: ../../
-      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
-      network: host
-    env_file:
-      - .env
-    image: askonce_llm_service_image
-    network_mode: host
-    shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/insert.py --jobdurl ${JOBD_ADDR} --tasktype search_engine_insert --worker_name search_engine_insert_0 --es_address ${ES_ADDR} --es_username ${ES_USERNAME} --es_password ${ES_PASSWORD} --es_setting_path /home/workspace/AskOnce/assets/es_setting.json "
-    tty: true
-    environment:
-      - LANG=C.UTF-8
-    restart: "no"
-
-  askonce_search_engine_delete_0:
-    container_name:   askonce_search_engine_delete_0
-    build:
-      context: ../../
-      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
-      network: host
-    env_file:
-      - .env
-    image: askonce_llm_service_image
-    network_mode: host
-    shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/delete.py --jobdurl ${JOBD_ADDR} --tasktype search_engine_delete --worker_name search_engine_delete_0 --es_address ${ES_ADDR} --es_username ${ES_USERNAME} --es_password ${ES_PASSWORD} --es_setting_path /home/workspace/AskOnce/assets/es_setting.json "
-    tty: true
-    environment:
-      - LANG=C.UTF-8
-    restart: "no"
-
-  askonce_search_engine_search_0:
-    container_name:   askonce_search_engine_search_0
-    build:
-      context: ../../
-      dockerfile: AskOnce/algorithm/services/docker_files/Dockerfile
-      network: host
-    env_file:
-      - .env
-    image: askonce_llm_service_image
-    network_mode: host
-    shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/search.py --jobdurl ${JOBD_ADDR} --tasktype search_engine_search --worker_name search_engine_search_0 --es_address ${ES_ADDR} --es_username ${ES_USERNAME} --es_password ${ES_PASSWORD} --es_setting_path /home/workspace/AskOnce/assets/es_setting.json "
     tty: true
     environment:
       - LANG=C.UTF-8
@@ -217,7 +166,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python search_engine/search_result_post_process.py --jobdurl ${JOBD_ADDR} --tasktype search_result_post_process --worker_name search_result_post_process_0"
+    command: /bin/bash -c "python search_result_post_process/search_result_post_process.py --jobdurl ${JOBD_ADDR} --tasktype search_result_post_process --worker_name search_result_post_process_0"
     tty: true
     environment:
       - LANG=C.UTF-8

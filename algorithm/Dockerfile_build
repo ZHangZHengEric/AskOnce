@@ -1,0 +1,51 @@
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel as builder
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 设置为中国国内源
+RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+RUN sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+
+WORKDIR /home/workspace
+
+# 更新系统并安装必要的软件
+RUN apt-get update -y --allow-unauthenticated && \
+    apt-get install -y ttf-mscorefonts-installer && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 安装nuitka来打包
+RUN pip install nuitka -i https://mirrors.aliyun.com/pypi/simple/ --no-cache-dir
+
+# 设置 Python 工作路径
+ENV PYTHONPATH /home/workspace:$PYTHONPATH
+
+# 设置工作目录
+WORKDIR /home/workspace/AskOnce/algorithm
+
+# 复制当前代码到容器
+COPY . .
+
+RUN echo '#!/bin/bash
+          # 需要打包的服务文件名，标准的服务是放在相同名称文件夹下的，
+          services=(
+           document_split
+           answer_by_documents
+           data_convert
+           generate_outlines
+           result_add_reference
+           split_question
+           question_rewrite
+           net_rag_assessment
+           search_result_post_process
+           )
+          mkdir -p build
+          # Loop through the array and execute pyinstaller for each file
+          for s in "${services[@]}"; do
+              echo "服务 $s 构建开始."
+              nuitka  --nofollow-imports --enable-plugin=multiprocessing --include-package=AskOnce --output-dir=build/  --static-libpython=no -o "build/$s.bin" --remove-output "services/$s/$s.py"
+          # Wait for all background jobs to complete
+              echo "服务 $s 构建完成."
+          done' \
+          >> build.sh
+# 设置权限 并构建产物
+RUN chmod 777 build.sh && ./build.sh

@@ -31,11 +31,11 @@ class TaskManager:
     STATUS_WAITTING    = "WAITTING"
     STATUS_RUNNING     = "RUNNING"
     def __init__(self,jobdip='127.0.0.1',jobdport=20033,jobdurl='',worker_name='') -> None:
-        self.jobdip = jobdip
-        self.jobdport = jobdport
         self.worker_name = worker_name
         if len(jobdurl)==0:
-            self.jobdurl = 'http://{}:{}'.format(self.jobdip,self.jobdport)
+            default_jobd_url = os.getenv('JOBD_ADDR', '')
+            print('读取环境变量jobd_url:',default_jobd_url)
+            self.jobdurl = default_jobd_url
         else:
             self.jobdurl = jobdurl
         self.GetTaskUrl = "{}/jobd/worker/GetTask"

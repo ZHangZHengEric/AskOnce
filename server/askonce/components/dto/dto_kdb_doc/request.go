@@ -9,8 +9,7 @@ type AddReq struct {
 	KdbId int64                 `json:"kdbId" form:"kdbId" binding:"required"`
 	Type  string                `json:"type" form:"type" binding:"required"`
 	File  *multipart.FileHeader `json:"file" form:"file"`
-	Text  string                `json:"text" form:"text"`
-	Title string                `json:"title" form:"title"`
+	ImportText
 }
 
 type AddZipReq struct {
@@ -25,8 +24,9 @@ type AddByBatchTextReq struct {
 }
 
 type ImportText struct {
-	Title string `json:"title"`
-	Text  string `json:"text"`
+	Title    string                 `json:"title" form:"title"`
+	Text     string                 `json:"text" form:"text"`
+	Metadata map[string]interface{} `json:"metadata" form:"metadata"`
 }
 
 type ListReq struct {

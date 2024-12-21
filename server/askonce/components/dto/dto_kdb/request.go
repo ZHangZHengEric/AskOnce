@@ -50,6 +50,11 @@ type SingleKdbReq struct {
 	KdbId int64 `json:"kdbId" form:"kdbId" binding:"required"`
 }
 
+type KdbDeleteReq struct {
+	KdbId   int64  `json:"kdbId" form:"kdbId"`
+	KdbName string `json:"kdbName" form:"kdbName" `
+}
+
 type UserListReq struct {
 	KdbId     int64  `json:"kdbId" binding:"required"`
 	AuthType  int    `json:"authType" binding:"required"`

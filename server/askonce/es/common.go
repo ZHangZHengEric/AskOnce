@@ -116,7 +116,7 @@ func CommonDocumentDelete(ctx *gin.Context, indexName string, docIds []int64) (e
 		return err
 	}
 	if !exist {
-		return fmt.Errorf("index %s does not exist", indexName)
+		return
 	}
 	query := &types.Query{
 		Terms: &types.TermsQuery{

@@ -18,13 +18,13 @@ type LoginInfoSession struct {
 
 // 知识库设置
 type KdbSetting struct {
-	RetrievalModel RetrievalSetting `json:"retrievalModel"` // 召回设置
-	KdbAttach      KdbAttach        `json:"kdbAttach"`      // 附加属性
+	ReferenceThreshold float32   `json:"referenceThreshold"` // 引用参考阈值
+	KdbAttach          KdbAttach `json:"kdbAttach"`          // 附加属性
 }
 
 // 检索设置
 type RetrievalSetting struct {
-	SearchMethod          DocSearchMethod         `json:"searchMethod"`          // 搜索方法 “keyword", "vector", "all"
+	SearchMethod          string                  `json:"searchMethod"`          // 搜索方法 “keyword", "vector", "all"
 	TopK                  int                     `json:"topK"`                  // 召回多少条
 	ScoreThresholdEnabled bool                    `json:"scoreThresholdEnabled"` // 搜索分数阈值开启
 	ScoreThreshold        float32                 `json:"scoreThreshold"`        // 搜索分数阈值
@@ -32,12 +32,10 @@ type RetrievalSetting struct {
 }
 
 // 文档搜索方法
-type DocSearchMethod string
-
 const (
-	DocSearchMethodKeyWord DocSearchMethod = "keyword"
-	DocSearchMethodVector  DocSearchMethod = "vector"
-	DocSearchMethodAll     DocSearchMethod = "all"
+	DocSearchMethodKeyWord string = "keyword"
+	DocSearchMethodVector  string = "vector"
+	DocSearchMethodAll     string = "all"
 )
 
 type KdbAttach struct {

@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"askonce/gpt"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/xiangtao94/golib/pkg/elastic8"
@@ -25,7 +24,13 @@ type SWebConf struct {
 	ElasticSearch elastic8.ElasticConf            `yaml:"elastic"`
 	Api           map[string]*http.HttpClientConf `yaml:"api"` // 调用三方后台
 	MinioConf     SMinioConf                      `yaml:"minioConf"`
-	Channel       map[string]gpt.ChannelConf      `yaml:"channel"`
+	Gpt           map[string]GPTConf              `yaml:"channel"`
+}
+
+type GPTConf struct {
+	Addr  string `yaml:"addr"`
+	AK    string `yaml:"ak"`
+	Model string `yaml:"model"`
 }
 
 type SMinioConf struct {

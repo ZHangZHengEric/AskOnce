@@ -117,9 +117,6 @@ func (k *KdbService) Info(kdbId int64) (res *dto_kdb.InfoRes, err error) {
 		DataSourceType: dto_kdb.DataSourceType(kdb.DataType),
 		WordCount:      0,
 		DocumentCount:  0,
-		KdbSetting: dto.KdbSetting{
-			RetrievalModel: kdbSetting.RetrievalModel,
-		},
 	}
 	if kdbSetting.KdbAttach.CoverId != 0 {
 		cover, _ := k.kdbCoverDao.GetById(kdbSetting.KdbAttach.CoverId)
@@ -130,11 +127,19 @@ func (k *KdbService) Info(kdbId int64) (res *dto_kdb.InfoRes, err error) {
 	return
 }
 
-func (k *KdbService) Delete(kdbId int64) (res interface{}, err error) {
+func (k *KdbService) Delete(kdbId int64, kdbName string) (res interface{}, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
-	kdb, err := k.kdbData.CheckKdbAuth(kdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
-	if err != nil {
-		return
+	var kdb *models.Kdb
+	if kdbId > 0 {
+		kdb, err = k.kdbData.CheckKdbAuth(kdbId, userInfo.UserId, models.AuthTypeSuperAdmin)
+		if err != nil {
+			return
+		}
+	} else {
+		kdb, err = k.kdbData.CheckKdbAuthByName(kdbName, userInfo, models.AuthTypeSuperAdmin)
+		if err != nil {
+			return
+		}
 	}
 	err = k.kdbData.DeleteKdb(userInfo.UserId, kdb)
 	if err != nil {

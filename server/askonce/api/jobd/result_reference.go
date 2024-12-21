@@ -18,10 +18,14 @@ type ReferenceMap struct {
 	ReferenceList []int `json:"reference_list"`
 }
 
-func (entity *JobdApi) ResultAddReference(result string, referenceList []string) (res *AtomResultReferenceRes, err error) {
+func (entity *JobdApi) ResultAddReference(result string, referenceList []string, threshold float32) (res *AtomResultReferenceRes, err error) {
+	defaultThreshold := float32(0.7)
+	if threshold > 0 {
+		defaultThreshold = threshold
+	}
 	input := &AtomResultReferenceReq{
 		Id:            "",
-		Threshold:     0.7,
+		Threshold:     defaultThreshold,
 		Result:        result,
 		ReferenceList: referenceList,
 	}

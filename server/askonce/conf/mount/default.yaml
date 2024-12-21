@@ -31,12 +31,10 @@ elastic:
 
 channel:
   chat:
-    source: ${BACKEND_CHANNEL_CHAT_SOURCE}
     addr: ${BACKEND_CHANNEL_CHAT_ADDR}
     ak: ${BACKEND_CHANNEL_CHAT_AK}
     model: ${BACKEND_CHANNEL_CHAT_MODEL}
   embedding:
-    source: ${BACKEND_CHANNEL_EMBEDDING_SOURCE}
     addr: ${BACKEND_CHANNEL_EMBEDDING_ADDR}
     ak: ${BACKEND_CHANNEL_EMBEDDING_AK}
     model: ${BACKEND_CHANNEL_EMBEDDING_MODEL}
@@ -57,6 +55,14 @@ api:
     service: bochaai
     # 请求完整地址
     domain: https://api.bochaai.com
+    # 超时配置，time.Duration 类型
+    timeout: 60s
+    # 重试次数，最多执行retry+1次
+    retry: 2
+  gouno:
+    service: gouno
+    # 请求完整地址
+    domain: ${GOUNO_ADDR}
     # 超时配置，time.Duration 类型
     timeout: 60s
     # 重试次数，最多执行retry+1次

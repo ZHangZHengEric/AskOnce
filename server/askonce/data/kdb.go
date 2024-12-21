@@ -3,7 +3,6 @@ package data
 import (
 	"askonce/components"
 	"askonce/components/dto"
-	"askonce/es"
 	"askonce/helpers"
 	"askonce/models"
 	"encoding/json"
@@ -120,19 +119,13 @@ func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAut
 func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 
 	defaultSetting := dto.KdbSetting{
-		RetrievalModel: dto.RetrievalSetting{
-			SearchMethod:          dto.DocSearchMethodAll,
-			TopK:                  10,
-			ScoreThresholdEnabled: true,
-			ScoreThreshold:        0.3,
-			Weights: dto.RetrievalSettingWeights{
-				KeywordWeight: 0.5,
-				VectorWeight:  0.5,
-			},
-		},
+		ReferenceThreshold: float32(0.7),
 		KdbAttach: dto.KdbAttach{
 			Language: "zh-cn",
 		},
+	}
+	if user.Account == "fujian" {
+		defaultSetting.ReferenceThreshold = float32(0.5)
 	}
 	cover, err := k.kdbCoverDao.GetRandom()
 	if err != nil {
@@ -248,7 +241,6 @@ func (k *KdbData) DeleteKdb(userId string, kdb *models.Kdb) (err error) {
 		return
 	}
 	err = tx.Commit().Error
-	_ = es.CommonIndexDelete(k.GetCtx(), kdb.GetIndexName())
 	return
 }
 

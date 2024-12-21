@@ -8,7 +8,7 @@ import (
 var ProcessTypeNameMap = map[string]string{
 	"analyze":   "问题分析",
 	"webSearch": "全网搜索",
-	"vdbSearch": "知识库搜索",
+	"kdbSearch": "知识库搜索",
 	"summary":   "整理答案",
 	"finish":    "回答完成",
 }
@@ -44,4 +44,11 @@ func (entity *AskProcessDao) Insert(add *AskProcess) error {
 func (entity *AskProcessDao) GetBySessionId(sessionId string) (res []*AskProcess, err error) {
 	err = entity.GetDB().Where("session_id = ?", sessionId).Find(&res).Error
 	return
+}
+
+func (entity *AskProcessDao) BatchInsert(process []*AskProcess) (err error) {
+	if process == nil || len(process) == 0 {
+		return
+	}
+	return entity.GetDB().Create(process).Error
 }
