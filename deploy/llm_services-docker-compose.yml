@@ -27,7 +27,7 @@ services:
     image: askonce_llm_service_image
     network_mode: host
     shm_size: '4gb'
-    command: /bin/bash -c "python data_convert/data_convert.py --jobdurl ${JOBD_ADDR} --tasktype convert_file_to_text --worker_name convert_file_to_text_0 --correct_dict_path /home/workspace/AskOnce/algorithm/assets/dict.json "
+    command: /bin/bash -c "python data_convert/convert_file_to_text.py --jobdurl ${JOBD_ADDR} --tasktype convert_file_to_text --worker_name convert_file_to_text_0 --correct_dict_path /home/workspace/AskOnce/algorithm/assets/dict.json "
     tty: true
     volumes:
       - ${CONVERT_CACHE}:${CONVERT_CACHE}
