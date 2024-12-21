@@ -1093,6 +1093,9 @@ func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search
 	}
 	// es搜索的片段
 	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Question, new(data.SearchOptions).WithIndex(kdb.GetIndexName()))
+	if err != nil {
+		return nil, components.ErrorQueryError
+	}
 	res.SearchResult = append(res.SearchResult, esSearchResult...)
 	return
 
