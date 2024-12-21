@@ -22,6 +22,7 @@ from functools import reduce
 from dataclasses import dataclass
 from email.utils import parsedate_to_datetime
 from email.parser import BytesParser
+from email.feedparser import headerRE
 from email.iterators import _structure
 from typing import Dict, Optional, List
 from email.header import decode_header
@@ -31,8 +32,7 @@ from AskOnce.algorithm.lib.data_convert.basic_loaders.base_loader import BaseLoa
 from AskOnce.algorithm.lib.data_convert.utils.json_serializable import register_deserializable, JSONSerializable
 from AskOnce.algorithm.lib.data_convert.utils.dist_id import Snowflake
 # 本地调试, push前备注掉
-# debug = False
-# os.environ.setdefault("CONVERT_CACHE", "/mnt/nvme0n1/chendong/aiwork/data/convert_file_to_text_data/CONVERT_CACHE")
+
 try:
     CONVERT_CACHE = os.environ.get("CONVERT_CACHE")
     if CONVERT_CACHE is None or len(CONVERT_CACHE) <=0:
@@ -40,8 +40,6 @@ try:
 except:
     raise Exception("CONVERT_CACHE 不存在")
     
-
-# CONVERT_CACHE = os.environ.get("CONVERT_CACHE")
 dist_id = Snowflake(worker_id=2024, data_center_id=2024)
 convert = OpenCC("tw2s").convert
 
@@ -102,12 +100,26 @@ class EmailLoader(BaseLoader):
     
     @staticmethod
     def _decode_payload(part):
-            charset = part.get_content_charset() or "utf-8"
-            try:
-                return part.get_payload(decode=True).decode(charset)
-                # return part.get_payload(decode=True).decode("utf-8")
-            except UnicodeDecodeError:
-                return part.get_payload(decode=True).decode(charset, errors="replace")
+        charset = part.get_content_charset() or "utf-8"
+        if charset == 'gb2312':
+            charset = 'GB18030'
+        try:
+            if  part['Content-Transfer-Encoding'] in ['base64','quoted-printable']:
+                if part['Content-Transfer-Encoding'] in ['base64']:
+                    payload = part.get_payload(decode=False)
+                    # 检查payload 中是否是连续的base64 编码，不是清楚掉其他的内容
+                    payload_list = payload.split('\n')
+                    for index, item in enumerate(payload_list):
+                        if len(item)==0:
+                            payload_list = payload_list[:index]
+                            break
+                    return base64.b64decode('\n'.join(payload_list)).decode(charset,errors='ignore').encode('utf-8').decode('utf-8')
+                return part.get_payload(decode=True).decode(charset,errors='ignore').encode('utf-8').decode('utf-8')
+            return part.get_payload(decode=False).encode('utf-8').decode('utf-8')
+        except Exception as e:
+            print(traceback.print_exc())
+            print('error')
+            return part.get_payload(decode=True).decode(charset, errors="replace").encode('utf-8').decode('utf-8')
     
     def get_attachment(self, mime_msg):
         '''邮件附件解析'''
@@ -135,10 +147,12 @@ class EmailLoader(BaseLoader):
                         try:
                             attach_content, _ = self.factory.create(local_file_path)
                             # 在UTF-8编码中，代理字符是一些特殊的字符，用于在UTF-16编码中表示那些在基本多语言平面（BMP）之外的字符。这些字符在UTF-8编码中是不允许出现的，因此在尝试将包含这些代理字符的文本编码为UTF-8时会出现错误。
-                            attach_content = attach_content.encode('utf-8', 'ignore')
+                            attach_content = attach_content.encode('utf-8', 'ignore').decode('utf-8','ignore')
+                            # print('attach_content',attach_content)
                             attach_content = convert(attach_content)
                             # attach_content = clean_whitespace(attach_content)
-                        except:
+                        except Exception as e:
+                            traceback.print_exc()
                             attach_content, _ = "", None
             else:
                 attach_content = ""
@@ -174,22 +188,58 @@ class EmailLoader(BaseLoader):
                 if ctype == "text/html":
                     html_content = self._decode_payload(part)
                     html2txt_content = html2txt(html_content)
-                    body['html_content'] = convert(html_content)
-                    body['html2txt_content'] = html2txt_content
+                    body['html_content'] += convert(html_content)
+                    body['html2txt_content'] += html2txt_content
                 if ctype == "text/plain":
                     text_content =  self._decode_payload(part)
                     text_content = clean_body_text_placeholder(text_content)
                     # text_content = clean_whitespace(text_content)
-                    body['text_content'] = convert(text_content)
+                    body['text_content'] += convert(text_content)
         else:
-            body['text_content'] = clean_body_text_placeholder(self._decode_payload(mime_msg))
+            text_content = self._decode_payload(mime_msg)
+            text_content = clean_body_text_placeholder(text_content)
+            body['text_content'] = convert(text_content)
         return body
   
 
     def load_data(self, file_path):
-        with open(file_path, 'rb') as f:
-            mime_msg = BytesParser(policy=policy.default).parse(f)
+        encodeing_type = ['utf-8','big5','gbk','gb2312']
+        for item in  encodeing_type:
+            try:
+                f = open(file_path, 'r',encoding=item) # errors='ignore'
+                eml_content = f.read()
+            except:
+                f = None
+                print(item,'not work')
+                continue
+            break
+        if f is None:
+            f = open(file_path, 'r',encoding='utf-8',errors='ignore') # errors='ignore'
+            eml_content = f.read()
+        # raw_email = open(file_path, 'rb').read()
+        # detected_encoding = chardet.detect(raw_email)['encoding']
+        # print(detected_encoding)
+        # eml_content = raw_email.decode(detected_encoding)
+        # print(eml_content)
+        eml_content_lines = eml_content.split('\n')
+        start_index=0
+        end_index = len(eml_content_lines)
+        for index, line in enumerate(eml_content_lines):
+            if headerRE.match(line):
+                start_index = index
+                break
+
+        eml_content = '\n'.join(eml_content_lines[start_index:end_index])
+        # smtp_pattern = re.compile(r'MAIL FROM:<[^>]+>.*?BDAT \d+ LAST\n', re.DOTALL)
+        # smtp_commands = smtp_pattern.findall(eml_content)
+
+        # 移除SMTP命令后，剩下的就是邮件内容
+        # email_content = smtp_pattern.sub('', eml_content)
+        # print(eml_content)
+        # mime_msg = BytesParser(policy=policy.default).parsebytes(mail_data)
+        mime_msg = email.message_from_string(eml_content, policy=policy.default)
         
+        # print('邮件的key',mime_msg.keys())
         # 邮件结构
         # print(_structure(mime_msg))
         # dfs 邮件结构, 搞清楚 content_type, 编码, 
@@ -197,17 +247,26 @@ class EmailLoader(BaseLoader):
         #     # print(part.items())
         #     print(part.get_content_type())
         #     print(part.get_content_charset())
-        sender = convert(mime_msg.get("From", ''))
-        sender_obj = address.parse(sender)
         try:
-            sender_name = sender_obj.display_name
+            sender = convert(mime_msg.get("From", ''))
+            sender_obj = address.parse(sender)
+            try:
+                sender_name = sender_obj.display_name
+            except:
+                sender_name = ""
+            try:
+                sender_address = sender_obj.ace_address
+            except:
+                sender_address = ""
         except:
+            sender = ""
             sender_name = ""
-        try:
-            sender_address = sender_obj.ace_address
-        except:
             sender_address = ""
-        receiver= convert(mime_msg.get("To",''))
+            
+        try:
+            receiver= convert(mime_msg.get("To",''))
+        except:
+            receiver = ''
         receiver_list = receiver.split(",")
         receiver_obj_list = address.parse_list(receiver_list)
         receiver_names = []
@@ -219,10 +278,13 @@ class EmailLoader(BaseLoader):
             except:
                 continue
         subject= convert(mime_msg.get("Subject",''))
-        date_str = mime_msg.get("Date", '')
-        date_obj = parsedate_to_datetime(date_str)
-        date_str = datetime.strftime(date_obj, "%Y-%m-%d %H:%M:%S")
-        date = convert(date_str)
+        try:
+            date_str = mime_msg.get("Date", '')
+            date_obj = parsedate_to_datetime(date_str)
+            date_str = datetime.strftime(date_obj, "%Y-%m-%d %H:%M:%S")
+            date = convert(date_str)
+        except:
+            date = ''
         cc = convert(mime_msg.get("CC", ''))
         body = self.get_body(mime_msg) # 保留换行格式
         if body['text_content'] is None or len(body['text_content']) <= 0:
