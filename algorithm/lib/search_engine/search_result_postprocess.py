@@ -29,7 +29,10 @@ class SearchResultPostProcess:
             min_score = min(item['score'] for item in search_results_by_source[source_item]  )
             for index in range(len(search_results_by_source[source_item])):
                 search_results_by_source[source_item][index]['ranking'] = index+1
-                search_results_by_source[source_item][index]['normal_score']=  (search_results_by_source[source_item][index]["score"] - min_score) / (max_score - min_score)
+                if max_score-min_score>0:
+                    search_results_by_source[source_item][index]['normal_score'] =  (search_results_by_source[source_item][index]["score"] - min_score) / (max_score - min_score) 
+                else:
+                    search_results_by_source[source_item][index]['normal_score'] = 1
             search_results_new.extend(search_results_by_source[source_item])
         search_results = search_results_new
         # print(search_results)
