@@ -64,15 +64,16 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 		opts.QuerySize = 20
 	}
 	results = make([]dto_search.CommonSearchOutput, 0)
+	var errS error
 	if len(opts.IndexName) == 0 { // web搜索
-		results, err = entity.webSearch(question, opts.QuerySize)
-		if err != nil {
+		results, errS = entity.webSearch(question, opts.QuerySize)
+		if errS != nil {
 			entity.LogErrorf("web搜索报错")
 		}
 	} else { // 知识库搜索
 		// es搜索的片段
-		results, err = entity.esSearch(question, opts.IndexName, opts.QuerySize)
-		if err != nil {
+		results, errS = entity.esSearch(question, opts.IndexName, opts.QuerySize)
+		if errS != nil {
 			entity.LogErrorf("es搜索报错")
 		}
 	}
