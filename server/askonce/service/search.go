@@ -1059,7 +1059,7 @@ func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}
 	return searchResult, nil
 }
 
-func (s *SearchService) SessionSearch(req *dto_search.SessionSearchReq) (res interface{}, err error) {
+func (s *SearchService) SessionSearch(req *dto_search.SessionSearchReq) (res *dto_search.SessionSearchRes, err error) {
 	askInfo, err := s.askInfoDao.GetBySessionId(req.SessionId)
 	if err != nil {
 		return nil, err
@@ -1079,7 +1079,10 @@ func (s *SearchService) SessionSearch(req *dto_search.SessionSearchReq) (res int
 		return nil, err
 	}
 	err = s.referenceUpdate(req.SessionId, searchResult)
-	return searchResult, nil
+	res = &dto_search.SessionSearchRes{
+		SearchResult: searchResult,
+	}
+	return res, nil
 }
 
 func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search.KdbSearchRes, err error) {
