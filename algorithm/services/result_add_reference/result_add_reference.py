@@ -29,8 +29,9 @@ def process(task_input,task_type,model,args,tm):
     if task_type ==args.tasktype[0]:
         start_time = time.time()
         result_all = {} 
-        reference_map,reference_list_accept_index_range = model.get_answer_with_reference_map(task_input.result,task_input.reference_list,task_input.threshold)
+        reference_map,reference_list_accept_index_range,reference_result = model.get_answer_with_reference_map(task_input.result,task_input.reference_list,task_input.threshold)
         result_all['reference_map'] = reference_map
+        result_all['reference_result'] = reference_result
         result_all['reference_list_select_index'] = reference_list_accept_index_range
         print(result_all)
         end_time = time.time()
