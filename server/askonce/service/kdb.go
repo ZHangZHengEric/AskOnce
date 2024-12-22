@@ -37,7 +37,7 @@ func (k *KdbService) Add(req *dto_kdb.AddReq) (res *dto_kdb.AddRes, err error) {
 	if exist {
 		return nil, components.ErrorKdbExist
 	}
-	add, err := k.kdbData.AddKdb(req.Name, req.Intro, userInfo)
+	add, err := k.kdbData.AddKdb(req.Name, req.Intro, req.Type, userInfo)
 	if err != nil {
 		return
 	}

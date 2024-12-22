@@ -1,0 +1,44 @@
+{
+  "properties": {
+    "doc_id": {
+      "type": "keyword",
+      "index": false
+    },
+    "doc_segment_id": {
+      "type": "keyword",
+      "index": false
+    },
+    "doc_content": {
+      "index": true,
+      "type": "text",
+      "analyzer": "my_ana",
+      "similarity": "my_similarity"
+    },
+    "emb": {
+      "type": "dense_vector",
+      "dims": 4096,
+      "similarity": "cosine"
+    },
+    "end": {
+      "type": "long"
+    },
+    "start": {
+      "type": "long"
+    },
+    "sender": {
+      "type": "keyword"
+    },
+    "sender_address": {
+      "type": "keyword"
+    },
+    "receiver": {
+      "type": "keyword"
+    },
+    "receiver_address": {
+      "type": "keyword"
+    },
+    "date": {
+      "type": "date"
+    }
+  }
+}

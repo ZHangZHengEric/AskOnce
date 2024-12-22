@@ -81,16 +81,14 @@
 <script setup>
 import {reactive, onMounted, computed, ref} from 'vue'
 import {useRouter, useRoute} from 'vue-router'
-import {knowledgeAuth, knowledgeDataDel, knowledgeDataList, knowledgeDataRedo} from "@/http/api/knowledge";
-import {ArrowRight} from "@element-plus/icons-vue";
-import {ElMessage, ElMessageBox} from "element-plus";
+import {knowledgeDataDel, knowledgeDataList, knowledgeDataRedo} from "@/http/api/knowledge";
+import {ElMessage} from "element-plus";
 import ConfirmDialog from "@/components/Dialog/ConfirmDialog.vue";
 import {useI18n} from 'vue-i18n'
 import axios from "axios";
 import {useKnowledgeStore} from '@/store'
 
 const knowledgeStore = useKnowledgeStore()
-
 const {t} = useI18n()
 const router = useRouter()
 const route = useRoute()
@@ -184,9 +182,9 @@ const canAdd = computed(() => {
 const toAdd = () => {
   if (canAdd.value)
     router.push({path: '/knowledge-add', query: {id: route.query.id, type: route.query.type}})
-  else {
+    // router.push({path: '/database-add', query: {id: route.query.id, type: route.query.type}})
+  else
     ElMessage.error("您没有权限")
-  }
 }
 
 

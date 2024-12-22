@@ -78,7 +78,7 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 		}
 	}
 	if len(results) == 0 || len(sessionId) == 0 {
-		return
+		return []dto_search.CommonSearchOutput{}, nil
 	}
 	now := time.Now()
 	searchResultStr, _ := json.Marshal(results)

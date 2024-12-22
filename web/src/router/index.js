@@ -71,14 +71,19 @@ const constantRoutes = [
             {
                 path: "knowledge-add",
                 name: "knowledgeAdd",
-                component: () => import("@/views/knowledge/add.vue"),
+                component: () => import("@/views/knowledge/config/add-file.vue"),
             },
-
+            {
+                path: "database-add",
+                name: "databaseAdd",
+                component: () => import("@/views/knowledge/config/add-database.vue"),
+            },
             {
                 path: "knowledge-config",
                 name: "knowledgeConfig",
                 component: () => import("@/views/knowledge/config/index.vue"),
                 children: [
+
                     {
                         path: "detail",
                         name: "knowledgeDetail",
