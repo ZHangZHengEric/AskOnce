@@ -105,7 +105,7 @@ func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAut
 		return nil, err
 	}
 	if kdb == nil && kdbAutoCreate {
-		kdb, err = k.AddKdb(kdbName, "", user)
+		kdb, err = k.AddKdb(kdbName, "", "", user)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,7 @@ func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAut
 	return
 }
 
-func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
+func (k *KdbData) AddKdb(kdbName, kdbIntro, kdbType string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 
 	defaultSetting := dto.KdbSetting{
 		ReferenceThreshold: float32(0.7),
@@ -140,7 +140,7 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro string, user dto.LoginInfoSession) (a
 		Intro:    kdbIntro,
 		Setting:  datatypes.NewJSONType(defaultSetting),
 		Type:     models.KdbTypePrivate,
-		DataType: models.DataTypeCommon,
+		DataType: models.DataTypeDB,
 		Creator:  user.Account,
 		CrudModel: orm.CrudModel{
 			CreatedAt: now,

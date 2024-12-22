@@ -166,7 +166,7 @@ type SessionSearchController struct {
 	flow.Controller
 }
 
-func (entity *SessionSearchController) Action(req *dto_search.WebSearchReq) (interface{}, error) {
+func (entity *SessionSearchController) Action(req *dto_search.SessionSearchReq) (interface{}, error) {
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
-	return s.WebSearch(req)
+	return s.SessionSearch(req)
 }

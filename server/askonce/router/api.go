@@ -51,7 +51,7 @@ func API(engine *gin.Engine) {
 			// 网页直搜
 			searchGroup.POST("web", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
 			// 根据会话继续搜索
-			searchGroup.POST("session", flow.Use[dto_search.WebSearchReq](new(search.WebSearchController)))
+			searchGroup.POST("session", flow.Use[dto_search.WebSearchReq](new(search.SessionSearchController)))
 			// 知识库直搜
 			searchGroup.POST("kdb", flow.Use[dto_search.KdbSearchReq](new(search.KdbSearchController)))
 			// 对话搜索（同步接口）

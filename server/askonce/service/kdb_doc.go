@@ -99,7 +99,7 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 	doc := &models.KdbDoc{
 		KdbId:      kdb.Id,
 		DocName:    file.OriginName,
-		DataSource: models.DataTypeCommon,
+		DataSource: models.DataTypeDoc,
 		SourceId:   file.Id,
 		Status:     models.KdbDocRunning,
 		UserId:     userInfo.UserId,

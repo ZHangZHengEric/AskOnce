@@ -1059,7 +1059,7 @@ func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}
 	return searchResult, nil
 }
 
-func (s *SearchService) SessionSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
+func (s *SearchService) SessionSearch(req *dto_search.SessionSearchReq) (res interface{}, err error) {
 	askInfo, err := s.askInfoDao.GetBySessionId(req.SessionId)
 	if err != nil {
 		return nil, err

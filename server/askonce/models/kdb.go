@@ -21,9 +21,9 @@ const (
 )
 
 const (
-	DataTypeCommon = "common" // 通用文件库
-	DataTypeEml    = "eml"    // 邮件库
-	DataTypeSql    = "sql"    // sql数据库
+	DataTypeDoc = "doc"      // 通用文件库
+	DataTypeEml = "eml"      // 邮件库
+	DataTypeDB  = "database" // sql数据库
 )
 
 // Kdb  知识库表

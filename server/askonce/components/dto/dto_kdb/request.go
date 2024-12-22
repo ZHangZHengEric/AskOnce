@@ -33,7 +33,7 @@ type DataRedoReq struct {
 
 type AddReq struct {
 	Name     string `json:"name"`      // 知识库名称
-	Type     string `json:"type"`      // 知识库类型 doc sql
+	Type     string `json:"type"`      // 知识库类型 doc database
 	Intro    string `json:"intro"`     // 知识库介绍
 	Language string `json:"language" ` // 知识库语言
 }
