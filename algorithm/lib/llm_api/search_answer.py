@@ -234,7 +234,7 @@ class SearchAnswer (LLMBaseAPI):
                 all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
                 yield directory_item['title_level']+'# '+directory_item['content']+'\n'
                 
-            new_search_result = self.search_internet(question+directory_item['content'],search_session_id)
+            new_search_result = self.search_session(question+' '+directory_item['content'],search_session_id)
             one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,new_search_result,stream)
             if stream:
                 for item in one_chapter_result:
@@ -259,7 +259,7 @@ class SearchAnswer (LLMBaseAPI):
         
         for more_question in more_question_or_topic_list:
             yield '> ## '+more_question+'\n'
-            new_search_result = self.search_internet(more_question,search_session_id)
+            new_search_result = self.search_session(more_question,search_session_id)
             more_question_answer = self.detailed_no_chapter_answer(more_question,new_search_result,stream)
             if stream:
                 for item in more_question_answer:
@@ -305,7 +305,7 @@ class SearchAnswer (LLMBaseAPI):
                 all_result += directory_item['title_level']+'# '+directory_item['content']+'\n'
                 if stream:
                     yield directory_item['title_level']+'# '+directory_item['content']+'\n'
-            new_search_result = self.search_internet(question+directory_item['content'],search_session_id)
+            new_search_result = self.search_session(question+' '+directory_item['content'],search_session_id)
             one_chapter_result = self.professional_answer_one_chapter(question,directory_item['content'],directory_str,new_search_result,stream)
             if stream:
                 for item in one_chapter_result:

@@ -3,7 +3,11 @@ from typing import Any
 
 from openai import OpenAI
 import requests
+import logging
 import traceback
+logging.basicConfig(level = logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+logger  = logging.getLogger(__name__)
 class LLMBaseAPI:
     def __init__(
             self, 
@@ -22,22 +26,26 @@ class LLMBaseAPI:
         )    
         
     
-    def search_internet(self,queston,search_session_id):
+    def search_session(self,queston,search_session_id):
         if search_session_id is None:
             return []
         if self.search_url is not None:
-            url = self.search_url+'/askonce/api/v1/search/web'
+            url = self.search_url+'/askonce/api/v1/search/session'
             headers = {'Content-Type': 'application/json','User-Source':'admin'}
             data = {
                 "sessionId":search_session_id,
                 "question" : queston,
             }
+            logger.info(data)
             try:
                 response = requests.post(url, headers=headers, json=data)
-                return response.json()["data"]
+                if response.json()["data"]['searchResult'] is not None:
+                    return response.json()["data"]['searchResult']
+                else:
+                    return []
             except:
                 traceback.print_exc()
-                print('检查askonce 网络搜索引擎服务')
+                logger.error('检查askonce 网络搜索引擎服务')
         else:
             raise ValueError('set the search url first')
     
@@ -67,7 +75,7 @@ class LLMBaseAPI:
             stream=False
         ) 
         return_content = completion.choices[0].message.content
-        print('使用模型', self.model_name, '推理耗时', f'{time.time() - start_time:.4f} 秒')
+        logger.info(f'使用模型{self.model_name}, 推理耗时 {time.time() - start_time:.4f} 秒')
         return return_content
     
     def ask_llm_stream(
@@ -101,7 +109,7 @@ class LLMBaseAPI:
             if delta.content:
                 content= delta.content
                 yield content
-        print('使用模型', self.model_name, '推理耗时', f'{time.time() - start_time:.4f} 秒')
+        logger.info(f'使用模型{self.model_name}, 推理耗时 {time.time() - start_time:.4f} 秒')
         return content
 
     
@@ -157,4 +165,4 @@ class LLMBaseAPI:
 
     
     def log(self, message: str, title: str = "Info"):
-        print(f"{title}: {message}")
+        logger.info(f"{title}: {message}")
