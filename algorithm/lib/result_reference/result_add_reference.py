@@ -229,7 +229,7 @@ class AddReference:
             current_end = current_item['end']
             current_refers = current_item['refers']
             j = i + 1
-            while j < len(reference_map) and reference_map[j]['start'] <= current_end:
+            while j < len(reference_map) and (reference_map[j]['start'] -3) <= current_end:
                 # 检查引用文章是否一致，不一致则不能合并
                 next_refers = reference_map[j]['refers']
                 if self._check_refers_compatible(current_refers, next_refers):
@@ -328,7 +328,7 @@ class AddReference:
         self.threshold = self.init_threshold
         
         # 对reference_map_new 进行合并
-        reference_map_new= self.merge_reference_map(reference_map_new):
+        reference_map_new= self.merge_reference_map(reference_map_new)
         logger.info(reference_map_new)
         
         return reference_map,reference_list_accept_index_range,reference_map_new
