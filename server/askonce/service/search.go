@@ -24,7 +24,6 @@ import (
 	"github.com/xiangtao94/golib/pkg/sse"
 	"github.com/xiangtao94/golib/pkg/zlog"
 	"golang.org/x/sync/errgroup"
-	"html/template"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -1192,25 +1191,15 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 
 func (s *SearchService) ReportDocx(req *dto_search.ReportDocxReq) (res *dto_search.ReportDocxRes, err error) {
 	goUnoApi := flow.Create(s.GetCtx(), new(api.GoUnoApi))
-	html, referHtmlMap := annotateHTML(req.OriginAnswer, req.AnswerRefer, req.SearchResult)
-	fmt.Println(referHtmlMap)
-	if len(req.Answer) > 0 {
 
-		file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.DocName), html)
-		if err != nil {
-			return nil, err
-		}
-		res = &dto_search.ReportDocxRes{
-			DocxUrl: file,
-		}
-	} else {
-		file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.DocName), html)
-		if err != nil {
-			return nil, err
-		}
-		res = &dto_search.ReportDocxRes{
-			DocxUrl: file,
-		}
+	html, _ := annotateHTML(req.OriginAnswer, req.Answer, req.AnswerRefer, req.SearchResult)
+
+	file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.DocName), html)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_search.ReportDocxRes{
+		DocxUrl: file,
 	}
 	return
 }
@@ -1222,35 +1211,44 @@ func markdownToHTML(answer string) string {
 }
 
 // annotateHTML adds references to the rendered Markdown HTML
-func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) (string, map[string]string) {
+func annotateHTML(answer string, pAnswer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) (string, map[string]string) {
 	answerRunes := []rune(answer)
 	referHtmlMap := make(map[string]string)
+	orderS := []string{}
 	for _, refer := range refers {
 		// Add referenced text with annotations
 		referencedText := string(answerRunes[refer.Start:refer.End])
-		// 判断前面是否有标题等字段，
 		var tmp bytes.Buffer
-		tmp.WriteString("<span style='color:blue;' title='")
+		if header, found := extractMarkdownHeaderFormat(referencedText); found {
+			fmt.Printf("提取的 Markdown 标题: %s\n", header)
+			referencedText = strings.Replace(referencedText, header, "", 1)
+		}
+		tmp.WriteString("<span style='color:blue;'>")
 		supStr := ""
 		// Add all reference details
-		for i, ref := range refer.Refers {
+		for _, ref := range refer.Refers {
 			if ref.Index < len(searchResult) {
-				source := searchResult[ref.Index]
-				referenceSnippet := string([]rune(source.Content)[ref.ReferStart:ref.ReferEnd])
-				tmp.WriteString(template.HTMLEscapeString(fmt.Sprintf("%s", referenceSnippet)))
-				if i < len(refer.Refers)-1 {
-					tmp.WriteString(", ")
-				}
 				showNum := ref.Index + 1
 				supStr = supStr + fmt.Sprintf("<sup>[%d]</sup> ", showNum)
 			}
 		}
 		// Close annotation and mark referenced text
-		tmp.WriteString(fmt.Sprintf("'>%s%s</span>", referencedText, supStr))
+		tmp.WriteString(fmt.Sprintf("%s%s</span>", referencedText, supStr))
 		referHtmlMap[referencedText] = tmp.String()
+		orderS = append(orderS, referencedText)
 	}
+	for _, v := range orderS {
+		answer = strings.Replace(answer, v, referHtmlMap[v], 1)
+	}
+	if len(pAnswer) > 0 {
+		for _, v := range orderS {
+			pAnswer = strings.Replace(pAnswer, fmt.Sprintf("[%s]()", v), referHtmlMap[v], 1)
+		}
+		answer = pAnswer
+	}
+	html := markdownToHTML(answer)
 
-	return "", referHtmlMap
+	return html, referHtmlMap
 }
 
 func randShuffle(slice []string) {
@@ -1275,4 +1273,17 @@ func resolveAnswerStyle(typeN string, kdbId int64) string {
 	default:
 		return "simplify"
 	}
+}
+
+// 判断文本开头是否包含 Markdown 标题并返回 Markdown 标题格式（#）
+func extractMarkdownHeaderFormat(text string) (string, bool) {
+	// 正则表达式：匹配文本开头的 Markdown 标题格式（仅提取 # 和空格部分）
+	re := regexp.MustCompile(`^#{1,6}\s+`)
+	match := re.FindString(text)
+
+	if match != "" {
+		// 返回匹配到的标题格式（# 和空格部分）
+		return match, true
+	}
+	return "", false
 }
