@@ -11,7 +11,9 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/gomodule/redigo v1.9.2
 	github.com/google/uuid v1.6.0
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/minio/minio-go/v7 v7.0.81
 	github.com/minio/pkg v1.7.5
 	github.com/mitchellh/mapstructure v1.5.0
