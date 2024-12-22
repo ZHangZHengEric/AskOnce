@@ -137,7 +137,7 @@ const loadData = (refresh) => {
 }
 
 const toDetail = (item) => {
-  router.push({path: '/knowledge-config/detail', query: {id: item.id, type: item.type}})
+  router.push({path: '/knowledge-config/detail', query: {id: item.id, type: item.type, dataSource: item.dataSource}})
 }
 
 </script>

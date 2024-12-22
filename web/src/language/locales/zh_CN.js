@@ -57,8 +57,10 @@ export default {
         //详情
         detail: '数据详情',
         add: "添加",
+        dbDetail:'数据库详情',
         dataType: '文件类型',
         fileName: '文件名称',
+        dbName:'数据库名称',
         createAt: '上传时间',
         status: '状态',
         operate: '操作',

@@ -1,7 +1,8 @@
 <template>
   <el-breadcrumb :separator-icon="ArrowRight" class="absolute top-4 left-12">
     <el-breadcrumb-item :to="{ path: '/knowledge-manage' }">{{ $t('knowledge.knowledgeManage') }}</el-breadcrumb-item>
-    <el-breadcrumb-item :to="{ path: `/knowledge-config/detail`,query:{id:route.query.id,type:route.query.type} }">
+    <el-breadcrumb-item
+        :to="{ path: `/knowledge-config/detail`,query:{id:route.query.id,type:route.query.type,dataSource:route.query.dataSource} }">
       {{ $t('knowledge.detail') }}
     </el-breadcrumb-item>
     <el-breadcrumb-item>{{ $t('knowledge.add') }}</el-breadcrumb-item>
