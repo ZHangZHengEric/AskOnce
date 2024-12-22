@@ -25,6 +25,7 @@ func (f *DatasourceData) OnCreate() {
 }
 
 func (f *DatasourceData) Add(userId string, info dto_kdb_doc.ImportDataBase) (add *models.Datasource, err error) {
+
 	add = &models.Datasource{
 		Id:           helpers.GenIDStr(),
 		Type:         info.DbType,
