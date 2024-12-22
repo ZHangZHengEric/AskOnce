@@ -105,6 +105,8 @@ func (s *SearchService) KdbList(req *dto_search.KdbListReq) (res *dto_search.Kdb
 			CreateTime: kdb.CreatedAt.Format(time.DateTime),
 		})
 	}
+	res.Total = int64(len(res.List))
+
 	start, end := utils.SlicePage(req.PageNo, req.PageSize, len(res.List)) //第一页1页显示3条数据
 	res.List = res.List[start:end]                                         //  分页后的数据
 	return
@@ -1221,21 +1223,12 @@ func markdownToHTML(answer string) string {
 
 // annotateHTML adds references to the rendered Markdown HTML
 func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) (string, map[string]string) {
-	var annotatedHTML bytes.Buffer
-	lastIndex := 0
 	answerRunes := []rune(answer)
 	referHtmlMap := make(map[string]string)
 	for _, refer := range refers {
-		// Add non-referenced text before the current reference
-		if lastIndex < refer.Start {
-			nonReferencedText := string(answerRunes[lastIndex:refer.Start])
-			annotatedHTML.WriteString(nonReferencedText)
-		}
-
 		// Add referenced text with annotations
 		referencedText := string(answerRunes[refer.Start:refer.End])
 		// 判断前面是否有标题等字段，
-
 		var tmp bytes.Buffer
 		tmp.WriteString("<span style='color:blue;' title='")
 		supStr := ""
@@ -1252,21 +1245,12 @@ func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult [
 				supStr = supStr + fmt.Sprintf("<sup>[%d]</sup> ", showNum)
 			}
 		}
-
 		// Close annotation and mark referenced text
 		tmp.WriteString(fmt.Sprintf("'>%s%s</span>", referencedText, supStr))
 		referHtmlMap[referencedText] = tmp.String()
-		annotatedHTML.Write(tmp.Bytes())
-		lastIndex = refer.End
 	}
 
-	// Add remaining non-referenced text
-	if lastIndex < len(answerRunes) {
-		remainingText := answerRunes[lastIndex:]
-		annotatedHTML.WriteString(string(remainingText))
-	}
-
-	return markdownToHTML(annotatedHTML.String()), referHtmlMap
+	return "", referHtmlMap
 }
 
 func randShuffle(slice []string) {
