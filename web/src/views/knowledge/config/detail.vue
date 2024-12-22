@@ -26,8 +26,13 @@
           style="width: 100%"
           show-overflow-tooltip
           :header-cell-style="{'background-color':'#E0E0E033'}">
-        <el-table-column :label="$t('knowledge.dataType')" prop="dataSuffix"></el-table-column>
-        <el-table-column :label="$t('knowledge.fileName')" prop="dataName"></el-table-column>
+        <template v-if="route.query.dataSource === 'database'">
+          <el-table-column :label="$t('knowledge.dbName')" prop="dataName"></el-table-column>
+        </template>
+        <template v-else>
+          <el-table-column :label="$t('knowledge.dataType')" prop="dataSuffix"></el-table-column>
+          <el-table-column :label="$t('knowledge.fileName')" prop="dataName"></el-table-column>
+        </template>
         <el-table-column :label="$t('knowledge.createAt')" prop="createTime"></el-table-column>
         <el-table-column :label="$t('knowledge.status')">
           <template #default="scope">
@@ -110,6 +115,9 @@ onMounted(() => {
 })
 
 const downLoad = (index, item) => {
+  if (route.query.dataSource === 'database'){
+    return
+  }
   const url = item.dataPath
   axios({
     method: 'get',
@@ -134,6 +142,18 @@ const downLoad = (index, item) => {
 }
 
 const toDetail = (index, item) => {
+  if (route.query.dataSource === 'database'){
+    router.push({
+      name:'databaseDetail',
+      query: {
+        id: route.query.id,
+        type: route.query.type,
+        dataSource: route.query.dataSource,
+        databaseId: item.id
+      }
+    })
+    return
+  }
   const {href} = router.resolve({
     path: "/online-file",
     query: {
@@ -180,11 +200,15 @@ const canAdd = computed(() => {
 })
 
 const toAdd = () => {
-  if (canAdd.value)
-    router.push({path: '/knowledge-add', query: {id: route.query.id, type: route.query.type}})
-    // router.push({path: '/database-add', query: {id: route.query.id, type: route.query.type}})
-  else
+  if (canAdd.value) {
+    if (route.query.dataSource === 'database') {
+      router.push({path: '/database-add', query: {id: route.query.id, type: route.query.type}})
+    } else {
+      router.push({path: '/knowledge-add', query: {id: route.query.id, type: route.query.type}})
+    }
+  } else {
     ElMessage.error("您没有权限")
+  }
 }
 
 

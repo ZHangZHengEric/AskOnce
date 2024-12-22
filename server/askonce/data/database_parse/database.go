@@ -48,7 +48,6 @@ type DatabaseConfig struct {
 
 func GetDatabaseHandler(config DatabaseConfig) (DatabaseHandler, error) {
 	var handler DatabaseHandler
-	defer handler.Close()
 	switch config.Driver {
 	case "mysql":
 		mysqlDB, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.User, config.Password, config.Host, config.Port, config.Database)),

@@ -98,6 +98,7 @@ type SessionSearchReq struct {
 type ReportDocxReq struct {
 	DocName      string               `json:"docName"  binding:"required"`
 	Answer       string               `json:"answer"`
+	OriginAnswer string               `json:"originAnswer"`
 	AnswerRefer  []DoReferItem        `json:"answerRefer"`
 	SearchResult []CommonSearchOutput `json:"searchResult"`
 }

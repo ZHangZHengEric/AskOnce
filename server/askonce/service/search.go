@@ -24,7 +24,6 @@ import (
 	"github.com/xiangtao94/golib/pkg/sse"
 	"github.com/xiangtao94/golib/pkg/zlog"
 	"golang.org/x/sync/errgroup"
-	"html/template"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -105,6 +104,8 @@ func (s *SearchService) KdbList(req *dto_search.KdbListReq) (res *dto_search.Kdb
 			CreateTime: kdb.CreatedAt.Format(time.DateTime),
 		})
 	}
+	res.Total = int64(len(res.List))
+
 	start, end := utils.SlicePage(req.PageNo, req.PageSize, len(res.List)) //第一页1页显示3条数据
 	res.List = res.List[start:end]                                         //  分页后的数据
 	return
@@ -1190,7 +1191,9 @@ func (s *SearchService) ReportAsk(req *dto_search.ReportAskReq) (res *dto_search
 
 func (s *SearchService) ReportDocx(req *dto_search.ReportDocxReq) (res *dto_search.ReportDocxRes, err error) {
 	goUnoApi := flow.Create(s.GetCtx(), new(api.GoUnoApi))
-	html := annotateHTML(req.Answer, req.AnswerRefer, req.SearchResult)
+
+	html, _ := annotateHTML(req.OriginAnswer, req.Answer, req.AnswerRefer, req.SearchResult)
+
 	file, err := goUnoApi.HtmlToDocx(fmt.Sprintf("%s.html", req.DocName), html)
 	if err != nil {
 		return nil, err
@@ -1208,47 +1211,44 @@ func markdownToHTML(answer string) string {
 }
 
 // annotateHTML adds references to the rendered Markdown HTML
-func annotateHTML(answer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) string {
-	var annotatedHTML bytes.Buffer
-	lastIndex := 0
+func annotateHTML(answer string, pAnswer string, refers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput) (string, map[string]string) {
 	answerRunes := []rune(answer)
+	referHtmlMap := make(map[string]string)
+	orderS := []string{}
 	for _, refer := range refers {
-		// Add non-referenced text before the current reference
-		if lastIndex < refer.Start {
-			nonReferencedText := string(answerRunes[lastIndex:refer.Start])
-			annotatedHTML.WriteString(nonReferencedText)
-		}
-
 		// Add referenced text with annotations
 		referencedText := string(answerRunes[refer.Start:refer.End])
-		annotatedHTML.WriteString("<span style='color:blue;' title='")
+		var tmp bytes.Buffer
+		if header, found := extractMarkdownHeaderFormat(referencedText); found {
+			fmt.Printf("提取的 Markdown 标题: %s\n", header)
+			referencedText = strings.Replace(referencedText, header, "", 1)
+		}
+		tmp.WriteString("<span style='color:blue;'>")
 		supStr := ""
 		// Add all reference details
-		for i, ref := range refer.Refers {
+		for _, ref := range refer.Refers {
 			if ref.Index < len(searchResult) {
-				source := searchResult[ref.Index]
-				referenceSnippet := string([]rune(source.Content)[ref.ReferStart:ref.ReferEnd])
-				annotatedHTML.WriteString(template.HTMLEscapeString(fmt.Sprintf("%s", referenceSnippet)))
-				if i < len(refer.Refers)-1 {
-					annotatedHTML.WriteString(", ")
-				}
 				showNum := ref.Index + 1
 				supStr = supStr + fmt.Sprintf("<sup>[%d]</sup> ", showNum)
 			}
 		}
-
 		// Close annotation and mark referenced text
-		annotatedHTML.WriteString(fmt.Sprintf("'>%s%s</span>", referencedText, supStr))
-		lastIndex = refer.End
+		tmp.WriteString(fmt.Sprintf("%s%s</span>", referencedText, supStr))
+		referHtmlMap[referencedText] = tmp.String()
+		orderS = append(orderS, referencedText)
 	}
-
-	// Add remaining non-referenced text
-	if lastIndex < len(answerRunes) {
-		remainingText := answerRunes[lastIndex:]
-		annotatedHTML.WriteString(string(remainingText))
+	for _, v := range orderS {
+		answer = strings.Replace(answer, v, referHtmlMap[v], 1)
 	}
+	if len(pAnswer) > 0 {
+		for _, v := range orderS {
+			pAnswer = strings.Replace(pAnswer, fmt.Sprintf("[%s]()", v), referHtmlMap[v], 1)
+		}
+		answer = pAnswer
+	}
+	html := markdownToHTML(answer)
 
-	return markdownToHTML(annotatedHTML.String())
+	return html, referHtmlMap
 }
 
 func randShuffle(slice []string) {
@@ -1273,4 +1273,17 @@ func resolveAnswerStyle(typeN string, kdbId int64) string {
 	default:
 		return "simplify"
 	}
+}
+
+// 判断文本开头是否包含 Markdown 标题并返回 Markdown 标题格式（#）
+func extractMarkdownHeaderFormat(text string) (string, bool) {
+	// 正则表达式：匹配文本开头的 Markdown 标题格式（仅提取 # 和空格部分）
+	re := regexp.MustCompile(`^#{1,6}\s+`)
+	match := re.FindString(text)
+
+	if match != "" {
+		// 返回匹配到的标题格式（# 和空格部分）
+		return match, true
+	}
+	return "", false
 }

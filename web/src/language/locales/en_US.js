@@ -57,9 +57,11 @@ export default {
         knowledgeManage: 'Knowledge Manage',
 
         detail: 'Detail',
+        dbDetail:'database detail',
         add: "Add",
         dataType: 'Data type',
         fileName: 'File name',
+        dbName:'database name',
         createAt: 'Create at',
         status: 'Status',
         operate: 'Operate',

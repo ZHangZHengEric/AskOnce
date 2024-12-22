@@ -78,7 +78,7 @@ const getTipText = () => {
 }
 
 const toChild = (url) => {
-  router.push({path: url, query: {id: route.query.id, type: route.query.type}})
+  router.push({path: url, query: {id: route.query.id, type: route.query.type, dataSource: route.query.dataSource}})
 }
 </script>
 

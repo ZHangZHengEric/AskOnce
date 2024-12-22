@@ -9,7 +9,8 @@ type GenSessionRes struct {
 }
 
 type KdbListRes struct {
-	List []KdbListItem `json:"list"`
+	List  []KdbListItem `json:"list"`
+	Total int64         `json:"total"`
 }
 
 type KdbListItem struct {
