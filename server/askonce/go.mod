@@ -20,7 +20,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/tmc/langchaingo v0.1.12
-	github.com/xiangtao94/golib v1.0.9
+	github.com/xiangtao94/golib v1.0.10
 	golang.org/x/sync v0.8.0
 	golang.org/x/text v0.19.0
 	gorm.io/datatypes v1.2.4
