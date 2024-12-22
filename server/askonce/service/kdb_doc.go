@@ -18,16 +18,18 @@ import (
 
 type KdbDocService struct {
 	flow.Service
-	kdbData      *data.KdbData
-	fileData     *data.FileData
-	documentData *data.DocumentData
-	kdbDocData   *data.KdbDocData
-	kdbDocDao    *models.KdbDocDao
+	kdbData        *data.KdbData
+	fileData       *data.FileData
+	datasourceData *data.DatasourceData
+	documentData   *data.DocumentData
+	kdbDocData     *data.KdbDocData
+	kdbDocDao      *models.KdbDocDao
 }
 
 func (k *KdbDocService) OnCreate() {
 	k.kdbData = flow.Create(k.GetCtx(), new(data.KdbData))
 	k.fileData = flow.Create(k.GetCtx(), new(data.FileData))
+	k.datasourceData = flow.Create(k.GetCtx(), new(data.DatasourceData))
 	k.documentData = flow.Create(k.GetCtx(), new(data.DocumentData))
 	k.kdbDocData = flow.Create(k.GetCtx(), new(data.KdbDocData))
 	k.kdbDocDao = flow.Create(k.GetCtx(), new(models.KdbDocDao))
@@ -81,26 +83,41 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 	if err != nil {
 		return
 	}
-	var file *models.File
-	if req.Type == "text" {
+	var sourceId, sourceName, sourceType string
+	switch req.Type {
+	case "text":
+		sourceType = models.DataSourceFile
 		if len(req.Text) == 0 {
 			return nil, errors.NewError(10034, "文本内容为空！")
 		}
-		file, err = k.fileData.UploadByText(userInfo.UserId, req.Title, req.Text, "knowledge")
+		file, err := k.fileData.UploadByText(userInfo.UserId, req.Title, req.Text, "knowledge")
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		file, err = k.fileData.UploadByFile(userInfo.UserId, req.File, "knowledge")
+		sourceId = file.Id
+		sourceName = file.OriginName
+	case "file":
+		sourceType = models.DataSourceFile
+		file, err := k.fileData.UploadByFile(userInfo.UserId, req.File, "knowledge")
 		if err != nil {
 			return nil, err
 		}
+		sourceId = file.Id
+		sourceName = file.OriginName
+	case "database":
+		sourceType = models.DataSourceDatabase
+		datasource, err := k.datasourceData.Add(userInfo.UserId, req.ImportDataBase)
+		if err != nil {
+			return nil, err
+		}
+		sourceId = datasource.Id
+		sourceName = datasource.DatabaseName
 	}
 	doc := &models.KdbDoc{
 		KdbId:      kdb.Id,
-		DocName:    file.OriginName,
-		DataSource: models.DataTypeDoc,
-		SourceId:   file.Id,
+		DocName:    sourceName,
+		DataSource: sourceType,
+		SourceId:   sourceId,
 		Status:     models.KdbDocRunning,
 		UserId:     userInfo.UserId,
 		Metadata:   req.Metadata,
@@ -255,7 +272,11 @@ func (k *KdbDocService) BuildWaitingDoc() (err error) {
 
 func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
 	_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
-	err = k.docBuildDo(kdb, doc)
+	if doc.DataSource == models.DataSourceFile {
+		err = k.docBuildDo(kdb, doc)
+	} else if doc.DataSource == models.DataSourceDatabase {
+		err = k.databaseBuildDo(kdb, doc)
+	}
 	if err != nil {
 		k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
 		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
@@ -359,5 +380,10 @@ func (k *KdbDocService) TaskRedo(req *dto_kdb_doc.TaskRedoReq) (res interface{},
 	if err != nil {
 		return nil, err
 	}
+	return
+}
+
+func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+
 	return
 }

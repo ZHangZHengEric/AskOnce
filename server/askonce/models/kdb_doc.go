@@ -20,6 +20,11 @@ const (
 	KdbDocSuccess = 9
 )
 
+const (
+	DataSourceFile     = "file"
+	DataSourceDatabase = "database"
+)
+
 // KdbDoc  知识库文档
 type KdbDoc struct {
 	Id         int64             `gorm:"id; primaryKey;autoIncrement;comment:自增主键"`

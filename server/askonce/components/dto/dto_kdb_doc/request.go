@@ -10,6 +10,7 @@ type AddReq struct {
 	Type  string                `json:"type" form:"type" binding:"required"`
 	File  *multipart.FileHeader `json:"file" form:"file"`
 	ImportText
+	ImportDataBase
 }
 
 type AddZipReq struct {
@@ -27,6 +28,16 @@ type ImportText struct {
 	Title    string                 `json:"title" form:"title"`
 	Text     string                 `json:"text" form:"text"`
 	Metadata map[string]interface{} `json:"metadata" form:"metadata"`
+}
+
+type ImportDataBase struct {
+	DbName    string `json:"dbName" form:"dbName"`
+	DbType    string `json:"dbType" form:"dbType"`
+	DbHost    string `json:"dbHost" form:"dbHost"`
+	DbPort    int    `json:"dbPort" form:"dbPort"`
+	DbUser    string `json:"dbUser" form:"dbUser"`
+	DbPwd     string `json:"dbPwd" form:"dbPwd"`
+	DbComment string `json:"dbComment" form:"dbComment"`
 }
 
 type ListReq struct {
