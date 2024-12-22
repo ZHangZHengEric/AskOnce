@@ -16,6 +16,19 @@ type MySQLHandler struct {
 	DB *gorm.DB
 }
 
+func (h *MySQLHandler) Ping() error {
+	// Ping数据库
+	sqlDB, err := h.DB.DB()
+	if err != nil {
+		return err
+	}
+	defer sqlDB.Close()
+	if err := sqlDB.Ping(); err != nil {
+		return fmt.Errorf("数据库Ping失败: %v", err)
+	}
+	return nil
+}
+
 func (h *MySQLHandler) GetTables() ([]TableInfo, error) {
 	var tables []TableInfo
 	err := h.DB.Model(TableInfo{}).Raw("SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE();").Scan(&tables).Error
@@ -40,4 +53,8 @@ func (h *MySQLHandler) GetSampleData(table, column string) ([]string, error) {
 	query := fmt.Sprintf("SELECT `%s` FROM `%s` LIMIT 1000;", column, table)
 	err := h.DB.Raw(query).Scan(&samples).Error
 	return samples, err
+}
+
+func (h *MySQLHandler) Close() error {
+	return nil
 }

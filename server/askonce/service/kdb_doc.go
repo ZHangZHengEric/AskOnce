@@ -5,6 +5,7 @@ import (
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
+	"askonce/data/database_parse"
 	"askonce/models"
 	"askonce/utils"
 	"fmt"
@@ -106,6 +107,21 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 		sourceName = file.OriginName
 	case "database":
 		sourceType = models.DataSourceDatabase
+		databaseHander, err := database_parse.GetDatabaseHandler(database_parse.DatabaseConfig{
+			Driver:   req.DbType,
+			Host:     req.DbHost,
+			Port:     req.DbPort,
+			Database: req.DbName,
+			User:     req.DbUser,
+			Password: req.DbPwd,
+		})
+		if err != nil {
+			return nil, err
+		}
+		err = databaseHander.Ping()
+		if err != nil {
+			return nil, err
+		}
 		datasource, err := k.datasourceData.Add(userInfo.UserId, req.ImportDataBase)
 		if err != nil {
 			return nil, err
