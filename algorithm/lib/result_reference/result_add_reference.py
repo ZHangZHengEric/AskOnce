@@ -214,7 +214,20 @@ class AddReference:
                 if len(use_range)>0:
                     reference_map_new[one_result_chunk_index]['refers'][item_reference_item_index]['referStart'] = use_range[0]
                     reference_map_new[one_result_chunk_index]['refers'][item_reference_item_index]['referEnd'] = use_range[1]
-        return reference_map_new
+        
+        processed_reference_map = []
+        for item in reference_map_new:
+            valid_refers = []
+            for ref in item['refers']:
+                if 'referStart' in ref and 'referEnd' in ref:
+                    valid_refers.append(ref)
+            if valid_refers:
+                processed_reference_map.append({
+                    'start': item['start'],
+                    'end': item['end'],
+                    'refers': valid_refers
+                })
+        return processed_reference_map
     
     def merge_reference_map(self, reference_map):
         if not reference_map:
