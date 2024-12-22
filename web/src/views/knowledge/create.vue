@@ -16,12 +16,11 @@
     <el-form-item :label="$t('knowledge.type')" prop="type">
       <el-select placeholder="Document" v-model="formData.type">
         <el-option label="doc" value="doc"></el-option>
-        <el-option label="sql" value="sql" disabled></el-option>
+        <el-option label="database" value="database"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item :label="$t('knowledge.name')" prop="name">
-      <el-input v-model="formData.name">
-      </el-input>
+      <el-input v-model="formData.name"></el-input>
     </el-form-item>
     <el-form-item :label="$t('knowledge.language')" prop="language">
       <el-select placeholder="Chinese" v-model="formData.language">

@@ -11,7 +11,6 @@
     <div class="mt-6 text-default text-size16">
       {{ data.fileType === 0 ? $t('knowledge.addTextTip') : $t('knowledge.addFileTip') }}
     </div>
-
     <div class=" flex text-size18 mt-4 font-[500] leading-10 border-b border-solid cursor-pointer border-[#F0F0F0]">
       <div :class="{selected:data.fileType===0}" @click="data.fileType=0"> {{ $t('knowledge.addText') }}</div>
       <div class="ml-6" :class="{selected:data.fileType===1}" @click="data.fileType=1">{{
