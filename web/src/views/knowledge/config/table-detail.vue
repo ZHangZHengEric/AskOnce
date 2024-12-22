@@ -12,16 +12,9 @@
             show-overflow-tooltip
             class="mt-4 rounded-xl"
             :header-cell-style="{'background-color':'#E0E0E033'}">
-    <el-table-column label="表名" prop="eventName"></el-table-column>
-    <el-table-column :label="$t('knowledge.operate')" width="150">
-      <template #default="scope">
-        <el-button type="text" @click="()=>{console.log(scope.row)}" ·>
-          查看表结构
-        </el-button>
-      </template>
-    </el-table-column>
+    <el-table-column label="列" prop="eventName"></el-table-column>
+    <el-table-column label="类型" prop="eventName"></el-table-column>
   </el-table>
-
 </template>
 
 <script setup>
