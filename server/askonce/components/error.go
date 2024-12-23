@@ -156,5 +156,5 @@ var ErrorDbIndexError = errors.Error{
 
 var ErrorDbSearchError = errors.Error{
 	Code:    100012,
-	Message: "该接口不支持数据库搜索！",
+	Message: "该知识库不支持数据库搜索！",
 }

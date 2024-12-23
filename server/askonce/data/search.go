@@ -223,6 +223,10 @@ func (entity *SearchData) webSearch(question string, querySize int) (results []d
 	return results, nil
 }
 
+func (entity *SearchData) DatabaseSearch(id string, question string, databaseType string, param map[string][]string) (results []dto_search.CommonSearchOutput, err error) {
+	return results, nil
+}
+
 func appendText(source *es.DocDocument, fullContent string) string {
 	prefixIndex := source.Start
 	suffixIndex := source.End

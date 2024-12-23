@@ -92,6 +92,10 @@ type SessionSearchRes struct {
 	SearchResult []CommonSearchOutput `json:"searchResult"`
 }
 
+type DatabaseSearchRes struct {
+	SearchResult []CommonSearchOutput `json:"searchResult"`
+}
+
 type QuestionFocusRes struct {
 	Focus []string `json:"focus"`
 }

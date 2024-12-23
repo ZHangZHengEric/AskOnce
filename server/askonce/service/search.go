@@ -1208,7 +1208,27 @@ func (s *SearchService) ReportDocx(req *dto_search.ReportDocxReq) (res *dto_sear
 }
 
 func (s *SearchService) KdbDatabaseSearch(req *dto_search.KdbDatabaseSearchReq) (res interface{}, err error) {
-
+	askInfo, err := s.askInfoDao.GetBySessionId(req.SessionId)
+	if err != nil {
+		return nil, err
+	}
+	if askInfo == nil {
+		return nil, components.ErrorAskSessionNoExist
+	}
+	kdb, err := s.kdbData.CheckKdbAuth(askInfo.KdbId, askInfo.UserId, models.AuthTypeRead)
+	if err != nil {
+		return nil, err
+	}
+	if kdb.DataType != models.DataSourceDatabase {
+		return nil, components.ErrorDbSearchError
+	}
+	searchResult, err := s.searchData.DatabaseSearch(req.SessionId, req.Question, req.DatabaseType, req.TermsParam)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_search.DatabaseSearchRes{
+		SearchResult: searchResult,
+	}
 	return
 }
 
