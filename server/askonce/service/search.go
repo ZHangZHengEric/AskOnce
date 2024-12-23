@@ -304,7 +304,7 @@ func (s *SearchService) askDirect(askContext *AskContext) (answer string, echoRe
 func (s *SearchService) askSimple(askContext *AskContext) (answer string, echoRefers []dto_search.DoReferItem, err error) {
 	s.EchoRes("search", "")
 	askContext.AppendProcess("search", "搜索开始")
-	searchResult, err := s.searchData.SearchFromWebOrKdb(askContext.SessionId, askContext.Question, new(data.SearchOptions).WithIndex(askContext.GetKdbIndex()))
+	searchResult, err := s.searchData.DocSearch(askContext.SessionId, askContext.Question, new(data.DocSearchOptions).WithIndex(askContext.GetKdbIndex()))
 	if err != nil {
 		err = components.ErrorQueryError
 		return
@@ -354,7 +354,7 @@ func (s *SearchService) askComplex(askContext *AskContext) (answer string, echoR
 		tmpQ := subQ
 		tmpSearchContent := splitRes.Questions[i]
 		eg0.Go(func() (err error) {
-			searchResult, err := s.searchData.SearchFromWebOrKdb(askContext.SessionId, tmpSearchContent, new(data.SearchOptions).WithIndex(askContext.GetKdbIndex()))
+			searchResult, err := s.searchData.DocSearch(askContext.SessionId, tmpSearchContent, new(data.DocSearchOptions).WithIndex(askContext.GetKdbIndex()))
 			if err != nil {
 				return err
 			}
@@ -428,7 +428,7 @@ func (s *SearchService) askProfessional(askContext *AskContext) (answer string, 
 		tmpQ := subQ
 		tmpSearchContent := splitRes.Questions[i]
 		eg0.Go(func() (err error) {
-			searchResult, err := s.searchData.SearchFromWebOrKdb(askContext.SessionId, tmpSearchContent, new(data.SearchOptions).WithIndex(askContext.GetKdbIndex()))
+			searchResult, err := s.searchData.DocSearch(askContext.SessionId, tmpSearchContent, new(data.DocSearchOptions).WithIndex(askContext.GetKdbIndex()))
 			if err != nil {
 				return err
 			}
@@ -891,7 +891,7 @@ func (s *SearchService) Recall(req *dto_kdb_doc.RecallReq) (res *dto_kdb_doc.Rec
 	}
 
 	// es搜索的片段
-	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Query, new(data.SearchOptions).WithIndex(kdb.GetIndexName()))
+	esSearchResult, err := s.searchData.DocSearch("", req.Query, new(data.DocSearchOptions).WithIndex(kdb.GetIndexName()))
 	if err != nil {
 		return
 	}
@@ -995,7 +995,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 // 同步回答
 func (s *SearchService) AskSyncDo(askContext *AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
 	askContext.AppendProcess("search", "搜索开始")
-	searchResult, err = s.searchData.SearchFromWebOrKdb(askContext.SessionId, askContext.Question, new(data.SearchOptions).WithIndex(askContext.GetKdbIndex()).WithReturnFull(true))
+	searchResult, err = s.searchData.DocSearch(askContext.SessionId, askContext.Question, new(data.DocSearchOptions).WithIndex(askContext.GetKdbIndex()).WithReturnFull(true))
 	if err != nil {
 		err = components.ErrorQueryError
 		return
@@ -1053,7 +1053,7 @@ func uniqueDoc(result []dto_search.CommonSearchOutput) []dto_search.CommonSearch
 }
 
 func (s *SearchService) WebSearch(req *dto_search.WebSearchReq) (res interface{}, err error) {
-	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, nil)
+	searchResult, err := s.searchData.DocSearch(req.SessionId, req.Question, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1068,14 +1068,17 @@ func (s *SearchService) SessionSearch(req *dto_search.SessionSearchReq) (res *dt
 	if askInfo == nil {
 		return nil, components.ErrorAskSessionNoExist
 	}
-	var kdb *models.Kdb
+	kdb := &models.Kdb{}
 	if askInfo.KdbId != 0 {
 		kdb, err = s.kdbData.CheckKdbAuth(askInfo.KdbId, askInfo.UserId, models.AuthTypeRead)
 		if err != nil {
 			return nil, err
 		}
+		if kdb.DataType == models.DataSourceDatabase {
+			return nil, components.ErrorDbSearchError
+		}
 	}
-	searchResult, err := s.searchData.SearchFromWebOrKdb(req.SessionId, req.Question, new(data.SearchOptions).WithIndex(kdb.GetIndexName()))
+	searchResult, err := s.searchData.DocSearch(req.SessionId, req.Question, new(data.DocSearchOptions).WithIndex(kdb.GetIndexName()))
 	if err != nil {
 		return nil, err
 	}
@@ -1096,7 +1099,7 @@ func (s *SearchService) KdbSearch(req *dto_search.KdbSearchReq) (res *dto_search
 		SearchResult: make([]dto_search.CommonSearchOutput, 0),
 	}
 	// es搜索的片段
-	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Question, new(data.SearchOptions).WithIndex(kdb.GetIndexName()))
+	esSearchResult, err := s.searchData.DocSearch("", req.Question, new(data.DocSearchOptions).WithIndex(kdb.GetIndexName()))
 	if err != nil {
 		return nil, components.ErrorQueryError
 	}
@@ -1115,7 +1118,7 @@ func (s *SearchService) QuestionFocus(req *dto_search.QuestionFocusReq) (res *dt
 		Focus: make([]string, 0),
 	}
 	// es搜索的片段
-	esSearchResult, err := s.searchData.SearchFromWebOrKdb("", req.Question, new(data.SearchOptions).WithIndex(kdb.GetIndexName()))
+	esSearchResult, err := s.searchData.DocSearch("", req.Question, new(data.DocSearchOptions).WithIndex(kdb.GetIndexName()))
 	if err != nil {
 		return nil, components.ErrorQueryError
 	}
@@ -1201,6 +1204,11 @@ func (s *SearchService) ReportDocx(req *dto_search.ReportDocxReq) (res *dto_sear
 	res = &dto_search.ReportDocxRes{
 		DocxUrl: file,
 	}
+	return
+}
+
+func (s *SearchService) KdbDatabaseSearch(req *dto_search.KdbDatabaseSearchReq) (res interface{}, err error) {
+
 	return
 }
 

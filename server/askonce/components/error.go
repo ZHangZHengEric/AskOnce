@@ -153,3 +153,8 @@ var ErrorDbIndexError = errors.Error{
 	Code:    100012,
 	Message: "数据源索引构建失败！",
 }
+
+var ErrorDbSearchError = errors.Error{
+	Code:    100012,
+	Message: "该接口不支持数据库搜索！",
+}

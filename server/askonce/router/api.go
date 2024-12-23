@@ -56,6 +56,8 @@ func API(engine *gin.Engine) {
 			searchGroup.POST("session", flow.Use[dto_search.SessionSearchReq](new(search.SessionSearchController)))
 			// 知识库直搜
 			searchGroup.POST("kdb", flow.Use[dto_search.KdbSearchReq](new(search.KdbSearchController)))
+			// 数据库直搜
+			searchGroup.POST("kdb/database", flow.Use[dto_search.KdbDatabaseSearchReq](new(search.KdbDatabaseSearchController)))
 			// 对话搜索（同步接口）
 			searchGroup.POST("chatAskSync", flow.Use[dto_search.ChatAskReq](new(search.ChatAskSyncController)))
 

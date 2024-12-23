@@ -170,3 +170,12 @@ func (entity *SessionSearchController) Action(req *dto_search.SessionSearchReq) 
 	s := entity.Create(new(service.SearchService)).(*service.SearchService)
 	return s.SessionSearch(req)
 }
+
+type KdbDatabaseSearchController struct {
+	flow.Controller
+}
+
+func (entity *KdbDatabaseSearchController) Action(req *dto_search.KdbDatabaseSearchReq) (interface{}, error) {
+	s := entity.Create(new(service.SearchService)).(*service.SearchService)
+	return s.KdbDatabaseSearch(req)
+}

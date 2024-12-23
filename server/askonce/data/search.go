@@ -5,11 +5,10 @@ import (
 	"askonce/api/web_search"
 	"askonce/components/dto/dto_search"
 	"askonce/es"
-	"encoding/json"
-
 	"askonce/helpers"
 	"askonce/models"
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
@@ -41,30 +40,30 @@ func (entity *SearchData) OnCreate() {
 	entity.kdbData = entity.Create(new(KdbData)).(*KdbData)
 }
 
-type SearchOptions struct {
+type DocSearchOptions struct {
 	QuerySize  int    // 返回数量
 	IndexName  string // 知识库索引名称
 	ReturnFull bool   // 返回全文
 }
 
-func (s *SearchOptions) WithIndex(indexName string) *SearchOptions {
+func (s *DocSearchOptions) WithIndex(indexName string) *DocSearchOptions {
 	s.IndexName = indexName
 	return s
 }
 
-func (s *SearchOptions) WithQuerySize(querySize int) *SearchOptions {
+func (s *DocSearchOptions) WithQuerySize(querySize int) *DocSearchOptions {
 	s.QuerySize = querySize
 	return s
 }
 
-func (s *SearchOptions) WithReturnFull(returnFull bool) *SearchOptions {
+func (s *DocSearchOptions) WithReturnFull(returnFull bool) *DocSearchOptions {
 	s.ReturnFull = returnFull
 	return s
 }
 
-func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *SearchOptions) (results []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) DocSearch(sessionId, question string, opts *DocSearchOptions) (results []dto_search.CommonSearchOutput, err error) {
 	if opts == nil {
-		opts = new(SearchOptions)
+		opts = new(DocSearchOptions)
 	}
 	if opts.QuerySize == 0 {
 		opts.QuerySize = 20
@@ -78,7 +77,7 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 		}
 	} else { // 知识库搜索
 		// es搜索的片段
-		results, errS = entity.esSearch(question, opts.IndexName, opts.QuerySize, opts.ReturnFull)
+		results, errS = entity.esDocSearch(question, opts.IndexName, opts.QuerySize, opts.ReturnFull)
 		if errS != nil {
 			entity.LogErrorf("es搜索报错")
 		}
@@ -86,21 +85,23 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 	if len(results) == 0 {
 		return []dto_search.CommonSearchOutput{}, nil
 	}
-	now := time.Now()
-	searchResultStr, _ := json.Marshal(results)
-	err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
-		SessionId:    sessionId,
-		SubQuestion:  question,
-		SearchResult: searchResultStr,
-		CrudModel: orm.CrudModel{
-			CreatedAt: now,
-			UpdatedAt: now,
-		},
-	})
+	if sessionId != "" {
+		now := time.Now()
+		searchResultStr, _ := json.Marshal(results)
+		err = entity.askSubSearchDao.Insert(&models.AskSubSearch{
+			SessionId:    sessionId,
+			SubQuestion:  question,
+			SearchResult: searchResultStr,
+			CrudModel: orm.CrudModel{
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		})
+	}
 	return
 }
 
-func (entity *SearchData) esSearch(question string, indexName string, querySize int, returnFull bool) (res []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) esDocSearch(question string, indexName string, querySize int, returnFull bool) (res []dto_search.CommonSearchOutput, err error) {
 	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{question})
 	if err != nil {
 		return

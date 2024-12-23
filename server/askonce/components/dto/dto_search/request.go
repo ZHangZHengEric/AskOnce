@@ -69,6 +69,15 @@ type KdbSearchReq struct {
 	Question string `json:"question" binding:"required"`
 }
 
+type KdbDatabaseSearchReq struct {
+	KdbName  string `json:"kdbName"  binding:"required"`
+	Question string `json:"question" binding:"required"`
+
+	DatabaseType string `json:"databaseType" ` // table column column_value faq
+
+	TermsParam map[string][]string `json:"termsParam" ` // database_name, table_name, column_name
+}
+
 type QuestionFocusReq struct {
 	KdbId    int64  `json:"kdbId" binding:"required"`
 	Question string `json:"question" binding:"required"`
