@@ -170,14 +170,14 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro, dataType string, user dto.LoginInfoS
 		tx.Rollback()
 		return
 	}
-	if dataType == models.DataTypeDoc {
-		err = es.DocIndexCreate(k.GetCtx(), add.GetIndexName())
+	if dataType == models.DataTypeDB {
+		err = es.DatabaseIndexCreate(k.GetCtx(), add.GetIndexName())
 		if err != nil {
 			tx.Rollback()
 			return
 		}
-	} else if dataType == models.DataTypeDB {
-		err = es.DatabaseIndexCreate(k.GetCtx(), add.GetIndexName())
+	} else {
+		err = es.DocIndexCreate(k.GetCtx(), add.GetIndexName())
 		if err != nil {
 			tx.Rollback()
 			return

@@ -8,10 +8,10 @@ package es
 
 import (
 	"askonce/helpers"
-	"encoding/json"
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/xiangtao94/golib/pkg/env"
 	"os"
 	"path/filepath"
@@ -84,10 +84,10 @@ func DatabaseIndexCreate(ctx *gin.Context, indexName string) (err error) {
 		return fmt.Errorf("read common mapping file failed: %v", err)
 	}
 	// 需要创建四个mapping
-	mappingAll := map[string][]byte{}
-	err = json.Unmarshal(mappingFile, &mappingAll)
+	mappingAll := map[string]jsoniter.RawMessage{}
+	err = jsoniter.Unmarshal(mappingFile, &mappingAll)
 	if err != nil {
-		return fmt.Errorf("parse common mapping file failed: %v", err)
+		return fmt.Errorf("parse databse mapping file failed: %v", err)
 	}
 	if len(mappingAll) != 4 {
 		return fmt.Errorf("parse databse mapping  failed")
