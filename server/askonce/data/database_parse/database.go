@@ -7,6 +7,7 @@
 package database_parse
 
 import (
+	"askonce/components"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
@@ -14,6 +15,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"strings"
 	"sync"
 	"time"
 )
@@ -29,13 +31,6 @@ type DatabaseHandler interface {
 	Close() error
 }
 
-// 定义结构体用于接收结果
-type ColumnInfo struct {
-	ColumnName    string `gorm:"column:COLUMN_NAME" json:"column_name" db:"COLUMN_NAME"`
-	ColumnType    string `gorm:"column:COLUMN_TYPE" json:"column_type" db:"COLUMN_TYPE"`
-	ColumnComment string `gorm:"column:COLUMN_COMMENT" json:"column_comment" db:"COLUMN_COMMENT"`
-}
-
 type TableInfo struct {
 	TableName    string `json:"table_name" gorm:"column:TABLE_NAME" db:"TABLE_NAME"`
 	TableComment string `json:"table_comment" gorm:"column:TABLE_COMMENT" db:"TABLE_COMMENT"`
@@ -44,6 +39,39 @@ type TableInfo struct {
 type TableColumnInfo struct {
 	TableInfo
 	ColumnInfos []ColumnInfo `json:"column_infos" db:"-"`
+}
+
+func (t *TableColumnInfo) FormatTableInfo() string {
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("表名:%s\n注释:%s\n", t.TableName, t.TableComment))
+	builder.WriteString("|字段名|类型|字段注释|\n")
+	// 遍历列并将其格式化为表格行
+	for _, c := range t.ColumnInfos {
+		builder.WriteString(fmt.Sprintf("|%s|%s|%s|\n", c.ColumnName, c.ColumnType, c.ColumnComment))
+	}
+	return builder.String()
+}
+
+// 定义结构体用于接收结果
+type ColumnInfo struct {
+	ColumnName    string            `gorm:"column:COLUMN_NAME" json:"column_name" db:"COLUMN_NAME"`
+	ColumnType    string            `gorm:"column:COLUMN_TYPE" json:"column_type" db:"COLUMN_TYPE"`
+	ColumnComment string            `gorm:"column:COLUMN_COMMENT" json:"column_comment" db:"COLUMN_COMMENT"`
+	ColumnValues  []ColumnValueInfo `gorm:"-" json:"value" db:"-"`
+}
+
+func (c *ColumnInfo) FormatColumnInfo() string {
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("字段名:%s|类型:%s|注释:%s|\n", c.ColumnName, c.ColumnType, c.ColumnComment))
+	return builder.String()
+}
+
+type ColumnValueInfo struct {
+	Value string `json:"value" db:"-"`
+}
+
+func (i *ColumnValueInfo) FormatValueInfo() string {
+	return i.Value
 }
 
 // DatabaseConfig 数据库配置
@@ -79,7 +107,11 @@ func GetDatabaseHandler(ctx *gin.Context, config DatabaseConfig) (DatabaseHandle
 	default:
 		return nil, fmt.Errorf("unknown database driver: %s", config.Driver)
 	}
-	handler.SetCtx(ctx)
+	_ = handler.SetCtx(ctx)
+	err := handler.Ping()
+	if err != nil {
+		return nil, components.ErrorDbConnError
+	}
 	return handler, nil
 }
 

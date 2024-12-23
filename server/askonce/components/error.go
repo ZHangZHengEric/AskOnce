@@ -148,3 +148,8 @@ var ErrorDbSchemaError = errors.Error{
 	Code:    100012,
 	Message: "数据源读取失败！",
 }
+
+var ErrorDbIndexError = errors.Error{
+	Code:    100012,
+	Message: "数据源索引构建失败！",
+}

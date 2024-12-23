@@ -5,6 +5,7 @@ import (
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
+	"askonce/es"
 	"askonce/models"
 	"askonce/utils"
 	"github.com/duke-git/lancet/v2/slice"
@@ -259,46 +260,6 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	return
 }
 
-// 文档构建到内存数据库
-func (k *KdbDocService) docBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
-	//2. 文件解析文本段
-	k.LogInfof("开始文件解析文本，docId %v", doc.Id)
-	_, content, err := k.fileData.ConvertFileToText(doc.SourceId)
-	if err != nil {
-		k.LogErrorf("文件解析文本，docId %v, error %v", doc.Id, err.Error())
-		return err
-	}
-	//3. 文本切分
-	k.LogInfof("开始文本切分，docId %v", doc.Id)
-	splitList, err := k.documentData.TextSplit(content)
-	if err != nil {
-		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
-		return components.ErrorTextSplitError
-	}
-	if len(splitList) == 0 {
-		return components.ErrorTextSplitError
-	}
-	contents := make([]string, 0, len(splitList))
-	for _, split := range splitList {
-		contents = append(contents, split.PassageContent)
-	}
-	//4. 文本转向量
-	k.LogInfof("开始文本转向量，docId %v", doc.Id)
-	embeddingAll, err := k.documentData.TextEmbedding(contents)
-	if err != nil || len(embeddingAll) != len(contents) {
-		k.LogErrorf("文本转向量error，docId %v,error %v", doc.Id, err.Error())
-		return err
-	}
-	//5. 存向量数据库和mysql
-	k.LogInfof("开始存数据库，docId %v", doc.Id)
-	err = k.kdbDocData.SaveDocBuild(kdb, doc, content, splitList, embeddingAll)
-	if err != nil {
-		k.LogErrorf("存mysql error，docId %v,error %v", doc.Id, err.Error())
-		return err
-	}
-	return
-}
-
 func (k *KdbDocService) LoadProcess(req *dto_kdb_doc.TaskProcessReq) (res *dto_kdb.LoadProcessRes, err error) {
 	userInfo, err := utils.LoginInfo(k.GetCtx())
 	if err != nil {
@@ -355,7 +316,132 @@ func (k *KdbDocService) TaskRedo(req *dto_kdb_doc.TaskRedoReq) (res interface{},
 	return
 }
 
-func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+// 文档构建到内存数据库
+func (k *KdbDocService) docBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+	//2. 文件解析文本段
+	k.LogInfof("开始文件解析文本，docId %v", doc.Id)
+	_, content, err := k.fileData.ConvertFileToText(doc.SourceId)
+	if err != nil {
+		k.LogErrorf("文件解析文本，docId %v, error %v", doc.Id, err.Error())
+		return err
+	}
+	//3. 文本切分
+	k.LogInfof("开始文本切分，docId %v", doc.Id)
+	splitList, err := k.documentData.TextSplit(content)
+	if err != nil {
+		k.LogErrorf("文本切分error，docId %v,error %v", doc.Id, err.Error())
+		return components.ErrorTextSplitError
+	}
+	if len(splitList) == 0 {
+		return components.ErrorTextSplitError
+	}
+	contents := make([]string, 0, len(splitList))
+	for _, split := range splitList {
+		contents = append(contents, split.PassageContent)
+	}
+	//4. 文本转向量
+	k.LogInfof("开始文本转向量，docId %v", doc.Id)
+	embeddingAll, err := k.documentData.TextEmbedding(contents)
+	if err != nil || len(embeddingAll) != len(contents) {
+		k.LogErrorf("文本转向量error，docId %v,error %v", doc.Id, err.Error())
+		return err
+	}
+	//5. 存向量数据库和mysql
+	k.LogInfof("开始存数据库，docId %v", doc.Id)
+	err = k.kdbDocData.SaveDocBuild(kdb, doc, content, splitList, embeddingAll)
+	if err != nil {
+		k.LogErrorf("存mysql error，docId %v,error %v", doc.Id, err.Error())
+		return err
+	}
+	return
+}
 
+func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+	k.LogInfof("开始获取表结构和数据，docId %v", doc.Id)
+	datasource, schemaColumns, err := k.datasourceData.GetSchemaAndValues(doc.SourceId)
+	if err != nil {
+		return err
+	}
+	// 转换成需要存的document
+	tables := make([]*es.TableDocument, 0)
+	tableColumns := make([]*es.TableColumnDocument, 0)
+	tableColumnValues := make([]*es.TableColumnValueDocument, 0)
+	for _, table := range schemaColumns {
+		tables = append(tables, &es.TableDocument{
+			CommonDocument: es.CommonDocument{
+				DocId:      doc.Id,
+				DocContent: table.FormatTableInfo(), // 处理文字
+			},
+			DatabaseName: datasource.DatabaseName,
+			TableName:    table.TableName,
+			TableComment: table.TableComment,
+		})
+		for _, column := range table.ColumnInfos {
+			tableColumns = append(tableColumns, &es.TableColumnDocument{
+				CommonDocument: es.CommonDocument{
+					DocId:      doc.Id,
+					DocContent: column.FormatColumnInfo(), // 处理文字
+				},
+				DatabaseName:  datasource.DatabaseName,
+				TableName:     table.TableName,
+				ColumnName:    column.ColumnName,
+				ColumnComment: column.ColumnComment,
+				ColumnType:    column.ColumnType,
+			})
+			for _, v := range column.ColumnValues {
+				tableColumnValues = append(tableColumnValues, &es.TableColumnValueDocument{
+					CommonDocument: es.CommonDocument{
+						DocId:      doc.Id,
+						DocContent: v.FormatValueInfo(),
+					},
+					DatabaseName: datasource.DatabaseName,
+					TableName:    table.TableName,
+					ColumnName:   column.ColumnName,
+				})
+			}
+		}
+	}
+	k.LogInfof("开始文本转向量，docId %v", doc.Id)
+	tableContents := make([]string, 0, len(tables))
+	tableColumnContents := make([]string, 0, len(tableColumns))
+	tableColumnValueContents := make([]string, 0, len(tableColumnValues))
+	for _, table := range tables {
+		tableContents = append(tableContents, table.DocContent)
+	}
+	embTables, err := k.documentData.TextEmbedding(tableContents)
+	if err != nil {
+		return err
+	}
+	for i := range tables {
+		tables[i].Emb = embTables[i]
+	}
+
+	for _, tc := range tableColumns {
+		tableColumnContents = append(tableColumnContents, tc.DocContent)
+	}
+	embTccs, err := k.documentData.TextEmbedding(tableColumnContents)
+	if err != nil {
+		return err
+	}
+	for i := range tableColumns {
+		tableColumns[i].Emb = embTccs[i]
+	}
+
+	for _, tcv := range tableColumnValues {
+		tableColumnValueContents = append(tableColumnValueContents, tcv.DocContent)
+	}
+	embTccvs, err := k.documentData.TextEmbedding(tableColumnValueContents)
+	if err != nil {
+		return err
+	}
+	for i := range tableColumnValues {
+		tableColumnValues[i].Emb = embTccvs[i]
+	}
+	k.LogInfof("开始存向量库，docId %v", doc.Id)
+	err = es.DatabaseDocumentInsert(k.GetCtx(), kdb.GetIndexName(), tables, tableColumns, tableColumnValues, nil)
+	if err != nil {
+		k.LogErrorf("数据源索引构建失败：%s", err.Error())
+		return components.ErrorDbIndexError
+	}
 	return
 }

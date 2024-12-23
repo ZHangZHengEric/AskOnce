@@ -47,7 +47,8 @@ func (h *MySQLHandler) GetTables() ([]TableInfo, error) {
 
 func (h *MySQLHandler) GetColumns(table string) ([]ColumnInfo, error) {
 	query := fmt.Sprintf(`
-		SELECT COLUMN_NAME, COLUMN_TYPE, COLUMN_COMMENT 
+		SELECT COLUMN_NAME,        SUBSTRING_INDEX(COLUMN_TYPE, '(', 1) AS COLUMN_TYPE, 
+		       COLUMN_COMMENT 
 		FROM INFORMATION_SCHEMA.COLUMNS 
 		WHERE TABLE_NAME = '%s' AND TABLE_SCHEMA = DATABASE();`, table)
 	var columns []ColumnInfo
@@ -60,7 +61,7 @@ func (h *MySQLHandler) GetColumns(table string) ([]ColumnInfo, error) {
 
 func (h *MySQLHandler) GetSampleData(table, column string) ([]string, error) {
 	var samples []string
-	query := fmt.Sprintf("SELECT `%s` FROM `%s` LIMIT 1000;", column, table)
+	query := fmt.Sprintf("SELECT distinct `%s` FROM `%s` where `%s` is not null and `%s` != '' LIMIT 1000;", column, table, column, column)
 	err := h.DB.Raw(query).Scan(&samples).Error
 	return samples, err
 }

@@ -7,11 +7,13 @@
 package models
 
 import (
+	"askonce/components"
 	"github.com/pkg/errors"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"time"
 )
 
 // Datasource represents the data source configuration in the system.
@@ -68,4 +70,14 @@ func (entity *DatasourceDao) DeleteByIds(ids []string) error {
 		return nil
 	}
 	return entity.GetDB().Where("id in ?", ids).Delete(&Datasource{}).Error
+}
+
+// 更新
+func (entity *DatasourceDao) Update(id string, update map[string]interface{}) error {
+	update["updated_at"] = time.Now()
+	err := entity.GetDB().Where("id = ?", id).Updates(update).Error
+	if err != nil {
+		return components.ErrorMysqlError
+	}
+	return nil
 }
