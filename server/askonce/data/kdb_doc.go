@@ -7,7 +7,10 @@ import (
 	"askonce/es"
 	"askonce/helpers"
 	"askonce/models"
+	"askonce/utils"
+	"fmt"
 	"github.com/xiangtao94/golib/flow"
+	"github.com/xiangtao94/golib/pkg/errors"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"time"
 )
@@ -212,10 +215,53 @@ func (k *KdbDocData) GetList(kdbId int64, queryName string, queryStatus []int, p
 	return
 }
 
-func (k *KdbDocData) AddDoc(doc *models.KdbDoc) (err error) {
+func (k *KdbDocData) AddDoc(req *dto_kdb_doc.AddReq, kdb *models.Kdb, userId string) (doc *models.KdbDoc, err error) {
+	var sourceId, sourceName, sourceType string
+	switch req.Type {
+	case "text":
+		sourceType = models.DataSourceFile
+		if len(req.Text) == 0 {
+			return nil, errors.NewError(10034, "文本内容为空！")
+		}
+		file, err := k.fileData.UploadByText(userId, req.Title, req.Text, "knowledge")
+		if err != nil {
+			return nil, err
+		}
+		sourceId = file.Id
+		sourceName = file.OriginName
+	case "file":
+		sourceType = models.DataSourceFile
+		file, err := k.fileData.UploadByFile(userId, req.File, "knowledge")
+		if err != nil {
+			return nil, err
+		}
+		sourceId = file.Id
+		sourceName = file.OriginName
+	case "database":
+		sourceType = models.DataSourceDatabase
+		datasource, err := k.datasourceData.Add(userId, req.ImportDataBase)
+		if err != nil {
+			return nil, err
+		}
+		sourceId = datasource.Id
+		sourceName = datasource.DatabaseName
+	}
+	doc = &models.KdbDoc{
+		KdbId:      kdb.Id,
+		DocName:    sourceName,
+		DataSource: sourceType,
+		SourceId:   sourceId,
+		Status:     models.KdbDocRunning,
+		UserId:     userId,
+		Metadata:   req.Metadata,
+		CrudModel: orm.CrudModel{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	}
 	err = k.kdbDocDao.Insert(doc)
 	if err != nil {
-		return err
+		return
 	}
 	return
 }
@@ -252,5 +298,49 @@ func (k *KdbDocData) GetDoc(kdbId int64, kdbDataId int64) (res dto_kdb_doc.InfoI
 			res.DataSuffix = file.Extension
 		}
 	}
+	return
+}
+
+func (k *KdbDocData) AddDocByFiles(kdb *models.Kdb, files []*models.File, userId string) (taskId string, err error) {
+	taskId = utils.Get16MD5Encode(fmt.Sprintf("%s%v", userId, time.Now().UnixNano()))
+	docs := make([]*models.KdbDoc, 0)
+	for _, file := range files {
+		doc := &models.KdbDoc{
+			KdbId:      kdb.Id,
+			TaskId:     taskId,
+			DocName:    file.OriginName,
+			DataSource: models.DataSourceFile,
+			SourceId:   file.Id,
+			Status:     models.KdbDocWaiting,
+			UserId:     userId,
+			Metadata:   file.Metadata,
+			CrudModel: orm.CrudModel{
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+		}
+		docs = append(docs, doc)
+	}
+	err = k.kdbDocDao.BatchInsert(docs)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (k *KdbDocData) AddDocByDatasource(kdb *models.Kdb, datasource *models.Datasource, userId string) (err error) {
+	doc := &models.KdbDoc{
+		KdbId:      kdb.Id,
+		DocName:    datasource.DatabaseName,
+		DataSource: models.DataSourceDatabase,
+		SourceId:   datasource.Id,
+		Status:     models.KdbDocWaiting,
+		UserId:     userId,
+		CrudModel: orm.CrudModel{
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+	}
+	err = k.kdbDocDao.Insert(doc)
 	return
 }

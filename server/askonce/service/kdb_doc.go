@@ -7,13 +7,10 @@ import (
 	"askonce/data"
 	"askonce/models"
 	"askonce/utils"
-	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
-	"github.com/xiangtao94/golib/pkg/orm"
 	"sync"
-	"time"
 )
 
 type KdbDocService struct {
@@ -76,10 +73,8 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 	if err != nil {
 		return
 	}
-	var sourceId, sourceName, sourceType string
 	switch req.Type {
 	case "text":
-		sourceType = models.DataSourceFile
 		if len(req.Text) == 0 {
 			return nil, errors.NewError(10034, "文本内容为空！")
 		}
@@ -87,47 +82,28 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 		if err != nil {
 			return nil, err
 		}
-		sourceId = file.Id
-		sourceName = file.OriginName
+		_, err = k.kdbDocData.AddDocByFiles(kdb, []*models.File{file}, userInfo.UserId)
+		if err != nil {
+			return nil, err
+		}
 	case "file":
-		sourceType = models.DataSourceFile
 		file, err := k.fileData.UploadByFile(userInfo.UserId, req.File, "knowledge")
 		if err != nil {
 			return nil, err
 		}
-		sourceId = file.Id
-		sourceName = file.OriginName
+		_, err = k.kdbDocData.AddDocByFiles(kdb, []*models.File{file}, userInfo.UserId)
+		if err != nil {
+			return nil, err
+		}
 	case "database":
-		sourceType = models.DataSourceDatabase
 		datasource, err := k.datasourceData.Add(userInfo.UserId, req.ImportDataBase)
 		if err != nil {
 			return nil, err
 		}
-		sourceId = datasource.Id
-		sourceName = datasource.DatabaseName
-	}
-	doc := &models.KdbDoc{
-		KdbId:      kdb.Id,
-		DocName:    sourceName,
-		DataSource: sourceType,
-		SourceId:   sourceId,
-		Status:     models.KdbDocRunning,
-		UserId:     userInfo.UserId,
-		Metadata:   req.Metadata,
-		CrudModel: orm.CrudModel{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-	}
-	err = k.kdbDocData.AddDoc(doc)
-	if err != nil {
-		return nil, err
-	}
-	go func(k *KdbDocService) {
-		_ = k.DocBuild(kdb, doc)
-	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
-	res = &dto_kdb_doc.AddRes{
-		KdbDataId: doc.Id,
+		err = k.kdbDocData.AddDocByDatasource(kdb, datasource, userInfo.UserId)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return
 }
@@ -161,8 +137,7 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 	return
 }
 
-func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res *dto_kdb_doc.AddZipRes, err error) {
-	taskId := utils.Get16MD5Encode(fmt.Sprintf("%s%v", req.ZipUrl, time.Now().UnixNano()))
+func (k *KdbDocService) DocAddByZip(req *dto_kdb_doc.AddZipReq) (res *dto_kdb_doc.AddZipRes, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
 	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeWrite)
 	if err != nil {
@@ -172,27 +147,7 @@ func (k *KdbDocService) DocAddZip(req *dto_kdb_doc.AddZipReq) (res *dto_kdb_doc.
 	if err != nil {
 		return
 	}
-	docs := make([]*models.KdbDoc, 0)
-	for _, file := range files {
-		doc := &models.KdbDoc{
-			KdbId:      kdb.Id,
-			TaskId:     taskId,
-			DocName:    file.OriginName,
-			DataSource: "file",
-			SourceId:   file.Id,
-			Status:     models.KdbDocWaiting,
-			UserId:     userInfo.UserId,
-			CrudModel: orm.CrudModel{
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		}
-		docs = append(docs, doc)
-	}
-	err = k.kdbDocDao.BatchInsert(docs)
-	if err != nil {
-		return nil, err
-	}
+	taskId, err := k.kdbDocData.AddDocByFiles(kdb, files, userInfo.UserId)
 	res = &dto_kdb_doc.AddZipRes{
 		TaskId: taskId,
 	}
@@ -208,7 +163,7 @@ func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (r
 	if err != nil {
 		return nil, err
 	}
-	docs := make([]*models.KdbDoc, 0)
+	files := make([]*models.File, 0)
 	for _, doc := range req.Docs {
 		if len(doc.Text) == 0 {
 			return nil, errors.NewError(10034, "文本内容为空！")
@@ -217,25 +172,10 @@ func (k *KdbDocService) DocAddByBatchText(req *dto_kdb_doc.AddByBatchTextReq) (r
 		if err != nil {
 			return nil, err
 		}
-		doc := &models.KdbDoc{
-			KdbId:      kdb.Id,
-			DocName:    file.OriginName,
-			DataSource: "file",
-			SourceId:   file.Id,
-			Status:     models.KdbDocWaiting,
-			UserId:     userInfo.UserId,
-			Metadata:   doc.Metadata,
-			CrudModel: orm.CrudModel{
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		}
-		docs = append(docs, doc)
+		file.Metadata = doc.Metadata
+		files = append(files, file)
 	}
-	err = k.kdbDocDao.BatchInsert(docs)
-	if err != nil {
-		return nil, err
-	}
+	_, err = k.kdbDocData.AddDocByFiles(kdb, files, userInfo.UserId)
 	return
 }
 

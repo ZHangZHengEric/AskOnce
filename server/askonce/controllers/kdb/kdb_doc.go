@@ -39,7 +39,7 @@ type DocAddByZipController struct {
 
 func (entity *DocAddByZipController) Action(req *dto_kdb_doc.AddZipReq) (interface{}, error) {
 	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
-	return s.DocAddZip(req)
+	return s.DocAddByZip(req)
 }
 
 type DocAddByBatchTextController struct {

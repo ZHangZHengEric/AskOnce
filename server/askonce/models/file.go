@@ -4,7 +4,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
-
 	"gorm.io/gorm"
 )
 
@@ -19,6 +18,7 @@ type File struct {
 	Source     string `gorm:"type:varchar(52);default:'';comment:文件来源 "`
 	UserId     string `gorm:"type:varchar(128);default:'';comment:用户id"`
 	orm.CrudModel
+	Metadata map[string]any `gorm:"-"`
 }
 
 func (File) TableName() string {
