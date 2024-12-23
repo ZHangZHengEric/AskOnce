@@ -368,9 +368,11 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 	tableColumnValues := make([]*es.TableColumnValueDocument, 0)
 	for _, table := range schemaColumns {
 		tables = append(tables, &es.TableDocument{
-			CommonDocument: es.CommonDocument{
-				DocId:      doc.Id,
-				DocContent: table.FormatTableInfo(), // 处理文字
+			DocDocument: es.DocDocument{
+				CommonDocument: es.CommonDocument{
+					DocId:      doc.Id,
+					DocContent: table.FormatTableInfo(), // 处理文字
+				},
 			},
 			DatabaseName: datasource.DatabaseName,
 			TableName:    table.TableName,
@@ -378,9 +380,11 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 		})
 		for _, column := range table.ColumnInfos {
 			tableColumns = append(tableColumns, &es.TableColumnDocument{
-				CommonDocument: es.CommonDocument{
-					DocId:      doc.Id,
-					DocContent: column.FormatColumnInfo(), // 处理文字
+				DocDocument: es.DocDocument{
+					CommonDocument: es.CommonDocument{
+						DocId:      doc.Id,
+						DocContent: column.FormatColumnInfo(), // 处理文字
+					},
 				},
 				DatabaseName:  datasource.DatabaseName,
 				TableName:     table.TableName,
@@ -390,9 +394,11 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 			})
 			for _, v := range column.ColumnValues {
 				tableColumnValues = append(tableColumnValues, &es.TableColumnValueDocument{
-					CommonDocument: es.CommonDocument{
-						DocId:      doc.Id,
-						DocContent: v.FormatValueInfo(),
+					DocDocument: es.DocDocument{
+						CommonDocument: es.CommonDocument{
+							DocId:      doc.Id,
+							DocContent: v.FormatValueInfo(),
+						},
 					},
 					DatabaseName: datasource.DatabaseName,
 					TableName:    table.TableName,

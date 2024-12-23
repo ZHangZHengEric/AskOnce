@@ -18,10 +18,10 @@ import (
 )
 
 type TableDocument struct {
-	CommonDocument        // 索引列 内容是 TableName + TableComment +  TableSchema
-	DatabaseName   string `json:"database_name"`
-	TableName      string `json:"table_name"`
-	TableComment   string `json:"table_comment"`
+	DocDocument         // 索引列 内容是 TableName + TableComment +  TableSchema
+	DatabaseName string `json:"database_name"`
+	TableName    string `json:"table_name"`
+	TableComment string `json:"table_comment"`
 }
 
 func (cd *TableDocument) ConvertAny() any {
@@ -29,12 +29,12 @@ func (cd *TableDocument) ConvertAny() any {
 }
 
 type TableColumnDocument struct {
-	CommonDocument        // 索引列 内容是 ColumnName + ColumnComment +  ColumnType
-	DatabaseName   string `json:"database_name"`
-	TableName      string `json:"table_name"`
-	ColumnName     string `json:"column_name"`
-	ColumnComment  string `json:"column_comment"`
-	ColumnType     string `json:"column_type"`
+	DocDocument          // 索引列 内容是 ColumnName + ColumnComment +  ColumnType
+	DatabaseName  string `json:"database_name"`
+	TableName     string `json:"table_name"`
+	ColumnName    string `json:"column_name"`
+	ColumnComment string `json:"column_comment"`
+	ColumnType    string `json:"column_type"`
 }
 
 func (cd *TableColumnDocument) ConvertAny() any {
@@ -42,10 +42,10 @@ func (cd *TableColumnDocument) ConvertAny() any {
 }
 
 type TableColumnValueDocument struct {
-	CommonDocument        // 索引列 内容是 值
-	DatabaseName   string `json:"database_name"`
-	TableName      string `json:"table_name"`
-	ColumnName     string `json:"column_name"`
+	DocDocument         // 索引列 内容是 值
+	DatabaseName string `json:"database_name"`
+	TableName    string `json:"table_name"`
+	ColumnName   string `json:"column_name"`
 }
 
 func (cd *TableColumnValueDocument) ConvertAny() any {
@@ -53,7 +53,7 @@ func (cd *TableColumnValueDocument) ConvertAny() any {
 }
 
 type DatabaseFaqDocument struct {
-	CommonDocument //  索引列 内容是 faq
+	DocDocument //  索引列 内容是 faq
 
 	DatabaseName string `json:"database_name"`
 	SqlKey       string `json:"sql_key"`

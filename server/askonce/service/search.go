@@ -1222,7 +1222,7 @@ func (s *SearchService) KdbDatabaseSearch(req *dto_search.KdbDatabaseSearchReq) 
 	if kdb.DataType != models.DataSourceDatabase {
 		return nil, components.ErrorDbSearchError
 	}
-	searchResult, err := s.searchData.DatabaseSearch(req.SessionId, req.Question, req.DatabaseType, req.TermsParam)
+	searchResult, err := s.searchData.DatabaseSearch(kdb.GetIndexName(), req.SessionId, req.Question, req.DatabaseType, req.TermsParam)
 	if err != nil {
 		return nil, err
 	}

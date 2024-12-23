@@ -223,7 +223,21 @@ func (entity *SearchData) webSearch(question string, querySize int) (results []d
 	return results, nil
 }
 
-func (entity *SearchData) DatabaseSearch(id string, question string, databaseType string, param map[string][]string) (results []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) DatabaseSearch(indexName string, sessionId string, question string, databaseType string, param map[string][]string) (results []dto_search.CommonSearchOutput, err error) {
+	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{question})
+	if err != nil {
+		return
+	}
+	if databaseType == "table" {
+		recalls, err := es.CommonDocumentSearch[*es.TableDocument](entity.GetCtx(), indexName+"_table", question, embRes[0], 20)
+		if err != nil {
+			return nil, err
+		}
+		if len(recalls) == 0 {
+			return nil, err
+		}
+
+	}
 	return results, nil
 }
 
