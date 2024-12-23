@@ -169,3 +169,11 @@ export const knowledgeShareCodeVerify = (data) => {
 export const knowledgeShareCodeInfo = (params) => {
     return Http.get("/askonce/kdb/shareCodeInfo", {params});
 }
+/**
+ * 查看知识库数据
+ * @param params
+ * @returns {Promise<axios.AxiosResponse<any>>}
+ */
+export const tableInfo =(params)=>{
+    return Http.get("/askonce/kdb/doc/info", {params});
+}
