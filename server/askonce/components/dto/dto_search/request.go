@@ -70,7 +70,8 @@ type KdbSearchReq struct {
 }
 
 type KdbDatabaseSearchReq struct {
-	KdbName  string `json:"kdbName"  binding:"required"`
+	SessionId string `json:"sessionId"  binding:"required"`
+
 	Question string `json:"question" binding:"required"`
 
 	DatabaseType string `json:"databaseType" ` // table column column_value faq
