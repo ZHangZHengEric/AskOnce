@@ -48,13 +48,18 @@ type ListReq struct {
 }
 
 type DeleteReq struct {
-	KdbId int64 `json:"kdbId" binding:"required"`
-	DocId int64 `json:"dataId" binding:"required"`
+	KdbId  int64 `json:"kdbId" binding:"required"`
+	DataId int64 `json:"dataId" binding:"required"`
+}
+
+type InfoReq struct {
+	KdbId  int64 `json:"kdbId" form:"kdbId" binding:"required"`
+	DataId int64 `json:"dataId" form:"dataId" binding:"required"`
 }
 
 type RedoReq struct {
-	KdbId int64 `json:"kdbId" binding:"required"`
-	DocId int64 `json:"dataId" binding:"required"`
+	KdbId  int64 `json:"kdbId" binding:"required"`
+	DataId int64 `json:"dataId" binding:"required"`
 }
 type RecallReq struct {
 	KdbId int64  `json:"kdbId" binding:"required"`

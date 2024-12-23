@@ -42,8 +42,9 @@ func (entity *SearchData) OnCreate() {
 }
 
 type SearchOptions struct {
-	QuerySize int    // 返回数量
-	IndexName string // 知识库索引名称
+	QuerySize  int    // 返回数量
+	IndexName  string // 知识库索引名称
+	ReturnFull bool   // 返回全文
 }
 
 func (s *SearchOptions) WithIndex(indexName string) *SearchOptions {
@@ -53,6 +54,11 @@ func (s *SearchOptions) WithIndex(indexName string) *SearchOptions {
 
 func (s *SearchOptions) WithQuerySize(querySize int) *SearchOptions {
 	s.QuerySize = querySize
+	return s
+}
+
+func (s *SearchOptions) WithReturnFull(returnFull bool) *SearchOptions {
+	s.ReturnFull = returnFull
 	return s
 }
 
@@ -72,7 +78,7 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 		}
 	} else { // 知识库搜索
 		// es搜索的片段
-		results, errS = entity.esSearch(question, opts.IndexName, opts.QuerySize)
+		results, errS = entity.esSearch(question, opts.IndexName, opts.QuerySize, opts.ReturnFull)
 		if errS != nil {
 			entity.LogErrorf("es搜索报错")
 		}
@@ -94,7 +100,7 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 	return
 }
 
-func (entity *SearchData) esSearch(question string, indexName string, querySize int) (res []dto_search.CommonSearchOutput, err error) {
+func (entity *SearchData) esSearch(question string, indexName string, querySize int, returnFull bool) (res []dto_search.CommonSearchOutput, err error) {
 	embRes, err := helpers.EmbeddingGpt.CreateEmbedding(entity.GetCtx(), []string{question})
 	if err != nil {
 		return
@@ -160,6 +166,9 @@ func (entity *SearchData) esSearch(question string, indexName string, querySize 
 		out.Content = appendText(dataSearchMap[i], dataContentMap[result.DocId])
 		out.Score = result.Score
 		out.Form = "kdb"
+		if returnFull {
+			out.FullContent = dataContentMap[result.DocId]
+		}
 		res = append(res, out)
 	}
 	if len(res) >= querySize {

@@ -995,7 +995,7 @@ func (s *SearchService) AskSync(req *dto_search.ChatAskReq) (res *dto_search.Ask
 // 同步回答
 func (s *SearchService) AskSyncDo(askContext *AskContext) (answer string, echoRefers []dto_search.DoReferItem, searchResult []dto_search.CommonSearchOutput, err error) {
 	askContext.AppendProcess("search", "搜索开始")
-	searchResult, err = s.searchData.SearchFromWebOrKdb(askContext.SessionId, askContext.Question, new(data.SearchOptions).WithIndex(askContext.GetKdbIndex()))
+	searchResult, err = s.searchData.SearchFromWebOrKdb(askContext.SessionId, askContext.Question, new(data.SearchOptions).WithIndex(askContext.GetKdbIndex()).WithReturnFull(true))
 	if err != nil {
 		err = components.ErrorQueryError
 		return

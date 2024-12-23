@@ -48,7 +48,7 @@ api:
     # 请求完整地址
     domain: ${JOBD_ADDR}
     # 超时配置，time.Duration 类型
-    timeout: 60s
+    timeout: 600s
     # 重试次数，最多执行retry+1次
     retry: 2
   bochaai:

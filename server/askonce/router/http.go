@@ -76,6 +76,8 @@ func Http(engine *gin.Engine) {
 			docGroup.POST("list", flow.Use[dto_kdb_doc.ListReq](new(kdb.DocListController)))
 			// 新增
 			docGroup.POST("add", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
+
+			docGroup.GET("info", flow.Use[dto_kdb_doc.InfoReq](new(kdb.DocInfoController)))
 			// 删除
 			docGroup.POST("delete", flow.Use[dto_kdb_doc.DeleteReq](new(kdb.DocDeleteController)))
 			// 重做

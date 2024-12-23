@@ -31,6 +31,8 @@ func API(engine *gin.Engine) {
 		{
 			// 列表
 			docGroup.POST("list", flow.Use[dto_kdb_doc.ListReq](new(kdb.DocListController)))
+
+			docGroup.GET("info", flow.Use[dto_kdb_doc.InfoReq](new(kdb.DocInfoController)))
 			// 新增
 			docGroup.POST("add", flow.Use[dto_kdb_doc.AddReq](new(kdb.DocAddController)))
 			// zip包新增

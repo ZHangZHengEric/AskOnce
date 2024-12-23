@@ -8,12 +8,14 @@ package database_parse
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 // MySQLHandler 实现 DatabaseHandler 接口
 type MySQLHandler struct {
-	DB *gorm.DB
+	DB  *gorm.DB
+	ctx *gin.Context
 }
 
 func (h *MySQLHandler) Ping() error {
@@ -22,11 +24,19 @@ func (h *MySQLHandler) Ping() error {
 	if err != nil {
 		return err
 	}
-	defer sqlDB.Close()
 	if err := sqlDB.Ping(); err != nil {
 		return fmt.Errorf("数据库Ping失败: %v", err)
 	}
 	return nil
+}
+
+func (h *MySQLHandler) SetCtx(ctx *gin.Context) error {
+	h.ctx = ctx
+	return nil
+}
+
+func (h *MySQLHandler) GetCtx() (ctx *gin.Context) {
+	return h.ctx
 }
 
 func (h *MySQLHandler) GetTables() ([]TableInfo, error) {

@@ -15,6 +15,15 @@ func (entity *DocListController) Action(req *dto_kdb_doc.ListReq) (interface{}, 
 	return s.DocList(req)
 }
 
+type DocInfoController struct {
+	flow.Controller
+}
+
+func (entity *DocInfoController) Action(req *dto_kdb_doc.InfoReq) (interface{}, error) {
+	s := entity.Create(new(service.KdbDocService)).(*service.KdbDocService)
+	return s.DocInfo(req)
+}
+
 type DocAddController struct {
 	flow.Controller
 }

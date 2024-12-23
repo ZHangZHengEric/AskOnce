@@ -26,21 +26,6 @@ type ListItem struct {
 	Intro        string `json:"intro"` // 介绍
 }
 
-type DataListResp struct {
-	List  []DataListItem `json:"list"`
-	Total int64          `json:"total"`
-}
-
-type DataListItem struct {
-	Id         int64  `json:"id"`
-	Type       string `json:"type"`
-	DataSuffix string `json:"dataSuffix"`
-	DataName   string `json:"dataName"`
-	DataPath   string `json:"dataPath"`
-	Status     int    `json:"status"` // 0正在构建到知识库 1 成功 2 失败
-	CreateTime string `json:"createTime"`
-}
-
 type InfoRes struct {
 	KdbId          int64          `json:"kdbId"`
 	Name           string         `json:"name"`  // 知识库名称
@@ -98,39 +83,6 @@ type ShareCodeInfoRes struct {
 	Creator  string `json:"creator"`
 	KdbName  string `json:"kdbName"`
 	AuthType int    `json:"authType"`
-}
-
-type DocAddRes struct {
-	KdbDocId int64 `json:"kdbDocId"`
-}
-
-type DocInfoRes struct {
-	Id             int64  `json:"id"`
-	Name           string `json:"name"`
-	Enable         bool   `json:"enable"`         // 是否启用
-	IndexingStatus string `json:"indexingStatus"` // 索引建立状态
-	WordCount      int64  `json:"wordCount"`      // 字符数
-	HitCount       int64  `json:"hitCount"`       // 召回数
-	CreatedAt      int64  `json:"createdAt"`
-	CreatedBy      string `json:"createdBy"`
-	UpdatedAt      int64  `json:"updatedAt"`
-}
-
-type DocListRes struct {
-	List  []DocListItem `json:"list"`
-	Total int64         `json:"total"`
-}
-
-type DocListItem struct {
-	Id             int64  `json:"id"`
-	Name           string `json:"name"`
-	Enable         bool   `json:"enable"`         // 是否启用
-	IndexingStatus string `json:"indexingStatus"` // 索引建立状态
-	WordCount      int64  `json:"wordCount"`      // 字符数
-	HitCount       int64  `json:"hitCount"`       // 召回数
-	CreatedAt      int64  `json:"createdAt"`
-	CreatedBy      string `json:"createdBy"`
-	UpdatedAt      int64  `json:"updatedAt"`
 }
 
 type LoadProcessRes struct {

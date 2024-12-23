@@ -5,7 +5,6 @@ import (
 	"askonce/components/dto/dto_kdb"
 	"askonce/components/dto/dto_kdb_doc"
 	"askonce/data"
-	"askonce/data/database_parse"
 	"askonce/models"
 	"askonce/utils"
 	"fmt"
@@ -36,14 +35,14 @@ func (k *KdbDocService) OnCreate() {
 	k.kdbDocDao = flow.Create(k.GetCtx(), new(models.KdbDocDao))
 }
 
-func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataListResp, err error) {
+func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb_doc.ListResp, err error) {
 	userInfo, _ := utils.LoginInfo(k.GetCtx())
 	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
 	if err != nil {
 		return
 	}
-	res = &dto_kdb.DataListResp{
-		List:  make([]dto_kdb.DataListItem, 0),
+	res = &dto_kdb_doc.ListResp{
+		List:  make([]dto_kdb_doc.ListItem, 0),
 		Total: 0,
 	}
 	docs, cnt, err := k.kdbDocData.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
@@ -52,29 +51,45 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb.DataList
 	}
 	res.Total = cnt
 	fileIds := make([]string, 0)
+	datasourceIds := make([]string, 0)
 	for _, doc := range docs {
+		if doc.DataSource == models.DataSourceDatabase {
+			datasourceIds = append(datasourceIds, doc.SourceId)
+			continue
+		}
 		fileIds = append(fileIds, doc.SourceId)
 	}
 	fileMap, err := k.fileData.GetFileByFileIds(fileIds)
 	if err != nil {
 		return nil, err
 	}
+	datasourceMap, err := k.datasourceData.GetByIds(datasourceIds)
+	if err != nil {
+		return nil, err
+	}
 	for _, doc := range docs {
-		t := dto_kdb.DataListItem{
-			Id:       doc.Id,
-			Type:     doc.DataSource,
-			DataName: doc.DocName,
-
+		t := dto_kdb_doc.ListItem{
+			Id:         doc.Id,
+			Type:       doc.DataSource,
+			DataName:   doc.DocName,
 			Status:     doc.Status,
 			CreateTime: doc.CreatedAt.Format(time.DateTime),
 		}
-		file := fileMap[doc.SourceId]
-		if file != nil {
+
+		if file, ok := fileMap[doc.SourceId]; ok {
 			t.DataPath = file.Path
 			t.DataSuffix = file.Extension
 		}
+		if datasource, ok := datasourceMap[doc.SourceId]; ok {
+			t.DbType = datasource.Type
+		}
 		res.List = append(res.List, t)
 	}
+	return
+}
+
+func (k *KdbDocService) DocInfo(req *dto_kdb_doc.InfoReq) (res *dto_kdb_doc.InfoRes, err error) {
+	res = &dto_kdb_doc.InfoRes{}
 	return
 }
 
@@ -107,22 +122,6 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 		sourceName = file.OriginName
 	case "database":
 		sourceType = models.DataSourceDatabase
-		databaseHandler, err := database_parse.GetDatabaseHandler(database_parse.DatabaseConfig{
-			Driver:   req.DbType,
-			Host:     req.DbHost,
-			Port:     req.DbPort,
-			Database: req.DbName,
-			User:     req.DbUser,
-			Password: req.DbPwd,
-		})
-		if err != nil {
-			return nil, err
-		}
-		err = databaseHandler.Ping()
-		if err != nil {
-			return nil, err
-		}
-		databaseHandler.Close()
 		datasource, err := k.datasourceData.Add(userInfo.UserId, req.ImportDataBase)
 		if err != nil {
 			return nil, err
@@ -143,7 +142,10 @@ func (k *KdbDocService) DocAdd(req *dto_kdb_doc.AddReq) (res *dto_kdb_doc.AddRes
 			UpdatedAt: time.Now(),
 		},
 	}
-	k.kdbDocData.AddDoc(doc)
+	err = k.kdbDocData.AddDoc(doc)
+	if err != nil {
+		return nil, err
+	}
 	go func(k *KdbDocService) {
 		_ = k.DocBuild(kdb, doc)
 	}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
@@ -159,7 +161,7 @@ func (k *KdbDocService) DocDelete(req *dto_kdb_doc.DeleteReq) (res interface{}, 
 	if err != nil {
 		return
 	}
-	err = k.kdbDocData.DeleteDocs(kdb, []int64{req.DocId}, false)
+	err = k.kdbDocData.DeleteDocs(kdb, []int64{req.DataId}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +174,7 @@ func (k *KdbDocService) DataRedo(req *dto_kdb_doc.RedoReq) (res any, err error) 
 	if err != nil {
 		return
 	}
-	doc, err := k.kdbDocDao.GetById(req.DocId)
+	doc, err := k.kdbDocDao.GetById(req.DataId)
 	if err != nil {
 		return
 	}

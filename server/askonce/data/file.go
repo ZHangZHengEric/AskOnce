@@ -288,6 +288,9 @@ func (f *FileData) DeleteByFileIds(fileIds []string) (err error) {
 }
 
 func (f *FileData) GetFileByFileIds(fileIds []string) (res map[string]*models.File, err error) {
+	if len(fileIds) == 0 {
+		return
+	}
 	res = make(map[string]*models.File)
 	files, err := f.fileDao.GetByIds(fileIds)
 	if err != nil {

@@ -138,3 +138,13 @@ var ErrorQueryEmpty = errors.Error{
 	Code:    100010,
 	Message: "未搜索到内容，请换个问题提问！",
 }
+
+var ErrorDbConnError = errors.Error{
+	Code:    100011,
+	Message: "数据源连接失败！",
+}
+
+var ErrorDbSchemaError = errors.Error{
+	Code:    100012,
+	Message: "数据源读取失败！",
+}
