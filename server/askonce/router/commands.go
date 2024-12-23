@@ -20,6 +20,6 @@ func Tasks(engine *gin.Engine) {
 
 func startCycle(engine *gin.Engine) {
 	cronJob := cycle.InitCycle(engine)
-	cronJob.AddFunc(1*time.Second, controllers.BuildWaitingDoc)
+	cronJob.AddFunc(1*time.Second, controllers.BuildDoc)
 	cronJob.Start()
 }

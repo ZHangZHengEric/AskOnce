@@ -12,7 +12,12 @@ import (
 	"github.com/xiangtao94/golib/flow"
 )
 
-func BuildWaitingDoc(ctx *gin.Context) error {
+func BuildDoc(ctx *gin.Context) (err error) {
 	s := flow.Create(ctx, new(service.KdbDocService))
-	return s.BuildWaitingDoc()
+	err = s.BuildWaitingDoc()
+	if err != nil {
+		return
+	}
+	err = s.BuildFailedDoc()
+	return
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/errors"
+	"github.com/xiangtao94/golib/pkg/zlog"
 	"sync"
 )
 
@@ -184,10 +185,45 @@ func (k *KdbDocService) BuildWaitingDoc() (err error) {
 	if err != nil {
 		return
 	}
+	if len(docs) == 0 {
+		return
+	}
 	kdbIds := make([]int64, 0)
 	for _, doc := range docs {
 		kdbIds = append(kdbIds, doc.KdbId)
 	}
+	zlog.Infof(k.GetCtx(), "定时处理waitting数据 %v", kdbIds)
+	kdbs, err := k.kdbData.GetKdbByIds(kdbIds)
+	kdbMap := make(map[int64]*models.Kdb)
+	for _, kdb := range kdbs {
+		kdbMap[kdb.Id] = kdb
+	}
+	wg := sync.WaitGroup{}
+	for _, doc := range docs {
+		wg.Add(1)
+		kdb := kdbMap[doc.KdbId]
+		go func(k *KdbDocService) {
+			defer wg.Done()
+			_ = k.DocBuild(kdb, doc)
+		}(k.CopyWithCtx(k.GetCtx()).(*KdbDocService))
+	}
+	wg.Wait()
+	return
+}
+
+func (k *KdbDocService) BuildFailedDoc() (err error) {
+	docs, err := k.kdbDocDao.GetFailedList()
+	if err != nil {
+		return
+	}
+	if len(docs) == 0 {
+		return
+	}
+	kdbIds := make([]int64, 0)
+	for _, doc := range docs {
+		kdbIds = append(kdbIds, doc.KdbId)
+	}
+	zlog.Infof(k.GetCtx(), "定时处理failed数据 %v", kdbIds)
 	kdbs, err := k.kdbData.GetKdbByIds(kdbIds)
 	kdbMap := make(map[int64]*models.Kdb)
 	for _, kdb := range kdbs {
@@ -207,7 +243,7 @@ func (k *KdbDocService) BuildWaitingDoc() (err error) {
 }
 
 func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
-	_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocRunning)
+	_ = k.kdbDocDao.UpdateStatus(doc, models.KdbDocRunning)
 	if doc.DataSource == models.DataSourceFile {
 		err = k.docBuildDo(kdb, doc)
 	} else if doc.DataSource == models.DataSourceDatabase {
@@ -215,11 +251,11 @@ func (k *KdbDocService) DocBuild(kdb *models.Kdb, doc *models.KdbDoc) (err error
 	}
 	if err != nil {
 		k.LogErrorf("文档【%v】构建内存数据库失败 %s", doc.Id, err.Error())
-		_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocFail)
+		_ = k.kdbDocDao.UpdateStatus(doc, models.KdbDocFail)
 		return
 	}
 	k.LogInfof("文档【%v】构建内存数据库成功", doc.Id)
-	_ = k.kdbDocDao.UpdateStatus(doc.Id, models.KdbDocSuccess)
+	_ = k.kdbDocDao.UpdateStatus(doc, models.KdbDocSuccess)
 	return
 }
 

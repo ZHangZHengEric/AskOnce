@@ -34,6 +34,7 @@ type KdbDoc struct {
 	DataSource string            `gorm:"type:varchar(52);default:'';comment:文档来源 file"`
 	SourceId   string            `gorm:"type:varchar(128);default:0;comment:来源id"`
 	Status     int               `gorm:"type:int(11);default:0;comment: 状态 0 初始化，没有导入，1 正在处理， 2 导入失败 9 导入成功"`
+	RetryCount int               `gorm:"type:int(11);default:0;comment:重试次数"`
 	UserId     string            `gorm:"type:varchar(128);default:'';comment:上传用户id"`
 	Metadata   datatypes.JSONMap `gorm:"type:json;comment:元数据信息"`
 	orm.CrudModel
@@ -73,12 +74,13 @@ func (entity *KdbDocDao) Update(id int64, update map[string]interface{}) error {
 }
 
 // 更新状态
-func (entity *KdbDocDao) UpdateStatus(id int64, status int) error {
-	update := map[string]interface{}{
-		"status":     status,
-		"updated_at": time.Now(),
+func (entity *KdbDocDao) UpdateStatus(doc *KdbDoc, status int) error {
+	doc.Status = status
+	doc.UpdatedAt = time.Now()
+	if status == KdbDocFail {
+		doc.RetryCount = doc.RetryCount + 1
 	}
-	err := entity.GetDB().Where("id = ?", id).Updates(update).Error
+	err := entity.GetDB().Where("id = ?", doc.Id).Updates(doc).Error
 	if err != nil {
 		return components.ErrorMysqlError
 	}
@@ -111,6 +113,14 @@ func (entity *KdbDocDao) GetListByStatus(status int) (res []*KdbDoc, err error) 
 	db := entity.GetDB()
 	db = db.Table(entity.GetTable())
 	err = db.Where("status = ?", status).Limit(10).Find(&res).Error
+	return
+}
+
+func (entity *KdbDocDao) GetFailedList() (res []*KdbDoc, err error) {
+	res = []*KdbDoc{}
+	db := entity.GetDB()
+	db = db.Table(entity.GetTable())
+	err = db.Where("status = ? and retry_count < 3", KdbDocFail).Limit(10).Find(&res).Error
 	return
 }
 
