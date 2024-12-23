@@ -10,6 +10,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
 	"gorm.io/datatypes"
@@ -26,6 +27,7 @@ type SearchData struct {
 	kdbDocContentDao *models.KdbDocContentDao
 	kdbDocDao        *models.KdbDocDao
 	fileDao          *models.FileDao
+	datasourceDao    *models.DatasourceDao
 	kdbData          *KdbData
 }
 
@@ -37,6 +39,7 @@ func (entity *SearchData) OnCreate() {
 	entity.kdbDocContentDao = entity.Create(new(models.KdbDocContentDao)).(*models.KdbDocContentDao)
 	entity.kdbDocDao = entity.Create(new(models.KdbDocDao)).(*models.KdbDocDao)
 	entity.fileDao = entity.Create(new(models.FileDao)).(*models.FileDao)
+	entity.datasourceDao = entity.Create(new(models.DatasourceDao)).(*models.DatasourceDao)
 	entity.kdbData = entity.Create(new(KdbData)).(*KdbData)
 }
 
@@ -236,9 +239,270 @@ func (entity *SearchData) DatabaseSearch(indexName string, sessionId string, que
 		if len(recalls) == 0 {
 			return nil, err
 		}
-
+		recallsForPost := make([]*es.DocDocument, 0, len(recalls))
+		for i, recall := range recalls {
+			recallsForPost = append(recallsForPost, &es.DocDocument{
+				CommonDocument: es.CommonDocument{
+					DocId:      recall.DocId,
+					DocContent: recall.DocContent,
+					Score:      recall.Score,
+					Source:     recall.Source,
+				},
+				DocSegmentId: int64(i), // 用下标识别
+			})
+		}
+		// 后处理排序
+		recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(question, recallsForPost)
+		if err != nil {
+			return nil, err
+		}
+		recallsForPost2 := recallsParsedRes.SearchResult
+		recalls2 := make([]*es.TableDocument, 0)
+		for _, r := range recallsForPost2 {
+			old := recalls[r.DocSegmentId]
+			old.Score = r.Score
+			recalls2 = append(recalls2, old)
+		}
+		sort.Slice(recalls2, func(i, j int) bool {
+			return recalls2[i].Score > recalls2[j].Score
+		})
+		dataIds := make([]int64, 0)
+		for _, rc := range recalls2 {
+			dataIds = append(dataIds, rc.DocId)
+		}
+		docMap, datasourceMap, err := entity.GetDatasourceMap(dataIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, rc := range recalls2 {
+			ddd, ok := docMap[rc.DocId]
+			if !ok {
+				continue
+			}
+			datasource := datasourceMap[ddd.SourceId]
+			results = append(results, dto_search.CommonSearchOutput{
+				Content: rc.DocContent,
+				Form:    rc.Source,
+				DocId:   rc.DocId,
+				Score:   rc.Score,
+				DatabaseInfo: &dto_search.CommonSearchDatabaseInfo{
+					DatabaseName:    datasource.DatabaseName,
+					DatabaseComment: "",
+					TableName:       rc.TableName,
+					TableComment:    rc.TableComment,
+				},
+			})
+		}
+	} else if databaseType == "column" {
+		recalls, err := es.CommonDocumentSearch[*es.TableColumnDocument](entity.GetCtx(), indexName+"_column", question, embRes[0], 20)
+		if err != nil {
+			return nil, err
+		}
+		if len(recalls) == 0 {
+			return nil, err
+		}
+		recallsForPost := make([]*es.DocDocument, 0, len(recalls))
+		for i, recall := range recalls {
+			recallsForPost = append(recallsForPost, &es.DocDocument{
+				CommonDocument: es.CommonDocument{
+					DocId:      recall.DocId,
+					DocContent: recall.DocContent,
+					Score:      recall.Score,
+					Source:     recall.Source,
+				},
+				DocSegmentId: int64(i), // 用下标识别
+			})
+		}
+		// 后处理排序
+		recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(question, recallsForPost)
+		if err != nil {
+			return nil, err
+		}
+		recallsForPost2 := recallsParsedRes.SearchResult
+		recalls2 := make([]*es.TableColumnDocument, 0)
+		for _, r := range recallsForPost2 {
+			old := recalls[r.DocSegmentId]
+			old.Score = r.Score
+			recalls2 = append(recalls2, old)
+		}
+		sort.Slice(recalls2, func(i, j int) bool {
+			return recalls2[i].Score > recalls2[j].Score
+		})
+		dataIds := make([]int64, 0)
+		for _, rc := range recalls2 {
+			dataIds = append(dataIds, rc.DocId)
+		}
+		docMap, datasourceMap, err := entity.GetDatasourceMap(dataIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, rc := range recalls2 {
+			ddd, ok := docMap[rc.DocId]
+			if !ok {
+				continue
+			}
+			datasource := datasourceMap[ddd.SourceId]
+			results = append(results, dto_search.CommonSearchOutput{
+				Content: rc.DocContent,
+				Form:    rc.Source,
+				DocId:   rc.DocId,
+				Score:   rc.Score,
+				DatabaseInfo: &dto_search.CommonSearchDatabaseInfo{
+					DatabaseName:    datasource.DatabaseName,
+					DatabaseComment: "",
+					TableName:       rc.TableName,
+					ColumnName:      rc.ColumnName,
+					ColumnComment:   rc.ColumnComment,
+					ColumnType:      rc.ColumnType,
+				},
+			})
+		}
+	} else if databaseType == "column_value" {
+		recalls, err := es.CommonDocumentSearch[*es.TableColumnValueDocument](entity.GetCtx(), indexName+"_column_value", question, embRes[0], 20)
+		if err != nil {
+			return nil, err
+		}
+		if len(recalls) == 0 {
+			return nil, err
+		}
+		recallsForPost := make([]*es.DocDocument, 0, len(recalls))
+		for i, recall := range recalls {
+			recallsForPost = append(recallsForPost, &es.DocDocument{
+				CommonDocument: es.CommonDocument{
+					DocId:      recall.DocId,
+					DocContent: recall.DocContent,
+					Score:      recall.Score,
+					Source:     recall.Source,
+				},
+				DocSegmentId: int64(i), // 用下标识别
+			})
+		}
+		// 后处理排序
+		recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(question, recallsForPost)
+		if err != nil {
+			return nil, err
+		}
+		recallsForPost2 := recallsParsedRes.SearchResult
+		recalls2 := make([]*es.TableColumnValueDocument, 0)
+		for _, r := range recallsForPost2 {
+			old := recalls[r.DocSegmentId]
+			old.Score = r.Score
+			recalls2 = append(recalls2, old)
+		}
+		sort.Slice(recalls2, func(i, j int) bool {
+			return recalls2[i].Score > recalls2[j].Score
+		})
+		dataIds := make([]int64, 0)
+		for _, rc := range recalls2 {
+			dataIds = append(dataIds, rc.DocId)
+		}
+		docMap, datasourceMap, err := entity.GetDatasourceMap(dataIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, rc := range recalls2 {
+			ddd, ok := docMap[rc.DocId]
+			if !ok {
+				continue
+			}
+			datasource := datasourceMap[ddd.SourceId]
+			results = append(results, dto_search.CommonSearchOutput{
+				Content: rc.DocContent,
+				Form:    rc.Source,
+				DocId:   rc.DocId,
+				Score:   rc.Score,
+				DatabaseInfo: &dto_search.CommonSearchDatabaseInfo{
+					DatabaseName:    datasource.DatabaseName,
+					DatabaseComment: "",
+					TableName:       rc.TableName,
+					ColumnName:      rc.ColumnName,
+				},
+			})
+		}
+	} else if databaseType == "frq" {
+		recalls, err := es.CommonDocumentSearch[*es.DatabaseFaqDocument](entity.GetCtx(), indexName+"_faq", question, embRes[0], 20)
+		if err != nil {
+			return nil, err
+		}
+		if len(recalls) == 0 {
+			return nil, err
+		}
+		recallsForPost := make([]*es.DocDocument, 0, len(recalls))
+		for i, recall := range recalls {
+			recallsForPost = append(recallsForPost, &es.DocDocument{
+				CommonDocument: es.CommonDocument{
+					DocId:      recall.DocId,
+					DocContent: recall.DocContent,
+					Score:      recall.Score,
+					Source:     recall.Source,
+				},
+				DocSegmentId: int64(i), // 用下标识别
+			})
+		}
+		// 后处理排序
+		recallsParsedRes, err := entity.jobdApi.SearchResultPostProcess(question, recallsForPost)
+		if err != nil {
+			return nil, err
+		}
+		recallsForPost2 := recallsParsedRes.SearchResult
+		recalls2 := make([]*es.DatabaseFaqDocument, 0)
+		for _, r := range recallsForPost2 {
+			old := recalls[r.DocSegmentId]
+			old.Score = r.Score
+			recalls2 = append(recalls2, old)
+		}
+		sort.Slice(recalls2, func(i, j int) bool {
+			return recalls2[i].Score > recalls2[j].Score
+		})
+		dataIds := make([]int64, 0)
+		for _, rc := range recalls2 {
+			dataIds = append(dataIds, rc.DocId)
+		}
+		docMap, datasourceMap, err := entity.GetDatasourceMap(dataIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, rc := range recalls2 {
+			ddd, ok := docMap[rc.DocId]
+			if !ok {
+				continue
+			}
+			datasource := datasourceMap[ddd.SourceId]
+			results = append(results, dto_search.CommonSearchOutput{
+				Content: rc.DocContent,
+				Form:    rc.Source,
+				DocId:   rc.DocId,
+				Score:   rc.Score,
+				DatabaseInfo: &dto_search.CommonSearchDatabaseInfo{
+					DatabaseName: datasource.DatabaseName,
+				},
+			})
+		}
 	}
 	return results, nil
+}
+
+func (entity *SearchData) GetDatasourceMap(dataIds []int64) (map[int64]*models.KdbDoc, map[string]*models.Datasource, error) {
+	dataIds = slice.Union(dataIds)
+	docs, err := entity.kdbDocDao.GetByIds(dataIds)
+	if err != nil {
+		return nil, nil, err
+	}
+	datasourceIds := make([]string, 0)
+	docMap := make(map[int64]*models.KdbDoc)
+	for _, doc := range docs {
+		datasourceIds = append(datasourceIds, doc.SourceId)
+		docMap[doc.Id] = doc
+	}
+	datasources, err := entity.datasourceDao.GetByIds(datasourceIds)
+	if err != nil {
+		return nil, nil, err
+	}
+	datasourceMap := map[string]*models.Datasource{}
+	for _, d := range datasources {
+		datasourceMap[d.Id] = d
+	}
+	return docMap, datasourceMap, nil
 }
 
 func appendText(source *es.DocDocument, fullContent string) string {

@@ -20,6 +20,18 @@ type CommonSearchOutput struct {
 	FullContent string `json:"fullContent,omitempty"`
 	// 分数
 	Score float64 `json:"score,omitempty"`
+	// 数据库相关信息
+	DatabaseInfo *CommonSearchDatabaseInfo `json:"databaseInfo,omitempty"`
+}
+
+type CommonSearchDatabaseInfo struct {
+	DatabaseName    string `json:"databaseName"`
+	DatabaseComment string `json:"databaseComment"`
+	TableName       string `json:"tableName"`
+	TableComment    string `json:"tableComment"`
+	ColumnName      string `json:"columnName"`
+	ColumnType      string `json:"columnType"`
+	ColumnComment   string `json:"columnComment"`
 }
 
 type DoReferItem struct {
