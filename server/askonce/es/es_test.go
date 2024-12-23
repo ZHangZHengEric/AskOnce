@@ -13,7 +13,7 @@ import (
 
 func TestCommonIndexCreate(t *testing.T) {
 	test.Init()
-	err := CommonIndexCreate(test.Ctx, "demo_test")
+	err := DocIndexCreate(test.Ctx, "demo_test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func TestCommonIndexCreate(t *testing.T) {
 
 func TestCommonIndexDelete(t *testing.T) {
 	test.Init()
-	err := CommonIndexDelete(test.Ctx, "demo_test")
+	err := DocIndexDelete(test.Ctx, "demo_test")
 	if err != nil {
 		t.Fatal(err)
 	}

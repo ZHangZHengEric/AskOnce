@@ -105,7 +105,7 @@ func (entity *SearchData) esSearch(question string, indexName string, querySize 
 	if err != nil {
 		return
 	}
-	recalls, err := es.CommonDocumentSearch(entity.GetCtx(), indexName, question, embRes[0], 20)
+	recalls, err := es.CommonDocumentSearch[*es.DocDocument](entity.GetCtx(), indexName, question, embRes[0], 20)
 	if err != nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (entity *SearchData) esSearch(question string, indexName string, querySize 
 	sort.Slice(recalls, func(i, j int) bool {
 		return recalls[i].Score > recalls[j].Score
 	})
-	dataSearchMap := make(map[int]*es.CommonDocument)
+	dataSearchMap := make(map[int]*es.DocDocument)
 	var dataIds []int64
 	for i, result := range recalls {
 		dataIds = append(dataIds, result.DocId)
@@ -222,7 +222,7 @@ func (entity *SearchData) webSearch(question string, querySize int) (results []d
 	return results, nil
 }
 
-func appendText(source *es.CommonDocument, fullContent string) string {
+func appendText(source *es.DocDocument, fullContent string) string {
 	prefixIndex := source.Start
 	suffixIndex := source.End
 	full := []rune(fullContent)

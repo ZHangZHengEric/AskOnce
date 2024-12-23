@@ -3,6 +3,7 @@ package data
 import (
 	"askonce/components"
 	"askonce/components/dto"
+	"askonce/es"
 	"askonce/helpers"
 	"askonce/models"
 	"encoding/json"
@@ -105,7 +106,7 @@ func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAut
 		return nil, err
 	}
 	if kdb == nil && kdbAutoCreate {
-		kdb, err = k.AddKdb(kdbName, "", "", user)
+		kdb, err = k.AddKdb(kdbName, "", models.DataTypeDoc, user)
 		if err != nil {
 			return nil, err
 		}
@@ -116,8 +117,7 @@ func (k *KdbData) GetKdbByName(kdbName string, user dto.LoginInfoSession, kdbAut
 	return
 }
 
-func (k *KdbData) AddKdb(kdbName, kdbIntro, kdbType string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
-
+func (k *KdbData) AddKdb(kdbName, kdbIntro, dataType string, user dto.LoginInfoSession) (add *models.Kdb, err error) {
 	defaultSetting := dto.KdbSetting{
 		ReferenceThreshold: float32(0.7),
 		KdbAttach: dto.KdbAttach{
@@ -140,7 +140,7 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro, kdbType string, user dto.LoginInfoSe
 		Intro:    kdbIntro,
 		Setting:  datatypes.NewJSONType(defaultSetting),
 		Type:     models.KdbTypePrivate,
-		DataType: models.DataTypeDB,
+		DataType: dataType,
 		Creator:  user.Account,
 		CrudModel: orm.CrudModel{
 			CreatedAt: now,
@@ -169,6 +169,19 @@ func (k *KdbData) AddKdb(kdbName, kdbIntro, kdbType string, user dto.LoginInfoSe
 	if err != nil {
 		tx.Rollback()
 		return
+	}
+	if dataType == models.DataTypeDoc {
+		err = es.DocIndexCreate(k.GetCtx(), add.GetIndexName())
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+	} else if dataType == models.DataTypeDB {
+		err = es.DatabaseIndexCreate(k.GetCtx(), add.GetIndexName())
+		if err != nil {
+			tx.Rollback()
+			return
+		}
 	}
 	tx.Commit()
 	return

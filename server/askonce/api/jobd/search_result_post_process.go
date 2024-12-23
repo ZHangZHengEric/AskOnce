@@ -9,16 +9,16 @@ package jobd
 import "askonce/es"
 
 type SearchResultPostProcessReq struct {
-	Id           string               `json:"id"`
-	Question     string               `json:"question"`
-	SearchResult []*es.CommonDocument `json:"search_result"`
+	Id           string            `json:"id"`
+	Question     string            `json:"question"`
+	SearchResult []*es.DocDocument `json:"search_result"`
 }
 
 type SearchResultPostProcessRes struct {
-	SearchResult []*es.CommonDocument `json:"search_result"`
+	SearchResult []*es.DocDocument `json:"search_result"`
 }
 
-func (entity *JobdApi) SearchResultPostProcess(question string, input []*es.CommonDocument) (res *SearchResultPostProcessRes, err error) {
+func (entity *JobdApi) SearchResultPostProcess(question string, input []*es.DocDocument) (res *SearchResultPostProcessRes, err error) {
 	req := &SearchResultPostProcessReq{
 		Id:           "",
 		Question:     question,

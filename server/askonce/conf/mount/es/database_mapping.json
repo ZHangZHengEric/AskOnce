@@ -1,0 +1,114 @@
+{
+  "table": {
+    "properties": {
+      "doc_id": {
+        "type": "keyword",
+        "index": false
+      },
+      "doc_content": {
+        "index": true,
+        "type": "text",
+        "analyzer": "my_ana",
+        "similarity": "my_similarity"
+      },
+      "emb": {
+        "type": "dense_vector",
+        "dims": 4096,
+        "similarity": "cosine"
+      },
+      "database_name": {
+        "type": "keyword"
+      },
+      "table_name": {
+        "type": "keyword"
+      },
+      "table_comment": {
+        "type": "keyword"
+      }
+    }
+  },
+  "column": {
+    "properties": {
+      "doc_id": {
+        "type": "keyword",
+        "index": false
+      },
+      "doc_content": {
+        "index": true,
+        "type": "text",
+        "analyzer": "my_ana",
+        "similarity": "my_similarity"
+      },
+      "emb": {
+        "type": "dense_vector",
+        "dims": 4096,
+        "similarity": "cosine"
+      },
+      "database_name": {
+        "type": "keyword"
+      },
+      "table_name": {
+        "type": "keyword"
+      },
+      "column_name": {
+        "type": "keyword"
+      },
+      "column_type": {
+        "type": "keyword"
+      },
+      "column_comment": {
+        "type": "keyword"
+      }
+    }
+  },
+  "column_value": {
+    "properties": {
+      "doc_id": {
+        "type": "keyword",
+        "index": false
+      },
+      "doc_content": {
+        "index": true,
+        "type": "text",
+        "analyzer": "my_ana",
+        "similarity": "my_similarity"
+      },
+      "emb": {
+        "type": "dense_vector",
+        "dims": 4096,
+        "similarity": "cosine"
+      },
+      "database_name": {
+        "type": "keyword"
+      },
+      "table_name": {
+        "type": "keyword"
+      },
+      "column_name": {
+        "type": "keyword"
+      }
+    }
+  },
+  "faq": {
+    "properties": {
+      "doc_id": {
+        "type": "keyword",
+        "index": false
+      },
+      "doc_content": {
+        "index": true,
+        "type": "text",
+        "analyzer": "my_ana",
+        "similarity": "my_similarity"
+      },
+      "emb": {
+        "type": "dense_vector",
+        "dims": 4096,
+        "similarity": "cosine"
+      },
+      "sql_key": {
+        "type": "keyword"
+      }
+    }
+  }
+}

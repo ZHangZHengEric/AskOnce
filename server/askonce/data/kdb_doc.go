@@ -95,7 +95,7 @@ func (k *KdbDocData) DeleteDocs(kdb *models.Kdb, docIds []int64, deleteAll bool)
 		return err
 	}
 	if deleteAll {
-		err = es.CommonIndexDelete(k.GetCtx(), kdb.GetIndexName())
+		err = es.DocIndexDelete(k.GetCtx(), kdb.GetIndexName())
 		if err != nil {
 			tx.Rollback()
 			return
@@ -151,19 +151,21 @@ func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content s
 		k.LogErrorf("kdbDocSegmentDao insert error，docId %v, error %v", doc.Id, err.Error())
 		return err
 	}
-	esInsertCorpus := make([]*es.CommonDocument, 0)
+	esInsertCorpus := make([]*es.DocDocument, 0)
 	for i, s := range segments {
-		esInsertCorpus = append(esInsertCorpus, &es.CommonDocument{
-			DocId:        s.DocId,
-			DocContent:   s.Text,
+		esInsertCorpus = append(esInsertCorpus, &es.DocDocument{
+			CommonDocument: es.CommonDocument{
+				DocId:      s.DocId,
+				DocContent: s.Text,
+				Emb:        embeddingAll[i],
+			},
+
 			DocSegmentId: s.Id,
 			Start:        s.StartIndex,
 			End:          s.EndIndex,
-			Emb:          embeddingAll[i],
 		})
 	}
-	err = es.CommonDocumentInsert(k.GetCtx(), kdb.GetIndexName(), esInsertCorpus)
-	if err != nil {
+	if err := es.CommonBatchInsert(k.GetCtx(), kdb.GetIndexName(), esInsertCorpus); err != nil {
 		tx.Rollback()
 		k.LogErrorf("saveEs error，docId %v, error %v", doc.Id, err.Error())
 		return err
