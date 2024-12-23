@@ -83,7 +83,7 @@ func (entity *SearchData) SearchFromWebOrKdb(sessionId, question string, opts *S
 			entity.LogErrorf("es搜索报错")
 		}
 	}
-	if len(results) == 0 || len(sessionId) == 0 {
+	if len(results) == 0 {
 		return []dto_search.CommonSearchOutput{}, nil
 	}
 	now := time.Now()

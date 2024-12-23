@@ -19,8 +19,8 @@ import (
 type DocDocument struct {
 	CommonDocument       // 索引列 内容是 content
 	DocSegmentId   int64 `json:"doc_segment_id"`
-	Start          int   `json:"start,omitempty"`
-	End            int   `json:"end,omitempty"`
+	Start          int   `json:"start"`
+	End            int   `json:"end"`
 }
 
 func (cd *DocDocument) ConvertAny() any {
