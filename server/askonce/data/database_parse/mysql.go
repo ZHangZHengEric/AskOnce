@@ -61,7 +61,7 @@ func (h *MySQLHandler) GetColumns(table string) ([]ColumnInfo, error) {
 
 func (h *MySQLHandler) GetSampleData(table, column string) ([]string, error) {
 	var samples []string
-	query := fmt.Sprintf("SELECT distinct `%s` FROM `%s` where `%s` is not null and `%s` != '' LIMIT 1000;", column, table, column, column)
+	query := fmt.Sprintf("SELECT distinct `%s` FROM `%s` where `%s` is not null and `%s` != '' LIMIT 100;", column, table, column, column)
 	err := h.DB.Raw(query).Scan(&samples).Error
 	return samples, err
 }
