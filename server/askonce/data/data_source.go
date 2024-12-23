@@ -84,3 +84,10 @@ func (f *DatasourceData) GetByIds(ids []string) (res map[string]*models.Datasour
 	}
 	return
 }
+
+func (f *DatasourceData) DeleteByIds(ids []string) (err error) {
+	if len(ids) == 0 {
+		return
+	}
+	return f.datasourceDao.DeleteByIds(ids)
+}

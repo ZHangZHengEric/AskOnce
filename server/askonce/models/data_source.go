@@ -62,3 +62,10 @@ func (entity *DatasourceDao) GetByIds(ids []string) (res []*Datasource, err erro
 	err = entity.GetDB().Where("id in ?", ids).Find(&res).Error
 	return
 }
+
+func (entity *DatasourceDao) DeleteByIds(ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	return entity.GetDB().Where("id in ?", ids).Delete(&Datasource{}).Error
+}

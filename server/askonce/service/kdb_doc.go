@@ -42,54 +42,31 @@ func (k *KdbDocService) DocList(req *dto_kdb_doc.ListReq) (res *dto_kdb_doc.List
 		return
 	}
 	res = &dto_kdb_doc.ListResp{
-		List:  make([]dto_kdb_doc.ListItem, 0),
+		List:  make([]dto_kdb_doc.InfoItem, 0),
 		Total: 0,
 	}
-	docs, cnt, err := k.kdbDocData.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
+	list, cnt, err := k.kdbDocData.GetList(kdb.Id, req.QueryName, req.QueryStatus, req.PageParam)
 	if err != nil {
 		return nil, err
 	}
 	res.Total = cnt
-	fileIds := make([]string, 0)
-	datasourceIds := make([]string, 0)
-	for _, doc := range docs {
-		if doc.DataSource == models.DataSourceDatabase {
-			datasourceIds = append(datasourceIds, doc.SourceId)
-			continue
-		}
-		fileIds = append(fileIds, doc.SourceId)
-	}
-	fileMap, err := k.fileData.GetFileByFileIds(fileIds)
-	if err != nil {
-		return nil, err
-	}
-	datasourceMap, err := k.datasourceData.GetByIds(datasourceIds)
-	if err != nil {
-		return nil, err
-	}
-	for _, doc := range docs {
-		t := dto_kdb_doc.ListItem{
-			Id:         doc.Id,
-			Type:       doc.DataSource,
-			DataName:   doc.DocName,
-			Status:     doc.Status,
-			CreateTime: doc.CreatedAt.Format(time.DateTime),
-		}
-
-		if file, ok := fileMap[doc.SourceId]; ok {
-			t.DataPath = file.Path
-			t.DataSuffix = file.Extension
-		}
-		if datasource, ok := datasourceMap[doc.SourceId]; ok {
-			t.DbType = datasource.Type
-		}
-		res.List = append(res.List, t)
-	}
+	res.List = list
 	return
 }
 
 func (k *KdbDocService) DocInfo(req *dto_kdb_doc.InfoReq) (res *dto_kdb_doc.InfoRes, err error) {
-	res = &dto_kdb_doc.InfoRes{}
+	userInfo, _ := utils.LoginInfo(k.GetCtx())
+	kdb, err := k.kdbData.CheckKdbAuth(req.KdbId, userInfo.UserId, models.AuthTypeRead)
+	if err != nil {
+		return
+	}
+	info, err := k.kdbDocData.GetDoc(kdb.Id, req.DataId)
+	if err != nil {
+		return nil, err
+	}
+	res = &dto_kdb_doc.InfoRes{
+		InfoItem: info,
+	}
 	return
 }
 

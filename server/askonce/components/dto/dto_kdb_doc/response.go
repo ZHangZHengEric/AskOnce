@@ -20,26 +20,24 @@ type AddZipRes struct {
 }
 
 type InfoRes struct {
-	KdbDataId int64                  `json:"kdbDataId"`
-	DataName  string                 `json:"dataName"`
-	DbType    string                 `json:"dbType,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	InfoItem
 }
 
 type ListResp struct {
-	List  []ListItem `json:"list"`
+	List  []InfoItem `json:"list"`
 	Total int64      `json:"total"`
 }
 
-type ListItem struct {
+type InfoItem struct {
 	Id         int64  `json:"id"`
 	Type       string `json:"type"`
 	DataName   string `json:"dataName"`
 	DataPath   string `json:"dataPath,omitempty"`
 	DataSuffix string `json:"dataSuffix,omitempty"`
 
-	DbType string `json:"dbType,omitempty"`
-
-	Status     int    `json:"status"` // 0正在构建到知识库 1 成功 2 失败
-	CreateTime string `json:"createTime"`
+	DbType     string                 `json:"dbType,omitempty"`
+	DbSchema   any                    `json:"dbSchema,omitempty"`
+	Status     int                    `json:"status"` // 0正在构建到知识库 1 成功 2 失败
+	CreateTime string                 `json:"createTime"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }

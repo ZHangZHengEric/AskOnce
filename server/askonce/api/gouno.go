@@ -29,7 +29,10 @@ func (a *GoUnoApi) OnCreate() {
 func (a *GoUnoApi) HtmlToDocx(fileName string, content string) (fileUrl string, err error) {
 	filePrefix := strings.Split(fileName, ".")[0]
 	if filePrefix == "" {
-		filePrefix = "askance_doc_" + time.Now().String()
+		filePrefix = "askonce_doc_" + time.Now().String()
+		fileName = fmt.Sprintf("%s.html", filePrefix)
+	} else {
+		filePrefix = filePrefix + time.Now().String()
 		fileName = fmt.Sprintf("%s.html", filePrefix)
 	}
 	body := &bytes.Buffer{}
@@ -50,14 +53,14 @@ func (a *GoUnoApi) HtmlToDocx(fileName string, content string) (fileUrl string, 
 		return
 	}
 	defer resp.Body.Close()
+	objectFullPath := filePrefix + ".docx"
 	minioClient, err := helpers.GetMinioClient(a.GetCtx())
-	_, err = minioClient.PutObject(a.GetCtx(), defines.BucketTmp, filePrefix+".docx", resp.Body, resp.ContentLength, minio.PutObjectOptions{
+	_, err = minioClient.PutObject(a.GetCtx(), defines.BucketTmp, objectFullPath, resp.Body, resp.ContentLength, minio.PutObjectOptions{
 		ContentType: mimedb.TypeByExtension("docx"),
 	})
 	if err != nil {
 		return
 	}
-	objectFullPath := filePrefix + ".docx"
 	filePath2 := url.PathEscape(objectFullPath)
 	fileUrl = minioClient.EndpointURL().String() + "/" + defines.BucketTmp + "/" + filePath2
 	return fileUrl, nil

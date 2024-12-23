@@ -3,6 +3,7 @@ package data
 import (
 	"askonce/api/jobd"
 	"askonce/components/dto"
+	"askonce/components/dto/dto_kdb_doc"
 	"askonce/es"
 	"askonce/helpers"
 	"askonce/models"
@@ -15,6 +16,7 @@ type KdbDocData struct {
 	flow.Redis
 	kdbDocDao        *models.KdbDocDao
 	fileData         *FileData
+	datasourceData   *DatasourceData
 	kdbDocContentDao *models.KdbDocContentDao
 	kdbDocSegmentDao *models.KdbDocSegmentDao
 	jobdApi          *jobd.JobdApi
@@ -26,6 +28,7 @@ func (k *KdbDocData) OnCreate() {
 	k.kdbDocSegmentDao = flow.Create(k.GetCtx(), new(models.KdbDocSegmentDao))
 	k.jobdApi = flow.Create(k.GetCtx(), new(jobd.JobdApi))
 	k.fileData = flow.Create(k.GetCtx(), new(FileData))
+	k.datasourceData = flow.Create(k.GetCtx(), new(DatasourceData))
 }
 
 func (k *KdbDocData) DeleteDocs(kdb *models.Kdb, docIds []int64, deleteAll bool) (err error) {
@@ -51,11 +54,22 @@ func (k *KdbDocData) DeleteDocs(kdb *models.Kdb, docIds []int64, deleteAll bool)
 	k.kdbDocSegmentDao.SetDB(tx)
 	docSuccessIds := make([]int64, 0)
 	docFileIds := make([]string, 0)
+	datasourceIds := make([]string, 0)
 	for _, doc := range docs {
 		if doc.Status == models.KdbDocSuccess {
 			docSuccessIds = append(docSuccessIds, doc.Id)
 		}
-		docFileIds = append(docFileIds, doc.SourceId)
+		if doc.DataSource == models.DataSourceFile {
+			docFileIds = append(docFileIds, doc.SourceId)
+		} else {
+			datasourceIds = append(datasourceIds, doc.SourceId)
+		}
+
+	}
+	err = k.datasourceData.DeleteByIds(datasourceIds)
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
 	err = k.fileData.DeleteByFileIds(docFileIds)
 	if err != nil {
@@ -155,14 +169,88 @@ func (k *KdbDocData) SaveDocBuild(kdb *models.Kdb, doc *models.KdbDoc, content s
 	return
 }
 
-func (k *KdbDocData) GetList(kdbId int64, queryName string, queryStatus []int, param dto.PageParam) (list []*models.KdbDoc, cnt int64, err error) {
-	return k.kdbDocDao.GetList(kdbId, queryName, queryStatus, param)
+func (k *KdbDocData) GetList(kdbId int64, queryName string, queryStatus []int, param dto.PageParam) (list []dto_kdb_doc.InfoItem, cnt int64, err error) {
+	docs, cnt, err := k.kdbDocDao.GetList(kdbId, queryName, queryStatus, param)
+	if err != nil {
+		return
+	}
+	fileIds := make([]string, 0)
+	datasourceIds := make([]string, 0)
+	for _, doc := range docs {
+		if doc.DataSource == models.DataSourceDatabase {
+			datasourceIds = append(datasourceIds, doc.SourceId)
+			continue
+		}
+		fileIds = append(fileIds, doc.SourceId)
+	}
+	fileMap, err := k.fileData.GetFileByFileIds(fileIds)
+	if err != nil {
+		return
+	}
+	datasourceMap, err := k.datasourceData.GetByIds(datasourceIds)
+	if err != nil {
+		return
+	}
+	for _, doc := range docs {
+		t := dto_kdb_doc.InfoItem{
+			Id:         doc.Id,
+			Type:       doc.DataSource,
+			DataName:   doc.DocName,
+			Status:     doc.Status,
+			CreateTime: doc.CreatedAt.Format(time.DateTime),
+		}
+
+		if file, ok := fileMap[doc.SourceId]; ok {
+			t.DataPath = file.Path
+			t.DataSuffix = file.Extension
+		}
+		if datasource, ok := datasourceMap[doc.SourceId]; ok {
+			t.DbType = datasource.Type
+		}
+		list = append(list, t)
+	}
+	return
 }
 
 func (k *KdbDocData) AddDoc(doc *models.KdbDoc) (err error) {
 	err = k.kdbDocDao.Insert(doc)
 	if err != nil {
 		return err
+	}
+	return
+}
+
+func (k *KdbDocData) GetDoc(kdbId int64, kdbDataId int64) (res dto_kdb_doc.InfoItem, err error) {
+	doc, err := k.kdbDocDao.GetById(kdbDataId)
+	if err != nil {
+		return
+	}
+	res = dto_kdb_doc.InfoItem{
+		Id:         doc.Id,
+		Type:       doc.DataSource,
+		DataName:   doc.DocName,
+		Status:     doc.Status,
+		CreateTime: doc.CreatedAt.Format(time.DateTime),
+	}
+	if doc.DataSource == models.DataSourceDatabase {
+		datasourceMap, err := k.datasourceData.GetByIds([]string{doc.SourceId})
+		if err != nil {
+			return res, err
+		}
+
+		if datasource, ok := datasourceMap[doc.SourceId]; ok {
+			res.DbType = datasource.Type
+			res.DbSchema = datasource.Schema
+		}
+	} else {
+		fileMap, err := k.fileData.GetFileByFileIds([]string{doc.SourceId})
+		if err != nil {
+			return res, err
+		}
+		if file, ok := fileMap[doc.SourceId]; ok {
+			res.DataPath = file.Path
+			res.DataSuffix = file.Extension
+		}
 	}
 	return
 }
