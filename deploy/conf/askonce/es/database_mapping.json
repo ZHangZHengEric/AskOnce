@@ -106,7 +106,7 @@
         "dims": 4096,
         "similarity": "cosine"
       },
-      "sql_key": {
+      "sql": {
         "type": "keyword"
       }
     }
