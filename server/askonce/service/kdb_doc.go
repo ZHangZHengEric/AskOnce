@@ -357,6 +357,11 @@ func (k *KdbDocService) docBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err err
 }
 
 func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (err error) {
+	k.LogInfof("删除索引中所有数据，docId %v", doc.Id)
+	err = es.DatabaseDocumentDelete(k.GetCtx(), kdb.GetIndexName(), []string{doc.SourceId})
+	if err != nil {
+		return err
+	}
 	k.LogInfof("开始获取表结构和数据，docId %v", doc.Id)
 	datasource, schemaColumns, err := k.datasourceData.GetSchemaAndValues(doc.SourceId)
 	if err != nil {

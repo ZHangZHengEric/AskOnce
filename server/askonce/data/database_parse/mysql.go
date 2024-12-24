@@ -9,6 +9,7 @@ package database_parse
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/xiangtao94/golib/pkg/zlog"
 	"gorm.io/gorm"
 )
 
@@ -59,11 +60,33 @@ func (h *MySQLHandler) GetColumns(table string) ([]ColumnInfo, error) {
 	return columns, nil
 }
 
-func (h *MySQLHandler) GetSampleData(table, column string) ([]string, error) {
-	var samples []string
-	query := fmt.Sprintf("SELECT distinct `%s` FROM `%s` where `%s` is not null and `%s` != '' LIMIT 100;", column, table, column, column)
-	err := h.DB.Raw(query).Scan(&samples).Error
-	return samples, err
+type ColumnStats struct {
+	DistinctCount int64 `gorm:"column:distinct_count"`
+	TotalCount    int64 `gorm:"column:total_count"`
+}
+
+func (h *MySQLHandler) GetSampleData(tableName, columnName string) ([]string, error) {
+
+	// 统计去重值和未去重值的数量
+	var stats ColumnStats
+	h.DB.Model(&ColumnStats{}).Raw(fmt.Sprintf("SELECT COUNT(DISTINCT %s) as distinct_count, COUNT(%s) as total_count FROM %s", columnName, columnName, tableName)).Scan(&stats)
+
+	// 判断条件
+	if stats.DistinctCount*2 >= stats.TotalCount || stats.DistinctCount >= 10000 {
+		return nil, nil
+	}
+	zlog.Infof(h.ctx, "表【%s】列【%s】符合条件，开始获取value值", tableName, columnName)
+	// 计算 Top N 的值
+	var topValues []string
+	n := 1000 // 可调整
+	h.DB.Raw(fmt.Sprintf(`
+		SELECT %s, COUNT(*) AS cnt 
+		FROM %s 
+		GROUP BY %s 
+		ORDER BY cnt DESC 
+		LIMIT ?
+	`, columnName, tableName, columnName), n).Scan(&topValues)
+	return topValues, nil
 }
 
 func (h *MySQLHandler) Close() error {
