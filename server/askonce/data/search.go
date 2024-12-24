@@ -265,20 +265,20 @@ func (entity *SearchData) DatabaseSearch(indexName string, sessionId string, que
 	sort.Slice(recalls2, func(i, j int) bool {
 		return recalls2[i].Score > recalls2[j].Score
 	})
-	dataIds := make([]int64, 0)
+	dataIds := make([]string, 0)
 	for _, rc := range recalls2 {
-		dataIds = append(dataIds, rc.DocId)
+		dataIds = append(dataIds, rc.DatasourceId)
 	}
-	docMap, datasourceMap, err := entity.GetDatasourceMap(dataIds)
+	datasources, err := entity.datasourceDao.GetByIds(dataIds)
 	if err != nil {
 		return nil, err
 	}
+	datasourceMap := map[string]*models.Datasource{}
+	for _, d := range datasources {
+		datasourceMap[d.Id] = d
+	}
 	for _, rc := range recalls2 {
-		ddd, ok := docMap[rc.DocId]
-		if !ok {
-			continue
-		}
-		datasource := datasourceMap[ddd.SourceId]
+		datasource := datasourceMap[rc.DatasourceId]
 		results = append(results, dto_search.CommonSearchOutput{
 			Content: rc.DocContent,
 			Form:    rc.Source,
@@ -286,7 +286,7 @@ func (entity *SearchData) DatabaseSearch(indexName string, sessionId string, que
 			Score:   rc.Score,
 			DatabaseInfo: &dto_search.CommonSearchDatabaseInfo{
 				DatabaseName:    datasource.DatabaseName,
-				DatabaseComment: "",
+				DatabaseComment: datasource.DatabaseComment,
 				TableName:       rc.TableName,
 				TableComment:    rc.TableComment,
 				ColumnName:      rc.ColumnName,
