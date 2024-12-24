@@ -139,7 +139,7 @@ func (f *DatasourceData) GetSchemaAndValues(datasourceId string) (datasource *mo
 	lock := sync.RWMutex{}
 	for _, schema := range schemas {
 		for _, column := range schema.ColumnInfos {
-			if column.ColumnType == "varchar" || column.ColumnType == "text" || column.ColumnType == "json" {
+			if column.ColumnType == "varchar" || column.ColumnType == "text" {
 				wg.Go(func() error {
 					datas, err := databaseHandler.GetSampleData(schema.TableName, column.ColumnName)
 					if err != nil {
