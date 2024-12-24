@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"github.com/xiangtao94/golib/flow"
 	"github.com/xiangtao94/golib/pkg/orm"
+	"github.com/xiangtao94/golib/pkg/zlog"
 	"golang.org/x/sync/errgroup"
 	"sync"
 	"time"
@@ -143,7 +144,8 @@ func (f *DatasourceData) GetSchemaAndValues(datasourceId string) (datasource *mo
 				wg.Go(func() error {
 					datas, err := databaseHandler.GetSampleData(schema.TableName, column.ColumnName)
 					if err != nil {
-						return err
+						zlog.Infof(f.GetCtx(), "表【%s】列【%s】 error: %v", schema.TableName, column.ColumnName, err)
+						return nil
 					}
 					lock.Lock()
 					tmp := make([]database_parse.ColumnValueInfo, 0, len(datas))

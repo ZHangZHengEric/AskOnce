@@ -67,28 +67,40 @@ type ColumnStats struct {
 
 func (h *MySQLHandler) GetSampleData(tableName, columnName string) ([]string, error) {
 
-	// 统计去重值和未去重值的数量
-	var stats ColumnStats
-	h.DB.Model(&ColumnStats{}).Raw(fmt.Sprintf("SELECT COUNT(DISTINCT %s) as distinct_count, COUNT(%s) as total_count FROM %s", columnName, columnName, tableName)).Scan(&stats)
+	//// 统计去重值和未去重值的数量
+	//var stats ColumnStats
+	//h.DB.Model(&ColumnStats{}).Raw(fmt.Sprintf("SELECT COUNT(DISTINCT %s) as distinct_count, COUNT(%s) as total_count FROM %s", columnName, columnName, tableName)).Scan(&stats)
 
-	// 判断条件
-	if stats.DistinctCount*2 >= stats.TotalCount || stats.DistinctCount >= 10000 {
-		return nil, nil
-	}
 	zlog.Infof(h.ctx, "表【%s】列【%s】符合条件，开始获取value值", tableName, columnName)
 	// 计算 Top N 的值
-	var topValues []string
 	n := 1000 // 可调整
-	h.DB.Raw(fmt.Sprintf(`
-		SELECT %s, COUNT(*) AS cnt 
+	type topValue struct {
+		Value string `gorm:"column:value"`
+		Cnt   int64  `gorm:"column:cnt"`
+	}
+	var topValues []topValue
+	sqlI := fmt.Sprintf(`
+		SELECT %s as value, COUNT(*) AS cnt 
 		FROM %s 
 		GROUP BY %s 
 		ORDER BY cnt DESC 
 		LIMIT ?
-	`, columnName, tableName, columnName), n).Scan(&topValues)
-	return topValues, nil
+	`, wrapColumnName(columnName), tableName, wrapColumnName(columnName))
+	err := h.DB.Model(topValue{}).Raw(sqlI, n).Scan(&topValues).Error
+	if err != nil {
+		return nil, err
+	}
+	topValuestr := []string{}
+	for _, t := range topValues {
+		if t.Value != "" {
+			topValuestr = append(topValuestr, t.Value)
+		}
+	}
+	return topValuestr, nil
 }
-
+func wrapColumnName(columnName string) string {
+	return fmt.Sprintf("`%s`", columnName)
+}
 func (h *MySQLHandler) Close() error {
 	return nil
 }
