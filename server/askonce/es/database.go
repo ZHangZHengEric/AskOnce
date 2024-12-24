@@ -20,6 +20,7 @@ import (
 
 type DatabaseDocument struct {
 	DocDocument
+	DatasourceId  string `json:"datasource_id"`
 	DatabaseName  string `json:"database_name,omitempty"`
 	TableName     string `json:"table_name,omitempty"`
 	TableComment  string `json:"table_comment,omitempty"`
@@ -98,13 +99,29 @@ func DatabaseIndexDelete(ctx *gin.Context, indexName string) (err error) {
 	}
 	return nil
 }
-func DatabaseDocumentDelete(ctx *gin.Context, indexName string, docIds []int64) (err error) {
+
+func DatabaseDocumentDelete(ctx *gin.Context, indexName string, datasourceIds []string) (err error) {
 	for _, v := range indexSuffix {
 		indexNameNew := fmt.Sprintf("%s_%s", indexName, v)
-		err = CommonDocumentDelete(ctx, indexNameNew, docIds)
+		exist, err := helpers.EsClient.CheckIndex(ctx, indexNameNew)
+		if err != nil {
+			return err
+		}
+		if !exist {
+			continue
+		}
+		query := &types.Query{
+			Terms: &types.TermsQuery{
+				TermsQuery: map[string]types.TermsQueryField{
+					"datasource_id": datasourceIds, // 批量值
+				},
+			},
+		}
+		err = helpers.EsClient.DocumentDelete(ctx, indexNameNew, query)
 		if err != nil {
 			zlog.Errorf(ctx, "delete index %s failed: %v", indexName, err)
 		}
+		return nil
 	}
 	return nil
 }

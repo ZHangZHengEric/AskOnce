@@ -366,40 +366,43 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 	tables := make([]*es.DatabaseDocument, 0)
 	tableColumns := make([]*es.DatabaseDocument, 0)
 	tableColumnValues := make([]*es.DatabaseDocument, 0)
-	for _, table := range schemaColumns {
+	for i, table := range schemaColumns {
 		tables = append(tables, &es.DatabaseDocument{
 			DocDocument: es.DocDocument{
 				CommonDocument: es.CommonDocument{
-					DocId:      doc.Id,
+					DocId:      int64(i + 1),
 					DocContent: table.FormatTableInfo(), // 处理文字
 				},
 			},
+			DatasourceId: doc.SourceId,
 			DatabaseName: datasource.DatabaseName,
 			TableName:    table.TableName,
 			TableComment: table.TableComment,
 		})
-		for _, column := range table.ColumnInfos {
+		for j, column := range table.ColumnInfos {
 			tableColumns = append(tableColumns, &es.DatabaseDocument{
 				DocDocument: es.DocDocument{
 					CommonDocument: es.CommonDocument{
-						DocId:      doc.Id,
+						DocId:      int64(j + 1),
 						DocContent: column.FormatColumnInfo(), // 处理文字
 					},
 				},
+				DatasourceId:  doc.SourceId,
 				DatabaseName:  datasource.DatabaseName,
 				TableName:     table.TableName,
 				ColumnName:    column.ColumnName,
 				ColumnComment: column.ColumnComment,
 				ColumnType:    column.ColumnType,
 			})
-			for _, v := range column.ColumnValues {
+			for ki, v := range column.ColumnValues {
 				tableColumnValues = append(tableColumnValues, &es.DatabaseDocument{
 					DocDocument: es.DocDocument{
 						CommonDocument: es.CommonDocument{
-							DocId:      doc.Id,
+							DocId:      int64(ki + 1),
 							DocContent: v.FormatValueInfo(),
 						},
 					},
+					DatasourceId: doc.SourceId,
 					DatabaseName: datasource.DatabaseName,
 					TableName:    table.TableName,
 					ColumnName:   column.ColumnName,

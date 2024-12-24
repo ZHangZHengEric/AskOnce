@@ -95,7 +95,7 @@ func (k *KdbDocData) DeleteDocs(kdb *models.Kdb, docIds []int64, deleteAll bool)
 		return err
 	}
 	if kdb.DataType == models.DataTypeDB {
-		err = es.DatabaseDocumentDelete(k.GetCtx(), kdb.GetIndexName(), docSuccessIds)
+		err = es.DatabaseDocumentDelete(k.GetCtx(), kdb.GetIndexName(), datasourceIds)
 	} else if kdb.DataType == models.DataTypeDoc {
 		err = es.CommonDocumentDelete(k.GetCtx(), kdb.GetIndexName(), docSuccessIds)
 	}
