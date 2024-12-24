@@ -96,6 +96,7 @@ func (h *MySQLHandler) GetSampleData(tableName, columnName string) ([]string, er
 			topValuestr = append(topValuestr, t.Value)
 		}
 	}
+	zlog.Infof(h.ctx, "表【%s】列【%s】符合条件，获取value值完成，数量【%v】", tableName, columnName, len(topValuestr))
 	return topValuestr, nil
 }
 func wrapColumnName(columnName string) string {
