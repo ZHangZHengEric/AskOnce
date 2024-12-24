@@ -253,6 +253,11 @@ func (k *KdbData) DeleteKdb(userId string, kdb *models.Kdb) (err error) {
 		tx.Rollback()
 		return
 	}
+	if kdb.DataType == models.DataTypeDB {
+		err = es.DatabaseIndexDelete(k.GetCtx(), kdb.GetIndexName())
+	} else if kdb.DataType == models.DataTypeDoc {
+		err = es.DocIndexDelete(k.GetCtx(), kdb.GetIndexName())
+	}
 	err = tx.Commit().Error
 	return
 }

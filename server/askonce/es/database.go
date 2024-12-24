@@ -13,57 +13,34 @@ import (
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/xiangtao94/golib/pkg/env"
+	"github.com/xiangtao94/golib/pkg/zlog"
 	"os"
 	"path/filepath"
 )
 
-type TableDocument struct {
-	DocDocument         // 索引列 内容是 TableName + TableComment +  TableSchema
-	DatabaseName string `json:"database_name"`
-	TableName    string `json:"table_name"`
-	TableComment string `json:"table_comment"`
+type DatabaseDocument struct {
+	DocDocument
+	DatabaseName  string `json:"database_name,omitempty"`
+	TableName     string `json:"table_name,omitempty"`
+	TableComment  string `json:"table_comment,omitempty"`
+	ColumnName    string `json:"column_name,omitempty"`
+	ColumnComment string `json:"column_comment,omitempty"`
+	ColumnType    string `json:"column_type,omitempty"`
+	Sql           string `json:"sql,omitempty"`
 }
 
-func (cd *TableDocument) ConvertAny() any {
+func (cd *DatabaseDocument) ConvertAny() any {
 	return cd
 }
 
-type TableColumnDocument struct {
-	DocDocument          // 索引列 内容是 ColumnName + ColumnComment +  ColumnType
-	DatabaseName  string `json:"database_name"`
-	TableName     string `json:"table_name"`
-	ColumnName    string `json:"column_name"`
-	ColumnComment string `json:"column_comment"`
-	ColumnType    string `json:"column_type"`
-}
+const (
+	IndexSuffixTable       = "table"
+	IndexSuffixColumn      = "column"
+	IndexSuffixColumnValue = "column_value"
+	IndexSuffixFaq         = "faq"
+)
 
-func (cd *TableColumnDocument) ConvertAny() any {
-	return cd
-}
-
-type TableColumnValueDocument struct {
-	DocDocument         // 索引列 内容是 值
-	DatabaseName string `json:"database_name"`
-	TableName    string `json:"table_name"`
-	ColumnName   string `json:"column_name"`
-}
-
-func (cd *TableColumnValueDocument) ConvertAny() any {
-	return cd
-}
-
-type DatabaseFaqDocument struct {
-	DocDocument //  索引列 内容是 faq
-
-	DatabaseName string `json:"database_name"`
-	SqlKey       string `json:"sql_key"`
-}
-
-func (cd *DatabaseFaqDocument) ConvertAny() any {
-	return cd
-}
-
-var indexSuffix = []string{"table", "column", "column_value", "faq"}
+var indexSuffix = []string{IndexSuffixTable, IndexSuffixColumn, IndexSuffixColumnValue, IndexSuffixFaq}
 
 func DatabaseIndexCreate(ctx *gin.Context, indexName string) (err error) {
 	envPath := filepath.Join(env.GetConfDirPath(), "mount/es")
@@ -116,28 +93,38 @@ func DatabaseIndexDelete(ctx *gin.Context, indexName string) (err error) {
 		indexNameNew := fmt.Sprintf("%s_%s", indexName, v)
 		err = helpers.EsClient.DeleteIndex(ctx, indexNameNew)
 		if err != nil {
-			return err
+			zlog.Errorf(ctx, "delete index %s failed: %v", indexName, err)
+		}
+	}
+	return nil
+}
+func DatabaseDocumentDelete(ctx *gin.Context, indexName string, docIds []int64) (err error) {
+	for _, v := range indexSuffix {
+		indexNameNew := fmt.Sprintf("%s_%s", indexName, v)
+		err = CommonDocumentDelete(ctx, indexNameNew, docIds)
+		if err != nil {
+			zlog.Errorf(ctx, "delete index %s failed: %v", indexName, err)
 		}
 	}
 	return nil
 }
 
 func DatabaseDocumentInsert(ctx *gin.Context, indexName string,
-	tables []*TableDocument,
-	columns []*TableColumnDocument,
-	columnValues []*TableColumnValueDocument,
-	faqs []*DatabaseFaqDocument,
+	tables []*DatabaseDocument,
+	columns []*DatabaseDocument,
+	columnValues []*DatabaseDocument,
+	faqs []*DatabaseDocument,
 ) (err error) {
-	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, "table"), tables); err != nil {
+	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, IndexSuffixTable), tables); err != nil {
 		return err
 	}
-	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, "column"), columns); err != nil {
+	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, IndexSuffixColumn), columns); err != nil {
 		return err
 	}
-	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, "column_value"), columnValues); err != nil {
+	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, IndexSuffixColumnValue), columnValues); err != nil {
 		return err
 	}
-	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, "faq"), faqs); err != nil {
+	if err := CommonBatchInsert(ctx, fmt.Sprintf("%s_%s", indexName, IndexSuffixFaq), faqs); err != nil {
 		return err
 	}
 	return

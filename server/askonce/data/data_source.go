@@ -50,16 +50,17 @@ func (f *DatasourceData) Add(userId string, info dto_kdb_doc.ImportDataBase) (ad
 	schemaJson, _ := json.Marshal(schema)
 
 	add = &models.Datasource{
-		Id:           helpers.GenIDStr(),
-		Type:         info.DbType,
-		Host:         info.DbHost,
-		Port:         info.DbPort,
-		Username:     info.DbUser,
-		Password:     info.DbPwd,
-		DatabaseName: info.DbName,
-		JdbcParam:    "",
-		Schema:       schemaJson,
-		UserId:       userId,
+		Id:              helpers.GenIDStr(),
+		Type:            info.DbType,
+		Host:            info.DbHost,
+		Port:            info.DbPort,
+		Username:        info.DbUser,
+		Password:        info.DbPwd,
+		DatabaseName:    info.DbName,
+		DatabaseComment: info.DbComment,
+		JdbcParam:       "",
+		Schema:          schemaJson,
+		UserId:          userId,
 		CrudModel: orm.CrudModel{
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),

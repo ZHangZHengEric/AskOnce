@@ -32,6 +32,7 @@ type CommonSearchDatabaseInfo struct {
 	ColumnName      string `json:"columnName"`
 	ColumnType      string `json:"columnType"`
 	ColumnComment   string `json:"columnComment"`
+	Sql             string `json:"sql"`
 }
 
 type DoReferItem struct {

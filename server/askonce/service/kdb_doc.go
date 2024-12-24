@@ -363,11 +363,11 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 		return err
 	}
 	// 转换成需要存的document
-	tables := make([]*es.TableDocument, 0)
-	tableColumns := make([]*es.TableColumnDocument, 0)
-	tableColumnValues := make([]*es.TableColumnValueDocument, 0)
+	tables := make([]*es.DatabaseDocument, 0)
+	tableColumns := make([]*es.DatabaseDocument, 0)
+	tableColumnValues := make([]*es.DatabaseDocument, 0)
 	for _, table := range schemaColumns {
-		tables = append(tables, &es.TableDocument{
+		tables = append(tables, &es.DatabaseDocument{
 			DocDocument: es.DocDocument{
 				CommonDocument: es.CommonDocument{
 					DocId:      doc.Id,
@@ -379,7 +379,7 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 			TableComment: table.TableComment,
 		})
 		for _, column := range table.ColumnInfos {
-			tableColumns = append(tableColumns, &es.TableColumnDocument{
+			tableColumns = append(tableColumns, &es.DatabaseDocument{
 				DocDocument: es.DocDocument{
 					CommonDocument: es.CommonDocument{
 						DocId:      doc.Id,
@@ -393,7 +393,7 @@ func (k *KdbDocService) databaseBuildDo(kdb *models.Kdb, doc *models.KdbDoc) (er
 				ColumnType:    column.ColumnType,
 			})
 			for _, v := range column.ColumnValues {
-				tableColumnValues = append(tableColumnValues, &es.TableColumnValueDocument{
+				tableColumnValues = append(tableColumnValues, &es.DatabaseDocument{
 					DocDocument: es.DocDocument{
 						CommonDocument: es.CommonDocument{
 							DocId:      doc.Id,

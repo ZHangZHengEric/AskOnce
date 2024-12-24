@@ -12,6 +12,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/gin-gonic/gin"
 	"github.com/xiangtao94/golib/pkg/env"
+	"github.com/xiangtao94/golib/pkg/zlog"
 	"os"
 	"path/filepath"
 )
@@ -59,7 +60,7 @@ func DocIndexCreate(ctx *gin.Context, indexName string) (err error) {
 func DocIndexDelete(ctx *gin.Context, indexName string) (err error) {
 	err = helpers.EsClient.DeleteIndex(ctx, indexName)
 	if err != nil {
-		return
+		zlog.Errorf(ctx, "delete index %s failed: %v", indexName, err)
 	}
 	return nil
 }

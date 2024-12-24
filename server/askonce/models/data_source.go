@@ -18,16 +18,17 @@ import (
 
 // Datasource represents the data source configuration in the system.
 type Datasource struct {
-	Id           string         `gorm:"id;primaryKey;comment:主键id"`
-	Type         string         `gorm:"type:varchar(52);not null;column:type" json:"type"`                            // 数据源类型
-	Host         string         `gorm:"type:varchar(255);not null;column:host" json:"host"`                           // 数据库地址
-	Port         int            `gorm:"not null;column:port" json:"port"`                                             // 数据库端口
-	Username     string         `gorm:"type:varchar(255);not null;column:username" json:"username"`                   // 数据库用户名
-	Password     string         `gorm:"type:varchar(255);not null;column:password" json:"password"`                   // 数据库密码
-	DatabaseName string         `gorm:"type:varchar(255);not null;column:database_name" json:"database_name"`         // 数据库名称
-	JdbcParam    string         `gorm:"type:varchar(500);default:null;column:jdbc_param" json:"jdbc_param,omitempty"` // JDBC 连接字符串（可选）
-	UserId       string         `gorm:"type:varchar(128);default:'';column:user_id" json:"user_id"`                   // 用户ID
-	Schema       datatypes.JSON `gorm:"type:json;;column:schema" json:"schema"`                                       // 结构
+	Id              string         `gorm:"id;primaryKey;comment:主键id"`
+	Type            string         `gorm:"type:varchar(52);not null;column:type" json:"type"`                            // 数据源类型
+	Host            string         `gorm:"type:varchar(255);not null;column:host" json:"host"`                           // 数据库地址
+	Port            int            `gorm:"not null;column:port" json:"port"`                                             // 数据库端口
+	Username        string         `gorm:"type:varchar(255);not null;column:username" json:"username"`                   // 数据库用户名
+	Password        string         `gorm:"type:varchar(255);not null;column:password" json:"password"`                   // 数据库密码
+	DatabaseName    string         `gorm:"type:varchar(255);not null;column:database_name" json:"database_name"`         // 数据库名称
+	DatabaseComment string         `gorm:"type:varchar(2048);not null;column:database_comment" json:"database_comment"`  // 数据库备注
+	JdbcParam       string         `gorm:"type:varchar(500);default:null;column:jdbc_param" json:"jdbc_param,omitempty"` // JDBC 连接字符串（可选）
+	UserId          string         `gorm:"type:varchar(128);default:'';column:user_id" json:"user_id"`                   // 用户ID
+	Schema          datatypes.JSON `gorm:"type:json;;column:schema" json:"schema"`                                       // 结构
 	orm.CrudModel
 }
 
